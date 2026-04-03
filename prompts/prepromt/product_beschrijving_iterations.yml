@@ -1,0 +1,21 @@
+agent: product_beschrijving_agent
+last_updated: "2026-04-03"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-03"
+    author: "copilot-agent"
+    change: "Initiële versie"
+    metrics:
+      seo_score_gemiddeld: null
+      conversie_verbetering: null
+      handmatige_aanpassingen_percentage: null
+    notes: "Basis pre-prompt. Test met verschillende productcategorieën."
+    status: actief
+
+# Iteratie-strategie voor product-beschrijvingen:
+# 1. Test per productcategorie afzonderlijk
+# 2. Vergelijk SEO-scores voor en na
+# 3. Track of teksten handmatig worden aangepast (hoog % = slechte kwaliteit)
+# 4. A/B-test verschillende tone-of-voice stijlen
+# 5. Optimaliseer voor conversie, niet alleen SEO

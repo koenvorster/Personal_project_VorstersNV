@@ -1,0 +1,74 @@
+name: CI – Testen & Linting
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Tests uitvoeren
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Python instellen
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Afhankelijkheden installeren
+        run: pip install -r requirements.txt
+
+      - name: Linting (ruff)
+        run: ruff check .
+
+      - name: Type-controle (mypy)
+        run: mypy ollama/ webhooks/ --ignore-missing-imports
+
+      - name: Testen uitvoeren
+        run: pytest tests/ -v --tb=short
+
+      - name: Testdekking uploaden
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+
+  validate-agents:
+    name: Agent-configuraties valideren
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Python instellen
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: PyYAML installeren
+        run: pip install pyyaml
+
+      - name: YAML-bestanden valideren
+        run: |
+          python -c "
+          import yaml, glob, sys
+          errors = []
+          for f in glob.glob('agents/*.yml') + glob.glob('plan/*.yml') + glob.glob('prompts/prepromt/*.yml'):
+              try:
+                  yaml.safe_load(open(f).read())
+                  print(f'OK: {f}')
+              except yaml.YAMLError as e:
+                  errors.append(f'FOUT in {f}: {e}')
+                  print(f'FOUT: {f}')
+          if errors:
+              print('\n--- YAML FOUTEN ---')
+              for e in errors: print(e)
+              sys.exit(1)
+          print('\nAlle YAML-bestanden zijn geldig!')
+          "

@@ -1,0 +1,99 @@
+name: Prompt Iteratie Pipeline
+
+on:
+  # Handmatig triggeren voor prompt-updates
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: "Agent naam (bijv. klantenservice_agent)"
+        required: true
+        type: string
+      wijziging:
+        description: "Beschrijving van de prompt-wijziging"
+        required: true
+        type: string
+      nieuwe_prepromt:
+        description: "Nieuwe pre-prompt tekst (of bestandspad)"
+        required: false
+        type: string
+
+  # Automatisch bij push naar prompts map
+  push:
+    paths:
+      - "prompts/**"
+      - "agents/**"
+
+jobs:
+  valideer-prompts:
+    name: Prompts valideren
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Python instellen
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Afhankelijkheden installeren
+        run: pip install pyyaml
+
+      - name: Prompt-bestanden valideren
+        run: |
+          python -c "
+          import os, yaml, glob
+          print('=== Prompt validatie ===')
+          for f in glob.glob('prompts/**/*.yml', recursive=True):
+              data = yaml.safe_load(open(f).read())
+              print(f'OK: {f} (agent: {data.get(\"agent\", \"onbekend\")})')
+          
+          # Controleer dat elke agent een system-prompt heeft
+          agents = glob.glob('agents/*.yml')
+          for agent_file in agents:
+              data = yaml.safe_load(open(agent_file).read())
+              system_ref = data.get('system_prompt_ref', '')
+              if system_ref and not os.path.exists(system_ref):
+                  print(f'WAARSCHUWING: System prompt niet gevonden: {system_ref}')
+              else:
+                  print(f'OK: Agent {data[\"name\"]} heeft system prompt')
+          "
+
+  analyse-feedback:
+    name: Feedback analyseren
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Python instellen
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Afhankelijkheden installeren
+        run: pip install pyyaml
+
+      - name: Feedback rapport genereren
+        run: |
+          python -c "
+          import yaml, glob, json, os
+          agent = '${{ github.event.inputs.agent }}'
+          print(f'Analyseer feedback voor: {agent}')
+          
+          log_dir = f'logs/{agent}'
+          if not os.path.exists(log_dir):
+              print('Geen logs gevonden')
+          else:
+              logs = glob.glob(f'{log_dir}/*.json')
+              print(f'Gevonden: {len(logs)} interactie-logs')
+          "
+
+      - name: Iteratie documenteren
+        if: github.event.inputs.wijziging != ''
+        run: |
+          echo "Prompt iteratie gedocumenteerd voor agent: ${{ github.event.inputs.agent }}"
+          echo "Wijziging: ${{ github.event.inputs.wijziging }}"

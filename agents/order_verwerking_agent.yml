@@ -1,0 +1,47 @@
+name: order_verwerking_agent
+version: "1.0"
+description: "AI-agent voor geautomatiseerde orderverwerking en communicatie"
+model: llama3
+temperature: 0.1
+max_tokens: 512
+language: nl
+
+system_prompt_ref: "prompts/system/order_verwerking.txt"
+prepromt_ref: "prompts/prepromt/order_verwerking_v1.txt"
+
+capabilities:
+  - valideer_order
+  - stuur_bevestiging
+  - verwerk_retour
+  - genereer_factuur
+  - update_voorraad
+
+triggers:
+  - event: order.created
+    webhook: "/webhooks/order-created"
+  - event: order.paid
+    webhook: "/webhooks/order-paid"
+  - event: order.shipped
+    webhook: "/webhooks/order-shipped"
+  - event: order.returned
+    webhook: "/webhooks/order-returned"
+
+tools:
+  - name: update_order_status
+    endpoint: "/api/orders/{order_id}/status"
+  - name: verstuur_notificatie
+    endpoint: "/api/notifications/send"
+  - name: genereer_factuur
+    endpoint: "/api/invoices/generate"
+  - name: update_voorraad
+    endpoint: "/api/inventory/update"
+
+evaluation:
+  metrics:
+    - verwerkingstijd_seconden
+    - foutpercentage
+    - klantnotificatie_succes
+  feedback_loop: false
+  log_dir: "logs/order_verwerking"
+
+iteration_log: "prompts/prepromt/order_verwerking_iterations.yml"

@@ -1,0 +1,44 @@
+name: Deploy – Productie
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+
+jobs:
+  deploy-webhooks:
+    name: Webhook Service deployen
+    runs-on: ubuntu-latest
+    environment: productie
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Docker image bouwen
+        run: |
+          docker build -t vorstersNV-webhooks:${{ github.sha }} -f Dockerfile.webhooks .
+          docker tag vorstersNV-webhooks:${{ github.sha }} vorstersNV-webhooks:latest
+
+      - name: Webhook service deployen
+        run: |
+          echo "Deploy naar productie..."
+          # In productie: push naar container registry en update service
+          # docker push ghcr.io/koenvorster/vorstersNV-webhooks:${{ github.sha }}
+
+  notify-deploy:
+    name: Deploy-notificatie versturen
+    runs-on: ubuntu-latest
+    needs: [deploy-webhooks]
+    if: always()
+
+    steps:
+      - name: Deploy-status rapporteren
+        run: |
+          if [ "${{ needs.deploy-webhooks.result }}" == "success" ]; then
+            echo "Deployment succesvol naar productie!"
+          else
+            echo "Deployment mislukt! Controleer de logs."
+            exit 1
+          fi

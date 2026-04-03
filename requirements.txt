@@ -1,0 +1,31 @@
+# VorstersNV – Python afhankelijkheden
+
+# Web framework & ASGI server
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+httpx==0.28.1
+
+# Data validatie
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# YAML verwerking
+pyyaml==6.0.2
+
+# Database
+sqlalchemy==2.0.36
+asyncpg==0.30.0
+alembic==1.14.0
+
+# Cache
+redis==5.2.1
+
+# Testen
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+httpx  # al hierboven
+
+# Code kwaliteit
+ruff==0.8.6
+mypy==1.14.0

@@ -1,0 +1,90 @@
+services:
+  # Lokale Ollama AI
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vorstersNV-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Modellen downloaden bij opstart
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: vorstersNV-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: >
+      sh -c "
+        ollama pull llama3 &&
+        ollama pull mistral &&
+        echo 'Modellen klaar!'
+      "
+    restart: "no"
+
+  # Webhook service
+  webhooks:
+    build:
+      context: .
+      dockerfile: Dockerfile.webhooks
+    container_name: vorstersNV-webhooks
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_DEFAULT_MODEL=llama3
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-dev-secret-change-me}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+      - ./prompts:/app/prompts:ro
+      - ./agents:/app/agents:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database (PostgreSQL)
+  database:
+    image: postgres:16-alpine
+    container_name: vorstersNV-db
+    environment:
+      - POSTGRES_DB=vorstersNV
+      - POSTGRES_USER=vorstersNV
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-dev-password-change-me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Cache (Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: vorstersNV-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  postgres_data:
+  redis_data:
