@@ -1,0 +1,150 @@
+"""Tests voor de webhook FastAPI applicatie."""
+import json
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from webhooks.app import app
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
+        yield c
+
+
+class TestHealthEndpoint:
+    async def test_health_check(self, client):
+        response = await client.get("/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert "timestamp" in data
+
+
+class TestOrderWebhooks:
+    async def test_order_created_valid_payload(self, client):
+        payload = {
+            "order_id": "ORD-001",
+            "customer": {"email": "test@voorbeeld.nl", "name": "Jan Jansen"},
+            "items": [{"product_id": "P1", "qty": 2}],
+            "total": 49.99,
+        }
+        response = await client.post(
+            "/webhooks/order-created",
+            json=payload,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "verwerkt"
+        assert data["order_id"] == "ORD-001"
+
+    async def test_order_created_invalid_json(self, client):
+        response = await client.post(
+            "/webhooks/order-created",
+            content=b"dit is geen json",
+            headers={"content-type": "application/json"},
+        )
+        assert response.status_code == 400
+
+    async def test_order_shipped_returns_tracking(self, client):
+        payload = {
+            "order_id": "ORD-002",
+            "tracking_code": "NL123456789",
+            "carrier": "PostNL",
+        }
+        response = await client.post("/webhooks/order-shipped", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["tracking_code"] == "NL123456789"
+
+    async def test_order_returned_valid(self, client):
+        payload = {
+            "order_id": "ORD-003",
+            "return_reason": "Verkeerde maat",
+            "items": ["ITEM-1"],
+        }
+        response = await client.post("/webhooks/order-returned", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "verwerkt"
+
+
+class TestPaymentWebhooks:
+    async def test_order_paid_valid(self, client):
+        payload = {
+            "order_id": "ORD-004",
+            "payment_id": "PAY-XYZ",
+            "amount": 99.95,
+            "method": "ideal",
+        }
+        response = await client.post("/webhooks/order-paid", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "verwerkt"
+        assert data["payment_id"] == "PAY-XYZ"
+
+
+class TestInventoryWebhooks:
+    async def test_stock_low_valid(self, client):
+        payload = {
+            "product_id": "PROD-100",
+            "product_name": "Test Product",
+            "current_stock": 3,
+            "threshold": 5,
+        }
+        response = await client.post("/webhooks/stock-low", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "verwerkt"
+
+
+class TestAgentFeedbackWebhook:
+    async def test_agent_feedback_valid(self, client):
+        payload = {
+            "agent": "klantenservice_agent",
+            "rating": 4,
+            "feedback": "Goed antwoord, maar kon specifieker",
+            "prompt_version": "1.0",
+        }
+        response = await client.post("/webhooks/agent-feedback", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ontvangen"
+        assert data["entry"]["agent"] == "klantenservice_agent"
+        assert data["entry"]["rating"] == 4
+
+
+class TestWebhookSignatureVerification:
+    def test_invalid_signature_returns_401(self):
+        import hmac
+        import hashlib
+        from webhooks.app import verify_signature
+
+        payload = b'{"test": "data"}'
+        wrong_sig = "sha256=incorrecte_handtekening"
+        assert not verify_signature(payload, wrong_sig, "geheim")
+
+    def test_valid_signature_passes(self):
+        import hmac
+        import hashlib
+        from webhooks.app import verify_signature
+
+        secret = "test_geheim"
+        payload = b'{"order_id": "123"}'
+        expected = "sha256=" + hmac.new(
+            secret.encode(), payload, hashlib.sha256
+        ).hexdigest()
+        assert verify_signature(payload, expected, secret)
+
+    def test_no_secret_always_passes(self):
+        from webhooks.app import verify_signature
+        assert verify_signature(b"data", "some_sig", "")

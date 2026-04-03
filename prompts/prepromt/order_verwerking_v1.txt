@@ -1,0 +1,21 @@
+version: "1"
+agent: order_verwerking_agent
+created: "2026-04-03"
+
+prepromt: |
+  Verwerk het volgende order-event voor VorstersNV.
+  
+  Event: {event_type}
+  Order-ID: {order_id}
+  Klant: {klant_naam} ({klant_email})
+  
+  Orderdetails:
+  {order_details}
+  
+  Vorige status: {vorige_status}
+  Nieuwe status: {nieuwe_status}
+  
+  Genereer de juiste klantcommunicatie voor dit event.
+  Gebruik de {event_type} template en pas de inhoud aan op de specifieke order.
+
+evaluation_notes: "Basis versie"

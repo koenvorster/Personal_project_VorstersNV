@@ -1,0 +1,44 @@
+name: klantenservice_agent
+version: "1.0"
+description: "AI-agent voor klantenservice vragen bij VorstersNV webshop"
+model: llama3
+temperature: 0.3
+max_tokens: 1024
+language: nl
+
+system_prompt_ref: "prompts/system/klantenservice.txt"
+prepromt_ref: "prompts/prepromt/klantenservice_v1.txt"
+
+capabilities:
+  - beantwoord_vragen
+  - order_status_opvragen
+  - retour_afhandeling
+  - product_informatie
+  - escalatie_naar_mens
+
+tools:
+  - name: zoek_order
+    description: "Zoek een order op basis van ordernummer of klantnaam"
+    endpoint: "/api/orders/search"
+  - name: product_info
+    description: "Haal productinformatie op uit de webshop"
+    endpoint: "/api/products/{product_id}"
+  - name: stuur_email
+    description: "Stuur een bevestigingsmail naar de klant"
+    endpoint: "/api/notifications/email"
+
+response_format:
+  greeting: true
+  empathy: true
+  action_steps: true
+  closing: true
+
+evaluation:
+  metrics:
+    - klanttevredenheid_score
+    - oplossingstijd_seconden
+    - escalatie_percentage
+  feedback_loop: true
+  log_dir: "logs/klantenservice"
+
+iteration_log: "prompts/prepromt/klantenservice_iterations.yml"

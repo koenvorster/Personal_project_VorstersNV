@@ -1,0 +1,43 @@
+name: product_beschrijving_agent
+version: "1.0"
+description: "AI-agent voor het genereren van professionele productbeschrijvingen"
+model: mistral
+temperature: 0.7
+max_tokens: 2048
+language: nl
+
+system_prompt_ref: "prompts/system/product_beschrijving.txt"
+prepromt_ref: "prompts/prepromt/product_beschrijving_v1.txt"
+
+capabilities:
+  - genereer_productbeschrijving
+  - genereer_seo_tekst
+  - vertaal_beschrijving
+  - pas_tone_of_voice_aan
+
+input_schema:
+  product_naam: string
+  categorie: string
+  kenmerken: list
+  doelgroep: string
+  tone_of_voice:
+    type: enum
+    values: [professioneel, vriendelijk, luxe, technisch]
+
+output_schema:
+  titel: string
+  korte_beschrijving: string
+  lange_beschrijving: string
+  seo_meta_title: string
+  seo_meta_description: string
+  tags: list
+
+evaluation:
+  metrics:
+    - seo_score
+    - leesbaarheid_score
+    - conversie_percentage
+  feedback_loop: true
+  log_dir: "logs/product_beschrijving"
+
+iteration_log: "prompts/prepromt/product_beschrijving_iterations.yml"

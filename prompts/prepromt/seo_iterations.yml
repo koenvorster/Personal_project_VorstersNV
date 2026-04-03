@@ -1,0 +1,8 @@
+agent: seo_agent
+last_updated: "2026-04-03"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-03"
+    change: "Initiële versie"
+    status: actief

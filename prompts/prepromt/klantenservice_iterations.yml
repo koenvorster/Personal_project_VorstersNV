@@ -1,0 +1,27 @@
+agent: klantenservice_agent
+last_updated: "2026-04-03"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-03"
+    author: "copilot-agent"
+    change: "Initiële versie"
+    metrics:
+      klanttevredenheid: null
+      oplossingstijd: null
+      escalatie_percentage: null
+    notes: "Basis pre-prompt aangemaakt. Nog te testen met echte klantinteracties."
+    status: actief
+
+# Richtlijnen voor pre-prompt iteratie:
+# 1. Test de huidige versie minimaal 50 interacties voordat je itereert
+# 2. Analyseer mislukte of geëscaleerde gesprekken
+# 3. Voeg edge-case instructies toe op basis van echte problemen
+# 4. Meet altijd de impact van elke wijziging
+# 5. Bewaar alle versies voor terugvallen
+#
+# Veelvoorkomende verbetermogelijkheden:
+# - Specifiekere instructies voor retourprocedures
+# - Betere afhandeling van boze klanten
+# - Meer context over specifieke productcategorieën
+# - Integratie van actuele promoties en kortingen
