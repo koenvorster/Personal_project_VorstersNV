@@ -1,9 +1,9 @@
-mode: plan
-description: "Huidige project-mode voor VorstersNV"
 available_modes:
-  - plan
-  - build
-  - review
-updated_at: "2026-04-03"
-updated_by: "copilot-agent"
-notes: "Wissel van mode via: python scripts/set_mode.py --mode <mode>"
+- plan
+- build
+- review
+description: Huidige project-mode voor VorstersNV
+mode: build
+notes: 'Wissel van mode via: python scripts/set_mode.py --mode <mode>'
+updated_at: '2026-04-03'
+updated_by: gebruiker

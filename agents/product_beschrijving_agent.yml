@@ -1,5 +1,5 @@
 name: product_beschrijving_agent
-version: "1.0"
+version: "1.1"
 description: "AI-agent voor het genereren van professionele productbeschrijvingen"
 model: mistral
 temperature: 0.7
@@ -14,12 +14,18 @@ capabilities:
   - genereer_seo_tekst
   - vertaal_beschrijving
   - pas_tone_of_voice_aan
+  - schrijf_usp_lijst
+  - genereer_faq_sectie
+  - herschrijf_bestaande_beschrijving
 
 input_schema:
   product_naam: string
   categorie: string
   kenmerken: list
   doelgroep: string
+  prijsklasse:
+    type: enum
+    values: [budget, midden, premium, luxe]
   tone_of_voice:
     type: enum
     values: [professioneel, vriendelijk, luxe, technisch]
@@ -28,6 +34,8 @@ output_schema:
   titel: string
   korte_beschrijving: string
   lange_beschrijving: string
+  usp_lijst: list
+  faq: list
   seo_meta_title: string
   seo_meta_description: string
   tags: list

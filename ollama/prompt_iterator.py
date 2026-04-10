@@ -4,7 +4,7 @@ Beheert prompt-versies en feedback voor continue verbetering van agents.
 """
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -58,7 +58,7 @@ class PromptIterator:
         Returns:
             De ID van de opgeslagen interactie
         """
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         interaction_id = f"{self.agent_name}_{timestamp.replace(':', '-')}"
 
         entry = {
@@ -103,7 +103,7 @@ class PromptIterator:
         entry["feedback"] = {
             "rating": rating,
             "notes": notes,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         log_file.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
         return True
@@ -195,7 +195,7 @@ class PromptIterator:
         # Voeg nieuwe versie toe
         data["iterations"].append({
             "version": new_version,
-            "date": datetime.utcnow().strftime("%Y-%m-%d"),
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "author": author,
             "change": change_description,
             "prepromt_file": str(prepromt_file.relative_to(PROMPTS_DIR.parent)),

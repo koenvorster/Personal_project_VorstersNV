@@ -1,13 +1,24 @@
 name: klantenservice_agent
-version: "1.0"
+version: "1.1"
 description: "AI-agent voor klantenservice vragen bij VorstersNV webshop"
 model: llama3
-temperature: 0.3
+temperature: 0.4
 max_tokens: 1024
 language: nl
 
 system_prompt_ref: "prompts/system/klantenservice.txt"
 prepromt_ref: "prompts/prepromt/klantenservice_v1.txt"
+
+sub_agents:
+  - name: retour_verwerking_agent
+    trigger: retour_aanvraag
+    description: "Delegeer retouraanvragen voor gedetailleerde verwerking"
+  - name: email_template_agent
+    trigger: email_versturen
+    description: "Genereer professionele klantcommunicatie"
+  - name: fraude_detectie_agent
+    trigger: verdacht_gedrag
+    description: "Controleer verdachte klantmeldingen of orders"
 
 capabilities:
   - beantwoord_vragen
@@ -15,6 +26,9 @@ capabilities:
   - retour_afhandeling
   - product_informatie
   - escalatie_naar_mens
+  - sentiment_analyse
+  - klant_profiel_opbouwen
+  - prioriteit_bepalen
 
 tools:
   - name: zoek_order

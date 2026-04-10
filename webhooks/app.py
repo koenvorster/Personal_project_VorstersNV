@@ -9,7 +9,7 @@ import hmac
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from .handlers import order_handler, payment_handler, inventory_handler
@@ -40,7 +40,7 @@ def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 # ── Order webhooks ──────────────────────────────────────────────────────────
@@ -141,22 +141,58 @@ async def webhook_stock_low(
 
 @app.post("/webhooks/agent-feedback")
 async def webhook_agent_feedback(request: Request):
-    """Ontvang feedback op agent-output voor prompt-iteratie."""
+    """
+    Ontvang feedback op agent-output en sla op via PromptIterator.
+
+    Verwachte payload:
+        agent: naam van de agent (bv. klantenservice_agent)
+        interaction_id: ID teruggegeven door de agent run
+        rating: beoordeling 1-5
+        feedback: optionele tekst
+    """
     try:
         payload = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Ongeldige JSON payload")
+
     agent_name = payload.get("agent")
+    interaction_id = payload.get("interaction_id")
     rating = payload.get("rating")
-    feedback = payload.get("feedback")
+    feedback_tekst = payload.get("feedback", "")
+
+    if not agent_name:
+        raise HTTPException(status_code=400, detail="'agent' veld is verplicht")
+    if rating is None or not (1 <= int(rating) <= 5):
+        raise HTTPException(status_code=400, detail="'rating' moet een getal tussen 1 en 5 zijn")
+
     logger.info("Agent feedback ontvangen: agent=%s rating=%s", agent_name, rating)
-    # Sla feedback op voor prompt-iteratie analyse
-    feedback_entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+
+    # Koppel feedback aan de interactie via PromptIterator
+    from ollama.prompt_iterator import PromptIterator
+    iterator = PromptIterator(agent_name)
+
+    saved = False
+    if interaction_id:
+        saved = iterator.add_feedback(
+            interaction_id=interaction_id,
+            rating=int(rating),
+            notes=feedback_tekst,
+        )
+
+    # Analyseer feedback en log eventuele verbeterpunten
+    analyse = iterator.analyse_feedback()
+    if analyse.get("gemiddelde_score", 5) < 3.0:
+        logger.warning(
+            "Lage gemiddelde score voor agent '%s': %.2f – prompt-iteratie aanbevolen.",
+            agent_name,
+            analyse["gemiddelde_score"],
+        )
+
+    return JSONResponse(content={
+        "status": "ontvangen",
         "agent": agent_name,
         "rating": rating,
-        "feedback": feedback,
-        "prompt_version": payload.get("prompt_version"),
-    }
-    # In productie: sla op in database of analyseer direct
-    return JSONResponse(content={"status": "ontvangen", "entry": feedback_entry})
+        "feedback_opgeslagen": saved,
+        "huidige_analyse": analyse,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })

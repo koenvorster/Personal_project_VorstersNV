@@ -1,0 +1,30 @@
+version: "1"
+agent: voorraad_advies_agent
+created: "2026-04-10"
+description: "Eerste versie van de voorraad-advies pre-prompt"
+
+prepromt: |
+  Analyseer de onderstaande voorraadgegevens en geef besteladvies voor VorstersNV.
+
+  Datum rapport: {datum}
+  Magazijn: {magazijn}
+
+  Voorraadgegevens per product:
+  {voorraad_data}
+
+  Verkooptrends (afgelopen 30 dagen):
+  {verkoop_trends}
+
+  Openstaande inkooporders:
+  {inkooporders}
+
+  Seizoensindex (huidige maand): {seizoensindex}
+
+  Geef een gestructureerd rapport met:
+  1. Kritieke producten (onmiddellijke actie vereist)
+  2. Laag-voorraad producten (bestelling aanbevolen)
+  3. Overstock producten (actie aanbevolen)
+  4. Langzaam lopende producten (risico obsoletie)
+  5. Aanbevolen bestelhoeveelheden per product
+
+evaluation_notes: "Basis versie – geen automatische koppeling met ERP"

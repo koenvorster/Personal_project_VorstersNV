@@ -58,12 +58,13 @@ class TestAgentRunner:
         mock_client = AsyncMock()
         mock_client.generate = AsyncMock(return_value="Test antwoord van de agent")
 
-        result = await runner.run_agent(
+        result, interaction_id = await runner.run_agent(
             "klantenservice_agent",
             "Waar is mijn bestelling?",
             client=mock_client,  # Gebruik mock client
         )
         assert result == "Test antwoord van de agent"
+        assert isinstance(interaction_id, str)
 
     @pytest.mark.anyio
     async def test_run_nonexistent_agent_raises(self):
@@ -130,8 +131,9 @@ class TestAgent:
             "vraag_categorie": "algemeen",
             "klant_vraag": "Wat zijn uw openingstijden?",
         }
-        result = await agent.run("test input", context=context, client=mock_client)
+        result, interaction_id = await agent.run("test input", context=context, client=mock_client)
         assert result == "Hallo klant!"
+        assert isinstance(interaction_id, str)
         mock_client.generate.assert_called_once()
 
 

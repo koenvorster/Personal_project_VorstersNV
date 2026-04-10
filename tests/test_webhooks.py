@@ -1,11 +1,13 @@
 """Tests voor de webhook FastAPI applicatie."""
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from webhooks.app import app
+
+MOCK_AGENT_RESPONSE = "Dit is een testantwoord van de agent."
 
 
 @pytest.fixture
@@ -19,6 +21,18 @@ async def client():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as c:
         yield c
+
+
+@pytest.fixture(autouse=True)
+def mock_agent_runner(monkeypatch):
+    """Mock de AgentRunner zodat er geen echte Ollama aanroepen worden gedaan."""
+    mock_runner = MagicMock()
+    mock_runner.run_agent = AsyncMock(return_value=MOCK_AGENT_RESPONSE)
+    monkeypatch.setattr("ollama.agent_runner._runner", mock_runner)
+    monkeypatch.setattr("webhooks.handlers.order_handler.get_runner", lambda: mock_runner)
+    monkeypatch.setattr("webhooks.handlers.payment_handler.get_runner", lambda: mock_runner)
+    monkeypatch.setattr("webhooks.handlers.inventory_handler.get_runner", lambda: mock_runner)
+    return mock_runner
 
 
 class TestHealthEndpoint:
@@ -46,6 +60,7 @@ class TestOrderWebhooks:
         data = response.json()
         assert data["status"] == "verwerkt"
         assert data["order_id"] == "ORD-001"
+        assert "agent_output" in data
 
     async def test_order_created_invalid_json(self, client):
         response = await client.post(
@@ -65,6 +80,7 @@ class TestOrderWebhooks:
         assert response.status_code == 200
         data = response.json()
         assert data["tracking_code"] == "NL123456789"
+        assert "agent_output" in data
 
     async def test_order_returned_valid(self, client):
         payload = {
@@ -76,6 +92,7 @@ class TestOrderWebhooks:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "verwerkt"
+        assert "agent_output" in data
 
 
 class TestPaymentWebhooks:
@@ -91,6 +108,7 @@ class TestPaymentWebhooks:
         data = response.json()
         assert data["status"] == "verwerkt"
         assert data["payment_id"] == "PAY-XYZ"
+        assert "agent_output" in data
 
 
 class TestInventoryWebhooks:
@@ -105,6 +123,7 @@ class TestInventoryWebhooks:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "verwerkt"
+        assert "agent_output" in data
 
 
 class TestAgentFeedbackWebhook:
@@ -113,14 +132,24 @@ class TestAgentFeedbackWebhook:
             "agent": "klantenservice_agent",
             "rating": 4,
             "feedback": "Goed antwoord, maar kon specifieker",
-            "prompt_version": "1.0",
         }
         response = await client.post("/webhooks/agent-feedback", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ontvangen"
-        assert data["entry"]["agent"] == "klantenservice_agent"
-        assert data["entry"]["rating"] == 4
+        assert data["agent"] == "klantenservice_agent"
+        assert data["rating"] == 4
+        assert "timestamp" in data
+
+    async def test_agent_feedback_missing_agent(self, client):
+        payload = {"rating": 3}
+        response = await client.post("/webhooks/agent-feedback", json=payload)
+        assert response.status_code == 400
+
+    async def test_agent_feedback_invalid_rating(self, client):
+        payload = {"agent": "klantenservice_agent", "rating": 9}
+        response = await client.post("/webhooks/agent-feedback", json=payload)
+        assert response.status_code == 400
 
 
 class TestWebhookSignatureVerification:

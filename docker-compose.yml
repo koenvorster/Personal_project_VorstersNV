@@ -60,6 +60,20 @@ services:
       timeout: 10s
       retries: 3
 
+  # Analytics Database (PostgreSQL – ster-schema)
+  analytics_db:
+    image: postgres:16-alpine
+    container_name: vorstersNV-analytics-db
+    environment:
+      - POSTGRES_DB=vorstersNV_analytics
+      - POSTGRES_USER=vorstersNV
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-dev-password-change-me}
+    ports:
+      - "5433:5432"
+    volumes:
+      - analytics_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   # Database (PostgreSQL)
   database:
     image: postgres:16-alpine
@@ -72,6 +86,27 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Keycloak – Identity & Access Management
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: vorstersNV-keycloak
+    command: start-dev --import-realm
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HTTP_PORT=8080
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://database:5432/keycloak
+      - KC_DB_USERNAME=vorstersNV
+      - KC_DB_PASSWORD=${DB_PASSWORD:-dev-password-change-me}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    depends_on:
+      - database
     restart: unless-stopped
 
   # Cache (Redis)
@@ -87,4 +122,5 @@ services:
 volumes:
   ollama_data:
   postgres_data:
+  analytics_data:
   redis_data:

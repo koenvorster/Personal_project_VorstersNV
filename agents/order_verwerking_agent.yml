@@ -1,5 +1,5 @@
 name: order_verwerking_agent
-version: "1.0"
+version: "1.1"
 description: "AI-agent voor geautomatiseerde orderverwerking en communicatie"
 model: llama3
 temperature: 0.1
@@ -9,12 +9,26 @@ language: nl
 system_prompt_ref: "prompts/system/order_verwerking.txt"
 prepromt_ref: "prompts/prepromt/order_verwerking_v1.txt"
 
+sub_agents:
+  - name: fraude_detectie_agent
+    trigger: order_created
+    description: "Controleer elke nieuwe order op fraude-signalen"
+  - name: email_template_agent
+    trigger: klant_communicatie
+    description: "Genereer klantgerichte e-mails bij order-events"
+  - name: voorraad_advies_agent
+    trigger: voorraad_update
+    description: "Adviseer inkoper na significante voorraadwijzigingen"
+
 capabilities:
   - valideer_order
   - stuur_bevestiging
   - verwerk_retour
   - genereer_factuur
   - update_voorraad
+  - fraude_pre_check
+  - priority_order_escalatie
+  - batch_order_verwerking
 
 triggers:
   - event: order.created
@@ -23,8 +37,8 @@ triggers:
     webhook: "/webhooks/order-paid"
   - event: order.shipped
     webhook: "/webhooks/order-shipped"
-  - event: order.returned
-    webhook: "/webhooks/order-returned"
+  - event: order.cancelled
+    webhook: "/webhooks/order-cancelled"
 
 tools:
   - name: update_order_status
@@ -41,7 +55,7 @@ evaluation:
     - verwerkingstijd_seconden
     - foutpercentage
     - klantnotificatie_succes
-  feedback_loop: false
+  feedback_loop: true
   log_dir: "logs/order_verwerking"
 
 iteration_log: "prompts/prepromt/order_verwerking_iterations.yml"

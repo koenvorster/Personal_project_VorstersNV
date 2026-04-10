@@ -1,0 +1,73 @@
+name: retour_verwerking_agent
+version: "1.0"
+description: "Sub-agent voor het verwerken van retouraanvragen bij VorstersNV"
+model: llama3
+temperature: 0.2
+max_tokens: 1024
+language: nl
+role: sub_agent
+parent_agents:
+  - klantenservice_agent
+  - order_verwerking_agent
+
+system_prompt_ref: "prompts/system/retour_verwerking.txt"
+prepromt_ref: "prompts/prepromt/retour_verwerking_v1.txt"
+
+capabilities:
+  - valideer_retouraanvraag
+  - genereer_retourbevestiging
+  - verwerk_terugbetaling
+  - maak_creditnota
+  - update_voorraad_na_retour
+  - genereer_retourlabel
+
+input_schema:
+  retour_id: string
+  order_id: string
+  aanvraagdatum: string
+  retour_reden:
+    type: enum
+    values: [defect, verkeerd_product, niet_zoals_verwacht, bestelfout_klant, te_laat]
+  klant_naam: string
+  klant_email: string
+  producten: list
+  orderdatum: string
+  ontvangstdatum: string
+
+output_schema:
+  geldig: boolean
+  verwerkingsactie:
+    type: enum
+    values: [terugbetaling, ruil, creditnota, afwijzen]
+  retournummer: string
+  klantbericht: string
+  verzendinstructies: string
+  terugbetalingsbedrag: number
+  verwerkingstijd_werkdagen: integer
+
+tools:
+  - name: zoek_order
+    description: "Haal orderdetails op voor verificatie"
+    endpoint: "/api/orders/{order_id}"
+  - name: initieer_terugbetaling
+    description: "Start een terugbetaling via Mollie"
+    endpoint: "/api/payments/refund"
+  - name: update_voorraad
+    description: "Pas voorraad aan na ontvangst retourzending"
+    endpoint: "/api/inventory/update"
+  - name: genereer_creditnota
+    description: "Maak een creditnota aan voor de retour"
+    endpoint: "/api/invoices/credit-note"
+  - name: stuur_retourbevestiging
+    description: "Stuur retourbevestiging naar klant via e-mail"
+    endpoint: "/api/notifications/email"
+
+evaluation:
+  metrics:
+    - verwerkingstijd_seconden
+    - correct_beleid_percentage
+    - klant_tevredenheid_score
+  feedback_loop: true
+  log_dir: "logs/retour_verwerking"
+
+iteration_log: "prompts/prepromt/retour_verwerking_iterations.yml"

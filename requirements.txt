@@ -26,6 +26,13 @@ pytest-asyncio==0.24.0
 pytest-cov==6.0.0
 httpx  # al hierboven
 
+# Auth & Beveiliging
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
 # Code kwaliteit
 ruff==0.8.6
 mypy==1.14.0
+
+# Alembic sync driver (voor migraties - asyncpg is voor runtime)
+psycopg2-binary==2.9.10

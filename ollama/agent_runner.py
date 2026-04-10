@@ -10,6 +10,7 @@ from typing import Any
 import yaml
 
 from .client import OllamaClient, get_client
+from .prompt_iterator import PromptIterator
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class Agent:
         user_input: str,
         context: dict[str, Any] | None = None,
         client: OllamaClient | None = None,
-    ) -> str:
+    ) -> tuple[str, str]:
         """
         Voer de agent uit met de gegeven input.
 
@@ -79,7 +80,16 @@ class Agent:
         )
 
         logger.info("Agent '%s' klaar. Respons: %d tekens", self.name, len(response))
-        return response
+
+        # Log de interactie automatisch voor prompt-iteratie analyse
+        iterator = PromptIterator(self.name)
+        interaction_id = iterator.log_interaction(
+            user_input=user_input,
+            agent_output=response,
+            metadata={"context": context or {}, "model": self.model},
+        )
+
+        return response, interaction_id
 
     async def chat(
         self,
@@ -147,7 +157,8 @@ class AgentRunner:
         agent_name: str,
         user_input: str,
         context: dict[str, Any] | None = None,
-    ) -> str:
+        client: OllamaClient | None = None,
+    ) -> tuple[str, str]:
         """
         Voer een specifieke agent uit.
 
@@ -155,9 +166,10 @@ class AgentRunner:
             agent_name: Naam van de agent
             user_input: Invoer voor de agent
             context: Extra context-variabelen
+            client: Optioneel een aangepaste Ollama client (handig voor testen)
 
         Returns:
-            Het antwoord van de agent
+            Tuple van (antwoord, interaction_id)
 
         Raises:
             ValueError: Als de agent niet gevonden wordt
@@ -165,7 +177,7 @@ class AgentRunner:
         agent = self.get(agent_name)
         if agent is None:
             raise ValueError(f"Agent '{agent_name}' niet gevonden. Beschikbaar: {self.list_agents()}")
-        return await agent.run(user_input, context=context)
+        return await agent.run(user_input, context=context, client=client)
 
 
 # Singleton runner

@@ -1,0 +1,63 @@
+name: fraude_detectie_agent
+version: "1.0"
+description: "Sub-agent voor het detecteren van frauduleuze bestellingen bij VorstersNV"
+model: llama3
+temperature: 0.1
+max_tokens: 512
+language: nl
+role: sub_agent
+parent_agents:
+  - order_verwerking_agent
+  - klantenservice_agent
+
+system_prompt_ref: "prompts/system/fraude_detectie.txt"
+prepromt_ref: "prompts/prepromt/fraude_detectie_v1.txt"
+
+capabilities:
+  - risicoscore_berekenen
+  - signalen_detecteren
+  - blokkeer_aanbeveling_genereren
+  - audit_log_aanmaken
+
+input_schema:
+  order_id: string
+  besteldatum: string
+  orderwaarde: number
+  betaalmethode: string
+  klant_id: string
+  account_aanmaakdatum: string
+  aantal_eerdere_orders: integer
+  eerdere_chargebacks: integer
+  klant_email: string
+  bezorgadres: string
+  ip_adres: string
+  adressen_gelijk: boolean
+
+output_schema:
+  risicoscore: integer
+  risicosignalen: list
+  aanbeveling:
+    type: enum
+    values: [verwerken, verificatie, review, blokkeren]
+  motivatie: string
+
+tools:
+  - name: zoek_klanthistorie
+    description: "Haal de volledige orderhistorie van een klant op"
+    endpoint: "/api/orders/customer/{klant_id}"
+  - name: check_ip_reputatie
+    description: "Controleer of een IP-adres bekendstaat als frauduleus"
+    endpoint: "/api/fraud/ip-check"
+  - name: blokkeer_order
+    description: "Blokkeer een order voor verdere verwerking"
+    endpoint: "/api/orders/{order_id}/block"
+
+evaluation:
+  metrics:
+    - vals_positief_percentage
+    - vals_negatief_percentage
+    - detectietijd_seconden
+  feedback_loop: true
+  log_dir: "logs/fraude_detectie"
+
+iteration_log: "prompts/prepromt/fraude_detectie_iterations.yml"

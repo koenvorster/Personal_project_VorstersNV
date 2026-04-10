@@ -1,0 +1,68 @@
+name: voorraad_advies_agent
+version: "1.0"
+description: "Sub-agent voor voorraadanalyse en besteladvies bij VorstersNV"
+model: mistral
+temperature: 0.2
+max_tokens: 2048
+language: nl
+role: sub_agent
+parent_agents:
+  - order_verwerking_agent
+
+system_prompt_ref: "prompts/system/voorraad_advies.txt"
+prepromt_ref: "prompts/prepromt/voorraad_advies_v1.txt"
+
+capabilities:
+  - analyseer_voorraadniveaus
+  - bereken_veiligheidsvoorraad
+  - genereer_besteladvies
+  - detecteer_overstock
+  - detecteer_langzaam_lopend
+  - prognose_uitputtingsdatum
+  - abc_classificatie
+
+input_schema:
+  datum: string
+  magazijn: string
+  voorraad_data: list
+  verkoop_trends: list
+  inkooporders: list
+  seizoensindex: number
+
+output_schema:
+  kritieke_producten: list
+  laag_voorraad_producten: list
+  overstock_producten: list
+  langzaam_lopende_producten: list
+  besteladvies: list
+  totaal_inkoopwaarde_aanbevolen: number
+
+tools:
+  - name: haal_voorraad_op
+    description: "Haal actuele voorraadniveaus op per product"
+    endpoint: "/api/inventory/levels"
+  - name: haal_verkoophistorie_op
+    description: "Haal verkoophistorie op per product (laatste 90 dagen)"
+    endpoint: "/api/analytics/sales-history"
+  - name: haal_inkooporders_op
+    description: "Haal openstaande inkooporders op"
+    endpoint: "/api/inventory/purchase-orders"
+  - name: maak_inkoopadvies
+    description: "Sla het gegenereerde inkoopadvies op voor de inkoper"
+    endpoint: "/api/inventory/purchase-advice"
+
+schedule:
+  - cron: "0 6 * * 1"
+    description: "Wekelijks maandagochtend besteladvies rapport"
+  - trigger: low_stock_alert
+    description: "Direct bij kritiek voorraadniveau"
+
+evaluation:
+  metrics:
+    - voorraad_beschikbaarheid_percentage
+    - aantal_stockouts
+    - overstock_waarde_euro
+  feedback_loop: false
+  log_dir: "logs/voorraad_advies"
+
+iteration_log: "prompts/prepromt/voorraad_advies_iterations.yml"
