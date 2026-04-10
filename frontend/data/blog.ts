@@ -441,6 +441,156 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'advanced-ai-workshop-langflow',
+    titel: 'Advanced AI Workshop: een project bouwen met Langflow',
+    excerpt:
+      'Verslag van mijn advanced AI-workshop: van visueel flows bouwen in Langflow tot het koppelen van lokale LLMs, vector stores en externe APIs in een volledig werkend AI-project.',
+    datum: '10 april 2026',
+    datumISO: '2026-04-10',
+    leestijd: '10 min',
+    categorie: 'AI',
+    categorieKleur: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+    afbeelding:
+      'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80',
+    inhoud: [
+      {
+        type: 'paragraph',
+        text: 'Vorige week nam ik deel aan een geavanceerde AI-workshop met als centraal thema: een volledig AI-project bouwen met Langflow. Langflow is een visuele, drag-and-drop tool waarmee je LLM-pipelines en AI-agents bouwt zonder meteen diep in code te duiken — perfect om snel te prototypen en te experimenteren. Dit is mijn verslag van wat ik leerde, wat er misging, en wat ik meeneem naar mijn eigen projecten.',
+      },
+      {
+        type: 'heading',
+        text: 'Wat is Langflow?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Langflow is een open-source UI bovenop LangChain. Je bouwt "flows" — visuele grafen van componenten die je aan elkaar koppelt: een LLM hier, een vector store daar, een tool of API-call eraan vast. Wat normaal tientallen regels Python vraagt, bouw je in Langflow in een paar minuten samen. Het eindresultaat kan je exporteren als JSON of rechtstreeks deployen via de ingebouwde API.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Visuele flow-builder: drag-and-drop componenten verbinden',
+          'Ingebouwde support voor OpenAI, Ollama, HuggingFace en meer',
+          'Vector store integraties: Chroma, Pinecone, Weaviate',
+          'Tool-calling en agents bouwen zonder code',
+          'REST API endpoint automatisch gegenereerd per flow',
+          'Export naar Python-code voor verdere customisatie',
+        ],
+      },
+      {
+        type: 'heading',
+        text: 'De workshop: wat we bouwden',
+      },
+      {
+        type: 'paragraph',
+        text: 'De workshop was opgedeeld in drie blokken. Eerst een theoretisch overzicht van de LangChain-architectuur en hoe Langflow daar bovenop zit. Dan een hands-on sessie waarbij we een RAG-pipeline (Retrieval-Augmented Generation) bouwden: een AI die antwoorden baseert op je eigen documenten. Tot slot een geavanceerd blok over agents en tool-gebruik.',
+      },
+      {
+        type: 'heading',
+        text: 'Blok 1 – RAG-pipeline bouwen',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het eerste project: een chatbot die vragen beantwoordt op basis van een set PDF-documenten. In Langflow sleep je een "File Loader" component, koppel je die aan een "Text Splitter", dan aan een "Chroma" vector store, en verbind je die met een "Retrieval QA Chain". Je kiest je LLM-model (we gebruikten Ollama met llama3 lokaal) en klikt op Run. Dat is het.',
+      },
+      {
+        type: 'code',
+        language: 'json',
+        code: `// Vereenvoudigde flow-structuur (Langflow JSON export)
+{
+  "nodes": [
+    { "id": "loader", "type": "PyPDFLoader", "data": { "file_path": "./docs/" } },
+    { "id": "splitter", "type": "CharacterTextSplitter", "data": { "chunk_size": 500 } },
+    { "id": "vectorstore", "type": "Chroma", "data": { "collection": "workshop-docs" } },
+    { "id": "llm", "type": "Ollama", "data": { "model": "llama3" } },
+    { "id": "chain", "type": "RetrievalQA" }
+  ],
+  "edges": [
+    { "source": "loader", "target": "splitter" },
+    { "source": "splitter", "target": "vectorstore" },
+    { "source": "vectorstore", "target": "chain" },
+    { "source": "llm", "target": "chain" }
+  ]
+}`,
+      },
+      {
+        type: 'paragraph',
+        text: 'De kracht zit hem in de snelheid: van nul naar een werkende RAG-chatbot in minder dan 30 minuten. En omdat alles lokaal draait via Ollama, is er geen data die naar externe servers gaat — essentieel als je met gevoelige bedrijfsdocumenten werkt.',
+      },
+      {
+        type: 'heading',
+        text: 'Blok 2 – Agents en tool-gebruik',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het tweede deel was het interessantste: agents bouwen die zelfstandig tools kunnen aanroepen. We bouwden een agent die het weer kon opvragen, berekeningen kon uitvoeren, en in een database kon zoeken. In Langflow definieer je de tools als aparte componenten en koppel je ze aan een "Agent" node. De LLM beslist zelf welke tool hij aanroept op basis van de vraag.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Calculator tool: de LLM kan zelf wiskunde uitvoeren',
+          'Web search tool: zoeken op het internet voor actuele info',
+          'API tool: aanroepen van een externe REST-endpoint',
+          'Python REPL: willekeurige Python-code uitvoeren als tool',
+          'Geheugen: de agent onthoudt de conversatiegeschiedenis',
+        ],
+      },
+      {
+        type: 'quote',
+        text: '"Een agent is geen chatbot die antwoorden geeft — het is een autonome werker die taken uitvoert. Geef hem de juiste tools en hij lost problemen op die je zelf niet had voorzien."',
+      },
+      {
+        type: 'heading',
+        text: 'Blok 3 – Multi-agent orkestratie',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het geavanceerdste onderdeel: meerdere agents laten samenwerken. Eén agent analyseert de vraag, een tweede zoekt relevante informatie op, een derde schrijft de uiteindelijke response. Langflow heeft hier een "Supervisor" component voor die de werkverdeling coördineert. Dit patroon — een orchestrator die sub-agents aanstuurt — gebruiken we ook in mijn VorstersNV-project.',
+      },
+      {
+        type: 'heading',
+        text: 'Wat ik meeneem naar mijn eigen projecten',
+      },
+      {
+        type: 'paragraph',
+        text: 'De workshop bevestigde een aantal keuzes die ik al had gemaakt voor VorstersNV, maar gaf ook nieuwe inzichten. Langflow gebruik ik nu als prototyping-omgeving: snel een flow uitproberen in de UI, dan exporteren naar Python en integreren in de FastAPI-backend. Zo combineer je de snelheid van visueel bouwen met de kracht van code.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Langflow als prototyping tool, Python/FastAPI voor productie',
+          'RAG toepassen op productdocumentatie en FAQ voor de klantenservice-agent',
+          'Multi-agent pattern: orchestrator + gespecialiseerde sub-agents',
+          'Lokaal draaien met Ollama blijft de voorkeur voor privacy en kosten',
+          'Vector store (Chroma) integreren voor semantisch zoeken in productcatalogus',
+        ],
+      },
+      {
+        type: 'heading',
+        text: 'Aan de slag met Langflow',
+      },
+      {
+        type: 'paragraph',
+        text: 'Langflow is gratis en open-source. Je kunt het lokaal draaien via pip of Docker. De community is actief, er zijn tientallen voorbeeldflows beschikbaar, en de integratie met Ollama werkt out-of-the-box. Of je nu een RAG-chatbot wilt bouwen, een AI-agent voor je klantenservice, of gewoon wil experimenteren met LLMs — Langflow verlaagt de drempel enorm.',
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        code: `# Langflow lokaal starten
+pip install langflow
+
+# Of via Docker
+docker run -p 7860:7860 langflowai/langflow:latest
+
+# Open de UI
+open http://localhost:7860`,
+      },
+      {
+        type: 'paragraph',
+        text: 'Heb je vragen over de workshop, Langflow, of hoe je een AI-agent integreert in je eigen project? Laat het me weten — ik help graag verder.',
+      },
+    ],
+  },
 ]
 
 export function getBlogPostBySlug(slug: string): BlogPost | undefined {
