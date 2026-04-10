@@ -4,11 +4,9 @@ FastAPI met Swagger UI, CORS en alle routers.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
 
-from api.routers import products, orders, inventory, dashboard
 from api.routers import auth as auth_router
-from api.routers import betalingen
+from api.routers import betalingen, dashboard, inventory, notifications, orders, products
 
 app = FastAPI(
     title="VorstersNV API",
@@ -55,6 +53,7 @@ app.include_router(inventory.router, prefix="/api/inventory", tags=["Voorraad"])
 app.include_router(auth_router.router, prefix="/api/auth", tags=["Authenticatie & Rollen"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(betalingen.router, prefix="/api", tags=["Bestellingen & Betalingen"])
+app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaties"])
 
 
 @app.get("/", tags=["Algemeen"], summary="API Root")

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import Image from 'next/image'
 import {
   Code2, Cpu, Database, Cloud, Brain, Wifi, Terminal, Server,
   GraduationCap, Briefcase, Rocket, Award, Mail, MapPin, Calendar
@@ -100,10 +101,17 @@ export default function OverMijPage() {
           transition={{ duration: 0.7 }}
           className="flex flex-col lg:flex-row items-center gap-8 sm:gap-10"
         >
-          {/* Profile avatar */}
+          {/* Profile photo */}
           <div className="shrink-0">
-            <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-500/20 ring-4 ring-white/10">
-              <span className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white/90">KV</span>
+            <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden shadow-2xl shadow-green-500/20 ring-4 ring-white/10">
+              <Image
+                src="/profile.jpg"
+                alt="Koen Vorsters"
+                width={224}
+                height={224}
+                className="w-full h-full object-cover object-top"
+                priority
+              />
             </div>
           </div>
 

@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Code2, Brain, Server, Terminal, Cpu, Database, Cloud, Wifi,
   ChevronRight, Mail, MapPin, Briefcase,
@@ -132,9 +133,16 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="mx-auto mb-6 sm:mb-8 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-500/20 border border-green-400/20"
+            className="mx-auto mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-2xl shadow-green-500/20 ring-2 ring-green-500/30"
           >
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">KV</span>
+            <Image
+              src="/profile.jpg"
+              alt="Koen Vorsters"
+              width={112}
+              height={112}
+              className="w-full h-full object-cover object-top"
+              priority
+            />
           </motion.div>
 
           <motion.div

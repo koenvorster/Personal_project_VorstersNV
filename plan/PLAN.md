@@ -32,19 +32,24 @@ De huidige actieve mode wordt bijgehouden in [`mode.yml`](./mode.yml).
 - [x] Ollama lokale AI-integratie opzetten
 - [x] Docker Compose voor lokale ontwikkeling
 
-### Fase 2 – Agents & Prompts
-- [ ] Klantenservice-agent verbeteren met feedback-loop
-- [ ] Product-beschrijving agent iteratief optimaliseren
-- [ ] SEO-agent fine-tunen op webshop-producten
-- [ ] Order-verwerking agent bouwen
-- [ ] Multi-agent orkestratie implementeren
+### Fase 2 – Agents & Prompts ✅
+- [x] Klantenservice-agent verbeteren met feedback-loop (v1.1 + sub-agents)
+- [x] Product-beschrijving agent iteratief optimaliseren (v1.1 + USP + FAQ)
+- [x] SEO-agent fine-tunen op webshop-producten (v1.1 + interne linking)
+- [x] Order-verwerking agent bouwen (v1.1 + fraude pre-check + batch)
+- [x] Sub-agents aanmaken: fraude_detectie, retour_verwerking, email_template, voorraad_advies
+- [x] Multi-agent orkestratie implementeren (ParallelStep + 3 workflows)
+- [x] Tuple-bug gerepareerd in agent_runner + orchestrator
 
-### Fase 3 – Webshop & Business Logica
-- [ ] Webshop frontend (Next.js of Astro)
-- [ ] Product- en voorraad-backend (FastAPI)
-- [ ] Betalingsintegratie (Mollie / Stripe)
+### Fase 3 – Webshop & Business Logica 🔄 (in uitvoering)
+- [x] Orders router volledig verbonden met PostgreSQL (create, list, get, update_status, statistieken)
+- [x] Inventory router volledig verbonden met PostgreSQL (overzicht, set, aanpassen, low-stock alerts)
+- [x] Notifications router aangemaakt (email_template_agent integratie via AgentLog)
+- [x] Dashboard router verbonden met echte DB (KPIs, voorraad alerts, agent scores)
+- [ ] Webshop frontend (Next.js): /shop, /shop/[slug], /winkelwagen, /afrekenen
+- [ ] Navbar uitbreiden met /shop + winkelwagen-icoon
+- [ ] Betalingsintegratie Mollie (echte API-aanroep, nu mock)
 - [ ] CRM-koppeling
-- [ ] Agent-gestuurde e-mail en notificaties
 
 ### Fase 4 – Optimalisatie & Productie
 - [ ] Monitoring & logging dashboard

@@ -25,13 +25,22 @@ function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; d
   )
 }
 
-const services = [
-  { naam: 'FastAPI Backend', poort: 8000, status: 'online', latency: '12ms', icon: Server },
-  { naam: 'PostgreSQL', poort: 5432, status: 'online', latency: '3ms', icon: Database },
-  { naam: 'Redis Cache', poort: 6379, status: 'online', latency: '1ms', icon: Zap },
-  { naam: 'Keycloak Auth', poort: 8080, status: 'online', latency: '45ms', icon: Activity },
-  { naam: 'Ollama LLM', poort: 11434, status: 'offline', latency: '—', icon: Bot },
-  { naam: 'Webhook Engine', poort: 9000, status: 'online', latency: '8ms', icon: Wifi },
+const serviceIcons: Record<string, typeof Server> = {
+  'FastAPI Backend': Server,
+  'PostgreSQL': Database,
+  'Redis Cache': Zap,
+  'Keycloak Auth': Activity,
+  'Ollama LLM': Bot,
+  'Webhook Engine': Wifi,
+}
+
+const defaultServices = [
+  { naam: 'FastAPI Backend', poort: 8000, status: 'offline' as const, latency: '—' },
+  { naam: 'PostgreSQL', poort: 5432, status: 'offline' as const, latency: '—' },
+  { naam: 'Redis Cache', poort: 6379, status: 'offline' as const, latency: '—' },
+  { naam: 'Keycloak Auth', poort: 8080, status: 'offline' as const, latency: '—' },
+  { naam: 'Ollama LLM', poort: 11434, status: 'offline' as const, latency: '—' },
+  { naam: 'Webhook Engine', poort: 9000, status: 'offline' as const, latency: '—' },
 ]
 
 const aiAgents = [
@@ -66,6 +75,27 @@ const levelColors: Record<string, string> = {
 export default function DashboardPage() {
   const [uptime, setUptime] = useState('0d 0h 0m')
   const [refreshing, setRefreshing] = useState(false)
+  const [services, setServices] = useState(defaultServices)
+  const [lastCheck, setLastCheck] = useState<string | null>(null)
+
+  const fetchHealth = async () => {
+    try {
+      const res = await fetch('/api/health')
+      if (res.ok) {
+        const data = await res.json()
+        setServices(data.services)
+        setLastCheck(new Date(data.timestamp).toLocaleTimeString('nl-BE'))
+      }
+    } catch {
+      // Keep current state on fetch failure
+    }
+  }
+
+  useEffect(() => {
+    fetchHealth()
+    const interval = setInterval(fetchHealth, 30000) // Refresh every 30s
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     // Simulate uptime counter
@@ -84,7 +114,7 @@ export default function DashboardPage() {
 
   const handleRefresh = () => {
     setRefreshing(true)
-    setTimeout(() => setRefreshing(false), 1000)
+    fetchHealth().finally(() => setTimeout(() => setRefreshing(false), 500))
   }
 
   const onlineCount = services.filter(s => s.status === 'online').length
