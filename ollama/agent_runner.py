@@ -27,7 +27,9 @@ class Agent:
         self.temperature = config.get("temperature", 0.7)
         self.max_tokens = config.get("max_tokens", 1024)
         self.system_prompt = self._load_text(config.get("system_prompt_ref", ""))
-        self.prepromt = self._load_text(config.get("prepromt_ref", ""))
+        # Support both spellings: preprompt_ref (correct) and prepromt_ref (legacy typo)
+        prepromt_ref = config.get("preprompt_ref") or config.get("prepromt_ref", "")
+        self.prepromt = self._load_text(prepromt_ref)
         self._config = config
 
     def _load_text(self, ref: str) -> str:

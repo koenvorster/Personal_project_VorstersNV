@@ -1,14 +1,18 @@
-name: Deploy – Productie
+name: Deploy – Google Cloud Run
 
 on:
   push:
     branches: [main]
-    tags:
-      - "v*"
+
+env:
+  GCP_REGION: europe-west1
+  BACKEND_SERVICE: vorstersNV-api
+  FRONTEND_SERVICE: vorstersNV-frontend
+  REGISTRY: europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vorstersNV
 
 jobs:
-  deploy-webhooks:
-    name: Webhook Service deployen
+  deploy-backend:
+    name: Backend deployen naar Cloud Run
     runs-on: ubuntu-latest
     environment: productie
 
@@ -16,29 +20,90 @@ jobs:
       - name: Code ophalen
         uses: actions/checkout@v4
 
-      - name: Docker image bouwen
-        run: |
-          docker build -t vorstersNV-webhooks:${{ github.sha }} -f Dockerfile.webhooks .
-          docker tag vorstersNV-webhooks:${{ github.sha }} vorstersNV-webhooks:latest
+      - name: Authenticeren bij Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Webhook service deployen
+      - name: gcloud CLI instellen
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Docker configureren voor Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Backend image bouwen en pushen
         run: |
-          echo "Deploy naar productie..."
-          # In productie: push naar container registry en update service
-          # docker push ghcr.io/koenvorster/vorstersNV-webhooks:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY }}/backend:${{ github.sha }} ./backend
+          docker push ${{ env.REGISTRY }}/backend:${{ github.sha }}
+
+      - name: Backend deployen naar Cloud Run
+        run: |
+          gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+            --image ${{ env.REGISTRY }}/backend:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --add-cloudsql-instances ${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:vorstersNV-db \
+            --set-env-vars "SPRING_PROFILES_ACTIVE=cloudrun,CLOUD_SQL_INSTANCE=${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:vorstersNV-db,DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+
+  deploy-frontend:
+    name: Frontend deployen naar Cloud Run
+    runs-on: ubuntu-latest
+    environment: productie
+    needs: deploy-backend
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Authenticeren bij Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: gcloud CLI instellen
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Backend URL ophalen
+        id: backend-url
+        run: |
+          URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} \
+            --region ${{ env.GCP_REGION }} --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Docker configureren voor Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Frontend image bouwen en pushen
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.url }} \
+            -t ${{ env.REGISTRY }}/frontend:${{ github.sha }} \
+            ./frontend
+          docker push ${{ env.REGISTRY }}/frontend:${{ github.sha }}
+
+      - name: Frontend deployen naar Cloud Run
+        run: |
+          gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
+            --image ${{ env.REGISTRY }}/frontend:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.url }}"
 
   notify-deploy:
-    name: Deploy-notificatie versturen
+    name: Deploy-status rapporteren
     runs-on: ubuntu-latest
-    needs: [deploy-webhooks]
+    needs: [deploy-backend, deploy-frontend]
     if: always()
 
     steps:
-      - name: Deploy-status rapporteren
+      - name: Status controleren
         run: |
-          if [ "${{ needs.deploy-webhooks.result }}" == "success" ]; then
-            echo "Deployment succesvol naar productie!"
+          if [ "${{ needs.deploy-backend.result }}" == "success" ] && \
+             [ "${{ needs.deploy-frontend.result }}" == "success" ]; then
+            echo "✅ Deployment succesvol – backend en frontend live op Cloud Run!"
           else
-            echo "Deployment mislukt! Controleer de logs."
+            echo "❌ Deployment mislukt – controleer de logs hierboven."
             exit 1
           fi

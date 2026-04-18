@@ -35,12 +35,12 @@ const serviceIcons: Record<string, typeof Server> = {
 }
 
 const defaultServices = [
-  { naam: 'FastAPI Backend', poort: 8000, status: 'offline' as const, latency: '—' },
-  { naam: 'PostgreSQL', poort: 5432, status: 'offline' as const, latency: '—' },
-  { naam: 'Redis Cache', poort: 6379, status: 'offline' as const, latency: '—' },
-  { naam: 'Keycloak Auth', poort: 8080, status: 'offline' as const, latency: '—' },
-  { naam: 'Ollama LLM', poort: 11434, status: 'offline' as const, latency: '—' },
-  { naam: 'Webhook Engine', poort: 9000, status: 'offline' as const, latency: '—' },
+  { naam: 'FastAPI Backend', poort: 8000, status: 'offline' as const, latency: '—', icon: Server },
+  { naam: 'PostgreSQL', poort: 5432, status: 'offline' as const, latency: '—', icon: Database },
+  { naam: 'Redis Cache', poort: 6379, status: 'offline' as const, latency: '—', icon: Zap },
+  { naam: 'Keycloak Auth', poort: 8080, status: 'offline' as const, latency: '—', icon: Activity },
+  { naam: 'Ollama LLM', poort: 11434, status: 'offline' as const, latency: '—', icon: Bot },
+  { naam: 'Webhook Engine', poort: 9000, status: 'offline' as const, latency: '—', icon: Wifi },
 ]
 
 const aiAgents = [

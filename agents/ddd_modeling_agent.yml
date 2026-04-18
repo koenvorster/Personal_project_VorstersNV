@@ -1,0 +1,282 @@
+name: ddd_modeling_agent
+version: 1.0
+type: specialist_sub_agent
+description: "Domain-Driven Design specialist - models bounded contexts, aggregates, value objects and domain events"
+
+model: llama3
+temperature: 0.25
+max_tokens: 4096
+top_p: 0.85
+
+system_prompt_ref: prompts/system/ddd_modeling_system.txt
+preprompt_ref: prompts/prepromt/ddd_modeling_v1.yml
+
+capabilities:
+  # Strategic Design
+  - define_bounded_contexts
+  - create_context_map
+  - identify_ubiquitous_language
+  - design_anticorruption_layer
+  - classify_context_relationships
+  - identify_shared_kernel
+  # Tactical Design
+  - design_aggregate_roots
+  - define_value_objects
+  - design_domain_events
+  - design_domain_services
+  - design_repository_interfaces
+  - design_factories
+  # CQRS / Event Sourcing
+  - apply_cqrs_pattern
+  - design_command_handlers
+  - design_query_handlers
+  - design_event_store
+
+ddd_rules:
+  strategic:
+    bounded_context:
+      definition: "Explicit boundary within which a domain model applies and the Ubiquitous Language is consistent"
+      rule: "One team, one bounded context. Never share models across contexts without explicit mapping."
+    ubiquitous_language:
+      definition: "Shared vocabulary between domain experts and developers, enforced in the codebase"
+      rule: "Code uses domain terms verbatim. No translations between spec and code."
+    context_map_relationships:
+      - name: Partnership
+        description: "Two contexts evolve together with mutual dependency"
+      - name: SharedKernel
+        description: "Small shared subset of the domain model between two teams"
+      - name: CustomerSupplier
+        description: "Upstream (supplier) publishes, downstream (customer) conforms or adapts"
+      - name: Conformist
+        description: "Downstream adopts upstream model as-is"
+      - name: ACL
+        description: "Anti-Corruption Layer - downstream translates upstream model to its own"
+      - name: OpenHost
+        description: "Upstream publishes a well-defined protocol for integration"
+      - name: PublishedLanguage
+        description: "Well-documented shared language for integration (e.g. OpenAPI, events)"
+  
+  tactical:
+    aggregate:
+      rules:
+        - "Only the Aggregate Root is referenced from outside the aggregate"
+        - "All state changes must go through the root"
+        - "One database transaction = one aggregate"
+        - "Prefer small aggregates; only group what must be consistent together"
+        - "Reference other aggregates by ID only, never by object reference"
+      python_pattern: |
+        @dataclass
+        class Order:  # Aggregate Root
+            id: OrderId
+            customer_id: CustomerId
+            items: list[OrderItem]
+            status: OrderStatus
+            _events: list = field(default_factory=list, init=False, repr=False)
+            
+            def add_item(self, item: OrderItem) -> None:
+                if self.status != OrderStatus.DRAFT:
+                    raise DomainError("Cannot add items to a non-draft order")
+                self.items.append(item)
+                self._events.append(OrderItemAdded(self.id, item))
+            
+            def pull_events(self) -> list:
+                events, self._events = self._events, []
+                return events
+    
+    value_object:
+      rules:
+        - "Immutable - never mutate, always create new instance"
+        - "Equality by value (all fields), not by reference"
+        - "Validate invariants in constructor"
+        - "Encapsulate domain concept (Money, Email, DateRange, PostalCode)"
+      python_pattern: |
+        @dataclass(frozen=True)
+        class Money:
+            amount: Decimal
+            currency: str
+            
+            def __post_init__(self):
+                if self.amount < 0:
+                    raise ValueError("Amount cannot be negative")
+                if len(self.currency) != 3:
+                    raise ValueError("Currency must be ISO 4217 (3 chars)")
+            
+            def add(self, other: 'Money') -> 'Money':
+                if self.currency != other.currency:
+                    raise DomainError("Cannot add different currencies")
+                return Money(self.amount + other.amount, self.currency)
+    
+    domain_event:
+      rules:
+        - "Named in past tense (OrderPlaced, PaymentReceived, StockDepleted)"
+        - "Immutable - never modify after creation"
+        - "Contains all context needed to handle the event independently"
+        - "Include occurred_at timestamp and aggregate ID"
+      python_pattern: |
+        @dataclass(frozen=True)
+        class OrderPlaced:
+            order_id: OrderId
+            customer_id: CustomerId
+            total: Money
+            occurred_at: datetime = field(default_factory=datetime.utcnow)
+    
+    repository:
+      rules:
+        - "Interface defined in domain layer, implementation in infrastructure"
+        - "One repository per Aggregate Root"
+        - "Only basic CRUD + domain-specific query methods"
+        - "Never expose ORM sessions or database concepts in domain"
+      python_pattern: |
+        class OrderRepository(ABC):
+            @abstractmethod
+            async def save(self, order: Order) -> None: ...
+            @abstractmethod
+            async def find_by_id(self, id: OrderId) -> Order | None: ...
+            @abstractmethod
+            async def find_pending_for_customer(self, customer_id: CustomerId) -> list[Order]: ...
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    domain_description:
+      type: string
+      description: "Feature spec, user stories, or domain expert interview notes"
+    
+    existing_terms:
+      type: array
+      items: { type: string }
+      description: "Known domain terms to preserve"
+    
+    integration_contexts:
+      type: array
+      items: { type: string }
+      description: "External systems or bounded contexts to integrate with"
+    
+    tech_stack:
+      type: object
+      properties:
+        language: { type: string, enum: [python, typescript, java, csharp] }
+        orm: { type: string }
+        event_bus: { type: string }
+
+output_schema:
+  type: object
+  properties:
+    ubiquitous_language:
+      type: array
+      items:
+        type: object
+        properties:
+          term: { type: string }
+          definition: { type: string }
+          context: { type: string }
+          synonyms_to_avoid:
+            type: array
+            items: { type: string }
+    
+    bounded_contexts:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string }
+          description: { type: string }
+          owns_aggregates:
+            type: array
+            items: { type: string }
+          published_events:
+            type: array
+            items: { type: string }
+          subscribed_events:
+            type: array
+            items: { type: string }
+    
+    context_map:
+      type: array
+      items:
+        type: object
+        properties:
+          from_context: { type: string }
+          to_context: { type: string }
+          relationship: { type: string }
+          notes: { type: string }
+    
+    aggregates:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string }
+          root_entity: { type: string }
+          bounded_context: { type: string }
+          invariants:
+            type: array
+            items: { type: string }
+          child_entities:
+            type: array
+            items: { type: string }
+          value_objects_used:
+            type: array
+            items: { type: string }
+          emitted_events:
+            type: array
+            items: { type: string }
+          repository_interface: { type: string }
+    
+    value_objects:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string }
+          fields:
+            type: array
+            items:
+              type: object
+              properties:
+                name: { type: string }
+                type: { type: string }
+          validation_rules:
+            type: array
+            items: { type: string }
+          code_skeleton: { type: string }
+    
+    domain_events:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string }
+          emitted_by: { type: string }
+          payload_fields:
+            type: array
+            items: { type: string }
+          subscribers:
+            type: array
+            items: { type: string }
+          code_skeleton: { type: string }
+
+evaluation:
+  - metric: ubiquitous_language_coverage
+    target: ">= 90% of domain terms defined"
+  - metric: bounded_context_clarity
+    target: "No concept leaks between contexts"
+  - metric: aggregate_sizing
+    target: "No aggregate with more than 5 child entities (prefer smaller)"
+  - metric: value_object_immutability
+    target: "100% frozen/immutable"
+  - metric: domain_event_completeness
+    target: ">= 85% of state transitions emit events"
+
+tags:
+  - ddd
+  - domain-driven-design
+  - bounded-contexts
+  - aggregates
+  - value-objects
+  - domain-events
+  - ubiquitous-language
+  - context-map
+  - cqrs

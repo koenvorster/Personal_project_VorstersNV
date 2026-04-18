@@ -1,0 +1,132 @@
+name: test_orchestrator_agent
+version: 3.0
+type: orchestrator
+description: "Senior QA/Test Orchestrator - turns specs into complete test strategies with Playwright/Cypress, DDD alignment, and Clean Code"
+
+# Model & LLM Settings
+model: llama3
+temperature: 0.3
+max_tokens: 4096
+top_p: 0.9
+
+# System Prompt (MASTER PROMPT #1)
+system_prompt_ref: prompts/system/test_orchestrator_system.txt
+
+# Pre-prompt with role context
+preprompt_ref: prompts/prepromt/test_orchestrator_v1.yml
+
+# Core Capabilities
+capabilities:
+  - parse_requirements_into_rules
+  - run_risk_based_analysis
+  - delegate_to_sub_agents
+  - consolidate_test_packs
+  - validate_coverage
+  - generate_test_matrix
+  - identify_gaps
+  - select_automation_framework
+  - validate_ddd_alignment
+  - validate_clean_code_compliance
+
+# Sub-agents this orchestrator delegates to
+sub_agents:
+  - domain_validation_agent
+  - test_design_agent
+  - automation_agent
+  - playwright_mcp_agent
+  - test_data_designer_agent
+  - security_permissions_agent
+  - regression_selector_agent
+  - ddd_modeling_agent
+  - clean_code_reviewer_agent
+
+# Delegation Rules (routing logic)
+delegation_logic:
+  - trigger: "extract_domain_rules"
+    route_to: domain_validation_agent
+    context_required:
+      - spec_text
+      - domain_context
+  
+  - trigger: "design_test_cases"
+    route_to: test_design_agent
+    context_required:
+      - rule_list
+      - test_level
+  
+  - trigger: "suggest_automation_cypress"
+    route_to: automation_agent
+    context_required:
+      - test_cases
+      - app_architecture
+      - framework_preference: cypress
+  
+  - trigger: "suggest_automation_playwright_mcp"
+    route_to: playwright_mcp_agent
+    context_required:
+      - task_description
+      - target_url
+  
+  - trigger: "prepare_test_data"
+    route_to: test_data_designer_agent
+    context_required:
+      - rules
+      - boundary_conditions
+  
+  - trigger: "validate_permissions"
+    route_to: security_permissions_agent
+    context_required:
+      - roles_matrix
+      - restricted_operations
+  
+  - trigger: "select_regression_pack"
+    route_to: regression_selector_agent
+    context_required:
+      - change_description
+      - impact_analysis
+  
+  - trigger: "model_domain"
+    route_to: ddd_modeling_agent
+    context_required:
+      - spec_text
+      - domain_context
+  
+  - trigger: "review_code_quality"
+    route_to: clean_code_reviewer_agent
+    context_required:
+      - code_snippets
+      - language
+
+# Quality Gates (must pass before final output)
+quality_gates:
+  - gate: "all_assumptions_labeled"
+  - gate: "no_leaky_tech_in_ui"
+  - gate: "data_precision_4_decimals"
+  - gate: "entry_exit_criteria_defined"
+  - gate: "cypress_custom_commands_for_reusable_steps"
+  - gate: "ddd_bounded_context_per_domain"
+  - gate: "no_aggregate_root_bypass"
+  - gate: "clean_code_srp_enforced"
+  - gate: "no_magic_numbers_in_tests"
+
+# Evaluation & Feedback Loop
+evaluation:
+  - metric: coverage_score
+    target: ">= 85%"
+  - metric: consistency_check
+    target: "100% verified"
+  - metric: traceability
+    target: ">= 90%"
+  - metric: actionability
+    target: "100%"
+
+feedback_loop: true
+tags:
+  - qa
+  - test-orchestration
+  - payroll
+  - compliance
+  - bdd
+  - cypress
+  - ddd
+  - clean-code

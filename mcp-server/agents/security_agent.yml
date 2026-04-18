@@ -1,0 +1,39 @@
+name: Security Agent
+description: Monitort veiligheid en stuurt automatische reacties
+version: 1.0
+
+model: llama3
+system_prompt_ref: ./prompts/system/security_system.txt
+prepromt_ref: ./prompts/prepromt/security_v1.yml
+
+temperature: 0.3
+max_tokens: 512
+
+capabilities:
+  - monitor_doors_windows
+  - detect_motion
+  - arm_disarm_system
+  - send_alerts
+  - log_events
+  - emergency_response
+
+triggers:
+  - door_opened
+  - motion_detected
+  - window_opened
+  - alarm_triggered
+  - scheduled_check
+
+required_inputs:
+  - event_type: string
+  - entities: array
+  - severity: string
+
+evaluation:
+  feedback_loop: true
+  metrics:
+    - detection_accuracy
+    - false_alarm_rate
+    - response_time_seconds
+
+sub_agents: []

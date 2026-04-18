@@ -1,0 +1,117 @@
+name: test_data_designer_agent
+version: 1.0
+type: specialist_sub_agent
+description: "Creates minimal-but-powerful test datasets covering boundaries and combinatorics"
+
+model: llama3
+temperature: 0.2
+max_tokens: 3072
+top_p: 0.8
+
+system_prompt_ref: prompts/system/test_data_designer_system.txt
+preprompt_ref: prompts/prepromt/test_data_designer_v1.yml
+
+capabilities:
+  - design_boundary_datasets
+  - create_combinatorial_sets
+  - generate_date_scenarios
+  - generate_money_scenarios
+  - design_period_permutations
+  - design_role_combinations
+  - define_setup_scripts
+  - define_reset_strategy
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    rules:
+      type: array
+      description: "From domain_validation_agent"
+    
+    boundary_conditions:
+      type: object
+      properties:
+        date_thresholds:
+          type: object
+          description: "e.g., lookback_months: 24, threshold_date_param"
+        money_ranges:
+          type: object
+          properties:
+            min: { type: number }
+            max: { type: number }
+            precision: { type: integer, description: "decimal places" }
+        period_constraints:
+          type: array
+          description: "single, multiple, removal, copy-between"
+        roles:
+          type: array
+          items: { type: string }
+          description: "PO, SME, Helpdesk, PRC, Customer HR, EB-client, etc."
+
+output_schema:
+  type: object
+  properties:
+    data_tables:
+      type: array
+      items:
+        type: object
+        properties:
+          entity_name: { type: string }
+          description: { type: string }
+          rows:
+            type: array
+            items:
+              type: object
+              description: "Entity instance with all field values"
+    
+    setup_steps:
+      type: array
+      items:
+        type: object
+        properties:
+          step_number: { type: integer }
+          action: { type: string }
+          method: { type: string, enum: [api, ui, database_seed] }
+          details: { type: object }
+    
+    boundary_test_datasets:
+      type: array
+      items:
+        type: object
+        properties:
+          dataset_name: { type: string }
+          purpose: { type: string }
+          values:
+            type: object
+            description: "Specific values: 0, 0.0001, 2-decimal, 4-decimal, large, past/today/future dates"
+    
+    reset_strategy:
+      type: object
+      properties:
+        teardown_order:
+          type: array
+          items: { type: string }
+          description: "Order to clean up (reverse dependency order)"
+        idempotent_operations:
+          type: array
+          description: "Safe-to-repeat delete/reset ops"
+        state_verification:
+          type: array
+          description: "Checks to ensure clean state"
+
+evaluation:
+  - metric: coverage_completeness
+    target: ">= 95%"
+  - metric: boundary_value_precision
+    target: "100%"
+  - metric: reset_idempotency
+    target: "100%"
+
+tags:
+  - test-data
+  - boundary-testing
+  - combinatorics
+  - setup-teardown
+  - data-driven

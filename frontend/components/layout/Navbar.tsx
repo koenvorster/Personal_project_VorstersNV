@@ -2,25 +2,39 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Code2, ShoppingCart } from 'lucide-react'
+import { Menu, X, Code2, ShoppingCart, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/lib/cartStore'
 
 const links = [
   { href: '/', label: 'Home' },
   { href: '/projecten', label: 'Projecten' },
-  { href: '/shop', label: 'Shop' },
+  { href: '/shop', label: 'Shop', admin: true },
   { href: '/over-mij', label: 'Over mij' },
   { href: '/blog', label: 'Blog' },
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/dashboard', label: 'Dashboard', admin: true },
+  { href: '/contact', label: 'Contact' },
 ]
 
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.aantal, 0))
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken')
+    setIsAdmin(!!token)
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken')
+    setIsAdmin(false)
+  }
+
+  const visibleLinks = links.filter(link => !link.admin || isAdmin)
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)

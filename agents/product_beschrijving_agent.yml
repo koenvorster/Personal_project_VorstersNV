@@ -1,7 +1,7 @@
 name: product_beschrijving_agent
 version: "1.1"
 description: "AI-agent voor het genereren van professionele productbeschrijvingen"
-model: mistral
+model: llama3
 temperature: 0.7
 max_tokens: 2048
 language: nl

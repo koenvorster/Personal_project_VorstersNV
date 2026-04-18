@@ -1,0 +1,46 @@
+name: Home Automation Agent
+description: Controleert smart home apparaten op basis van triggers en context
+version: 1.0
+
+model: llama3
+system_prompt_ref: ./prompts/system/home_automation_system.txt
+prepromt_ref: ./prompts/prepromt/home_automation_v1.yml
+
+temperature: 0.5
+max_tokens: 1024
+
+capabilities:
+  - turn_lights_on_off
+  - adjust_brightness
+  - control_temperature
+  - manage_scenes
+  - execute_routines
+  - set_automations
+
+triggers:
+  - motion_detected
+  - time_based
+  - voice_command
+  - manual_request
+  - webhook_event
+
+required_inputs:
+  - trigger_type: string
+  - entities: array
+  - desired_state: string
+
+output_format:
+  type: json
+  schema:
+    status: "success|failure|needs_confirmation"
+    actions: array
+    reasoning: string
+
+evaluation:
+  feedback_loop: true
+  metrics:
+    - response_time_ms
+    - action_success_rate
+    - user_satisfaction_score
+
+sub_agents: []

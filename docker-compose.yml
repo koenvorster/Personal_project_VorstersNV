@@ -1,79 +1,4 @@
 services:
-  # Lokale Ollama AI
-  ollama:
-    image: ollama/ollama:latest
-    container_name: vorstersNV-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Modellen downloaden bij opstart
-  ollama-init:
-    image: ollama/ollama:latest
-    container_name: vorstersNV-ollama-init
-    depends_on:
-      ollama:
-        condition: service_healthy
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
-    entrypoint: >
-      sh -c "
-        ollama pull llama3 &&
-        ollama pull mistral &&
-        echo 'Modellen klaar!'
-      "
-    restart: "no"
-
-  # Webhook service
-  webhooks:
-    build:
-      context: .
-      dockerfile: Dockerfile.webhooks
-    container_name: vorstersNV-webhooks
-    ports:
-      - "8000:8000"
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_DEFAULT_MODEL=llama3
-      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-dev-secret-change-me}
-      - LOG_LEVEL=INFO
-    volumes:
-      - ./logs:/app/logs
-      - ./prompts:/app/prompts:ro
-      - ./agents:/app/agents:ro
-    depends_on:
-      ollama:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Analytics Database (PostgreSQL – ster-schema)
-  analytics_db:
-    image: postgres:16-alpine
-    container_name: vorstersNV-analytics-db
-    environment:
-      - POSTGRES_DB=vorstersNV_analytics
-      - POSTGRES_USER=vorstersNV
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-dev-password-change-me}
-    ports:
-      - "5433:5432"
-    volumes:
-      - analytics_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
   # Database (PostgreSQL)
   database:
     image: postgres:16-alpine
@@ -87,40 +12,50 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vorstersNV"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Keycloak – Identity & Access Management
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0
-    container_name: vorstersNV-keycloak
-    command: start-dev --import-realm
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KC_HTTP_PORT=8080
-      - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://database:5432/keycloak
-      - KC_DB_USERNAME=vorstersNV
-      - KC_DB_PASSWORD=${DB_PASSWORD:-dev-password-change-me}
+  # Spring Boot API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vorstersNV-api
     ports:
       - "8080:8080"
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_PASSWORD=${DB_PASSWORD:-dev-password-change-me}
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  # Cache (Redis)
-  redis:
-    image: redis:7-alpine
-    container_name: vorstersNV-redis
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8080
+    container_name: vorstersNV-frontend
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+      - "3000:3000"
+    environment:
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-local-dev-secret}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  ollama_data:
   postgres_data:
-  analytics_data:
-  redis_data:

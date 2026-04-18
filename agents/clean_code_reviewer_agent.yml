@@ -1,0 +1,182 @@
+name: clean_code_reviewer_agent
+version: 1.0
+type: specialist_sub_agent
+description: "Clean Code reviewer - analyzes code against SOLID, DRY, naming conventions and smell detection"
+
+model: llama3
+temperature: 0.2
+max_tokens: 4096
+top_p: 0.85
+
+system_prompt_ref: prompts/system/clean_code_reviewer_system.txt
+preprompt_ref: prompts/prepromt/clean_code_reviewer_v1.yml
+
+capabilities:
+  - review_single_responsibility
+  - check_open_closed_principle
+  - validate_liskov_substitution
+  - check_interface_segregation
+  - verify_dependency_inversion
+  - detect_meaningful_naming
+  - check_function_size
+  - detect_magic_numbers
+  - identify_code_duplication
+  - check_guard_clauses
+  - detect_deep_nesting
+  - identify_dead_code
+  - check_comment_quality
+  - detect_god_classes
+  - check_dependency_injection
+  - verify_pure_functions
+
+clean_code_rules:
+  SOLID:
+    S_srp:
+      principle: "Single Responsibility Principle"
+      rule: "A class/function has ONE reason to change"
+      smell: "Class with >200 lines, method with >20 lines, function doing >1 thing"
+      fix: "Extract class, extract method, move responsibility"
+    O_ocp:
+      principle: "Open/Closed Principle"
+      rule: "Open for extension, closed for modification"
+      smell: "Switch/if-else chains checking type to dispatch behavior"
+      fix: "Strategy pattern, polymorphism, dependency injection"
+    L_lsp:
+      principle: "Liskov Substitution Principle"
+      rule: "Subclass must be usable wherever base class is used"
+      smell: "Subclass raises NotImplementedError, overrides with empty body, narrows contract"
+      fix: "Redesign hierarchy, prefer composition over inheritance"
+    I_isp:
+      principle: "Interface Segregation Principle"
+      rule: "Clients should not depend on methods they don't use"
+      smell: "Fat interface with >5 methods, classes that implement interface but stub most methods"
+      fix: "Split interface into smaller focused interfaces"
+    D_dip:
+      principle: "Dependency Inversion Principle"
+      rule: "Depend on abstractions, not concretions"
+      smell: "Direct instantiation of dependencies inside class (new X()), hardcoded DB/API clients"
+      fix: "Constructor injection, abstract base classes, protocols"
+  
+  naming:
+    variables: "Reveal intent: customer_count not c, total_price not tp"
+    booleans: "Question form: is_active, has_discount, can_proceed"
+    functions: "Verb + noun: calculate_total, send_email, validate_order"
+    classes: "Noun: OrderProcessor not ProcessOrders, CustomerRepository not GetCustomers"
+    avoid: "temp, data, info, manager, helper, utils as standalone names"
+  
+  functions:
+    max_lines: 20
+    max_parameters: 3
+    rule: "Do one thing, at one level of abstraction"
+    guard_clauses: "Return early for invalid conditions instead of nesting"
+    bad: |
+      def process(order):
+          if order:
+              if order.is_valid():
+                  if order.has_items():
+                      # real logic here (3 levels deep)
+    good: |
+      def process(order):
+          if not order:
+              raise ValueError("Order required")
+          if not order.is_valid():
+              raise DomainError("Order is invalid")
+          if not order.has_items():
+              raise DomainError("Order has no items")
+          # real logic at top level
+  
+  smells:
+    magic_numbers:
+      bad: "if discount > 0.15:"
+      good: "MAX_DISCOUNT_RATE = Decimal('0.15')\nif discount > MAX_DISCOUNT_RATE:"
+    dead_code: "Remove commented-out code - use git history instead"
+    comments:
+      bad: "# increment i by 1\ni += 1"
+      good: "Comments explain WHY, not WHAT. Code explains WHAT."
+    god_class: "Class that knows/does everything. Extract domain-specific behavior."
+    primitive_obsession: "Use Value Objects instead of raw str/int for domain concepts"
+    long_parameter_list: "Group related params into a Parameter Object or dataclass"
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    code_snippets:
+      type: array
+      items:
+        type: object
+        properties:
+          file_path: { type: string }
+          content: { type: string }
+          language: { type: string, enum: [python, typescript, java, csharp] }
+    
+    review_focus:
+      type: array
+      items: { type: string, enum: [naming, solid, functions, smells, comments, dry, all] }
+    
+    context:
+      type: string
+      description: "Domain context for evaluation (e.g. 'order processing domain')"
+
+output_schema:
+  type: object
+  properties:
+    violations:
+      type: array
+      items:
+        type: object
+        properties:
+          file: { type: string }
+          line_range: { type: string }
+          principle_violated: { type: string }
+          severity: { type: string, enum: [critical, major, minor, suggestion] }
+          description: { type: string }
+          bad_code: { type: string }
+          suggested_fix: { type: string }
+          fixed_code: { type: string }
+    
+    summary:
+      type: object
+      properties:
+        total_violations: { type: integer }
+        critical: { type: integer }
+        major: { type: integer }
+        minor: { type: integer }
+        top_issues:
+          type: array
+          items: { type: string }
+        overall_score:
+          type: string
+          description: "Clean code score: A (90-100), B (75-89), C (60-74), D (<60)"
+    
+    refactoring_plan:
+      type: array
+      items:
+        type: object
+        properties:
+          priority: { type: integer }
+          action: { type: string }
+          affected_files:
+            type: array
+            items: { type: string }
+          effort: { type: string, enum: [low, medium, high] }
+          impact: { type: string, enum: [low, medium, high] }
+
+evaluation:
+  - metric: violation_detection_accuracy
+    target: ">= 95%"
+  - metric: false_positive_rate
+    target: "< 5%"
+  - metric: actionable_fix_rate
+    target: "100% of violations include concrete fix suggestion"
+
+tags:
+  - clean-code
+  - solid
+  - code-review
+  - naming-conventions
+  - refactoring
+  - code-quality
+  - dry
+  - code-smells

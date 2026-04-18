@@ -67,7 +67,7 @@ evaluation:
     - verwerkingstijd_seconden
     - correct_beleid_percentage
     - klant_tevredenheid_score
-  feedback_loop: true
+  feedback_loop: false
   log_dir: "logs/retour_verwerking"
 
 iteration_log: "prompts/prepromt/retour_verwerking_iterations.yml"

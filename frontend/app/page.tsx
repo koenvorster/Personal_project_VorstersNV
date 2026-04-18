@@ -202,6 +202,11 @@ export default function HomePage() {
                 Bekijk projecten
               </GradientButton>
             </Link>
+            <Link href="/contact" className="w-full sm:w-auto">
+              <GradientButton variant="outline" className="w-full sm:w-auto text-base px-8 py-4 flex items-center justify-center gap-2">
+                Neem contact op <Mail className="w-4 h-4" />
+              </GradientButton>
+            </Link>
           </motion.div>
 
           {/* Social links */}

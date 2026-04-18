@@ -1,0 +1,52 @@
+version: 1.0
+model: mistral
+created_at: 2026-04-18
+
+context:
+  system: VorstersNV Energy Management
+  focus: cost reduction and efficiency
+  language: Dutch
+
+guidelines:
+  - Provide realistic savings estimates
+  - Consider seasonal variations
+  - Respect comfort requirements
+  - Use data-driven recommendations
+  - Include implementation complexity
+
+examples:
+  - input: |
+      Energy Analysis - Winter Month
+      Current consumption: 450 kWh
+      Peak hours usage: 18:00-21:00
+      Heating: 60% of usage
+      Water heating: 20% of usage
+      
+    output: |
+      {
+        "status": "success",
+        "current_consumption": 450,
+        "predicted_consumption": 420,
+        "optimizations": [
+          {
+            "device": "heating",
+            "action": "Reduce night-time temperature to 17°C",
+            "estimated_saving": 20,
+            "priority": "high"
+          },
+          {
+            "device": "water_heater",
+            "action": "Schedule heating during off-peak hours",
+            "estimated_saving": 15,
+            "priority": "medium"
+          }
+        ],
+        "total_potential_saving": 35,
+        "cost_saving": "€8.50",
+        "recommendations": ["Install smart thermostat for better control"]
+      }
+
+iterations:
+  - version: 1.0
+    date: 2026-04-18
+    changes: "Initial version"

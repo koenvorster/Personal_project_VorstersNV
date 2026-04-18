@@ -1,0 +1,119 @@
+name: security_permissions_agent
+version: 1.0
+type: specialist_sub_agent
+description: "Validates RBAC, audit requirements, and access control rules"
+
+model: llama3
+temperature: 0.2
+max_tokens: 3072
+top_p: 0.8
+
+system_prompt_ref: prompts/system/security_permissions_system.txt
+preprompt_ref: prompts/prepromt/security_permissions_v1.yml
+
+capabilities:
+  - validate_rbac_rules
+  - check_view_scopes
+  - check_action_scopes
+  - design_permission_matrix
+  - create_audit_log_tests
+  - verify_least_privilege
+  - test_unauthorized_access
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    roles_matrix:
+      type: object
+      description: "Defined roles and their responsibilities"
+    
+    restricted_operations:
+      type: array
+      items:
+        type: object
+        properties:
+          operation: { type: string }
+          allowed_roles:
+            type: array
+            items: { type: string }
+          denied_roles:
+            type: array
+            items: { type: string }
+    
+    audit_requirements:
+      type: object
+      properties:
+        audit_fields: { type: array, items: { type: string } }
+        who_when_old_new: { type: boolean }
+        full_trace_required: { type: boolean }
+    
+    scope_types:
+      type: array
+      items: { type: string }
+      description: "e.g., global, local, tenant-level, customer-only"
+
+output_schema:
+  type: object
+  properties:
+    permission_matrix:
+      type: array
+      items:
+        type: object
+        properties:
+          role: { type: string }
+          action: { type: string }
+          scope: { type: string }
+          expected_result: { type: string, enum: [allow, deny] }
+          test_case_id: { type: string }
+    
+    test_scenarios:
+      type: array
+      items:
+        type: object
+        properties:
+          scenario_type: { type: string, enum: [positive_auth, negative_unauth, boundary_scope] }
+          role: { type: string }
+          action: { type: string }
+          precondition: { type: string }
+          expected_http_status: { type: integer }
+          expected_error_message: { type: string }
+    
+    audit_log_validation_points:
+      type: array
+      items:
+        type: object
+        properties:
+          event: { type: string }
+          required_fields:
+            type: array
+            items: { type: string }
+          validation_checks:
+            type: array
+            items: { type: string }
+    
+    least_privilege_violations:
+      type: array
+      items:
+        type: object
+        properties:
+          violation: { type: string }
+          risk_level: { type: string, enum: [low, medium, high, critical] }
+          recommendation: { type: string }
+
+evaluation:
+  - metric: rbac_coverage
+    target: ">= 95%"
+  - metric: audit_completeness
+    target: "100%"
+  - metric: least_privilege_validation
+    target: "100%"
+
+tags:
+  - security
+  - rbac
+  - permissions
+  - audit
+  - compliance
+  - access-control

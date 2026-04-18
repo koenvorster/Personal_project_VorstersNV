@@ -1,0 +1,102 @@
+name: klantenservice_agent
+version: 2.0
+type: specialist
+description: "AI-agent voor klantenservice vragen bij VorstersNV webshop — beantwoordt vragen, verwerkt retouren en escaleert complexe gevallen"
+
+model: llama3
+temperature: 0.4
+max_tokens: 2048
+top_p: 0.9
+
+system_prompt_ref: prompts/system/klantenservice.txt
+preprompt_ref: prompts/prepromt/klantenservice_v1.txt
+
+capabilities:
+  - beantwoord_vragen
+  - order_status_opvragen
+  - retour_afhandeling
+  - product_informatie
+  - escalatie_naar_mens
+  - sentiment_analyse
+  - klant_profiel_opbouwen
+  - prioriteit_bepalen
+
+sub_agents:
+  - name: retour_verwerking_agent
+    trigger: retour_aanvraag
+    description: "Delegeer retouraanvragen voor gedetailleerde verwerking"
+  - name: email_template_agent
+    trigger: email_versturen
+    description: "Genereer professionele klantcommunicatie"
+  - name: fraude_detectie_agent
+    trigger: verdacht_gedrag
+    description: "Controleer verdachte klantmeldingen of orders"
+
+tools:
+  - name: zoek_order
+    description: "Zoek een order op basis van ordernummer of klantnaam"
+    endpoint: "/api/orders/search"
+  - name: product_info
+    description: "Haal productinformatie op uit de webshop"
+    endpoint: "/api/products/{product_id}"
+  - name: stuur_email
+    description: "Stuur een bevestigingsmail naar de klant"
+    endpoint: "/api/notifications/email"
+
+response_format:
+  greeting: true
+  empathy: true
+  action_steps: true
+  closing: true
+
+input_schema:
+  type: object
+  properties:
+    klant_id:
+      type: string
+      description: "Uniek klant-ID"
+    vraag:
+      type: string
+      description: "Klantvraag of -melding"
+    order_id:
+      type: string
+      description: "Optioneel: gekoppeld ordernummer"
+    kanaal:
+      type: string
+      enum: [chat, email, telefoon, webshop]
+    prioriteit:
+      type: string
+      enum: [laag, normaal, hoog, urgent]
+
+output_schema:
+  type: object
+  properties:
+    antwoord:
+      type: string
+      description: "Klantvriendelijk antwoord"
+    actie_vereist:
+      type: boolean
+    actie:
+      type: string
+      enum: [geen, retour_starten, email_sturen, escaleren, order_blokkeren]
+    escalatie_reden:
+      type: string
+    sub_agent_trigger:
+      type: string
+
+error_handling:
+  retry:
+    max_attempts: 2
+    delay_seconds: 1
+  fallback: "Geef standaard escalatie-antwoord naar menselijke medewerker"
+  escalation_trigger: "sub_agent_niet_beschikbaar OR score_onzeker"
+
+evaluation:
+  metrics:
+    - klanttevredenheid_score
+    - oplossingstijd_seconden
+    - escalatie_percentage
+  feedback_loop: true
+  log_dir: "logs/klantenservice"
+
+iteration_log: "prompts/prepromt/klantenservice_iterations.yml"

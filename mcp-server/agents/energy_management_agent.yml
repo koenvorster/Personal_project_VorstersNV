@@ -1,0 +1,38 @@
+name: Energy Management Agent
+description: Monitort en optimaliseert energieverbruik
+version: 1.0
+
+model: mistral
+system_prompt_ref: ./prompts/system/energy_management_system.txt
+prepromt_ref: ./prompts/prepromt/energy_management_v1.yml
+
+temperature: 0.6
+max_tokens: 1024
+
+capabilities:
+  - monitor_consumption
+  - optimize_schedules
+  - predict_usage
+  - suggest_savings
+  - control_devices_for_efficiency
+
+triggers:
+  - schedule_check
+  - high_consumption_alert
+  - manual_analysis
+  - time_of_use_change
+
+data_sources:
+  - energy_meter
+  - weather_api
+  - device_schedules
+  - historical_usage
+
+evaluation:
+  feedback_loop: true
+  metrics:
+    - energy_saved_kwh
+    - cost_reduction_percentage
+    - prediction_accuracy
+
+sub_agents: []

@@ -1,0 +1,175 @@
+name: automation_agent
+version: 2.0
+type: specialist_sub_agent
+description: |
+  Cypress E2E test specialist - schrijft end-to-end testsuites, component tests en API tests.
+  ENKEL Cypress voor test-specs en CI-pipelines.
+  Voor agent-driven browser automations: zie playwright_mcp_agent.
+
+model: llama3
+temperature: 0.25
+max_tokens: 4096
+top_p: 0.85
+
+system_prompt_ref: prompts/system/automation_system.txt
+preprompt_ref: prompts/prepromt/automation_v1.yml
+
+# ────────────────────────────────────────────────────────────────
+# Scope: Cypress = E2E testen  |  Playwright MCP = automaties
+# ────────────────────────────────────────────────────────────────
+install:
+  cypress: "npm install cypress --save-dev"
+  open: "npx cypress open"
+  run_ci: "npx cypress run --reporter junit"
+
+capabilities:
+  # Cypress E2E
+  - identify_automation_candidates
+  - write_cypress_e2e_specs
+  - write_cypress_component_tests
+  - configure_cypress_intercepts
+  - use_cypress_custom_commands
+  - apply_cypress_env_secrets
+  - design_cypress_fixtures
+  - setup_cypress_baseurl
+  # API tests (via cy.request)
+  - write_api_tests
+  - suggest_stable_locators
+  - recommend_mocking_strategy
+  - define_idempotent_teardown
+  - configure_ci_parallelization
+
+parent_agent: test_orchestrator_agent
+
+cypress_best_practices:
+  selectors: "data-testid preferred over CSS/XPath"
+  secrets: "cy.env() for sensitive values - never hardcode credentials"
+  state_control: "programmatic login via cy.request(), not via UI"
+  isolation: "each test resets its own state - no shared state between tests"
+  waiting: "cy.intercept() + cy.wait('@alias') - never cy.wait(hardcoded ms)"
+  commands: "custom commands in cypress/support/commands.ts"
+  specs: "TypeScript (.cy.ts), not JavaScript"
+  structure: |
+    cypress/
+      e2e/          ← E2E spec files
+      component/    ← Component test files
+      fixtures/     ← JSON test data
+      support/
+        commands.ts ← Custom Cypress commands
+        e2e.ts      ← Global hooks
+
+input_schema:
+  type: object
+  properties:
+    test_cases:
+      type: array
+      description: "From test_design_agent BDD scenarios"
+    
+    app_architecture:
+      type: object
+      properties:
+        framework: { type: string, enum: [react, angular, vue, next, custom] }
+        api_endpoints:
+          type: array
+          items: { type: string }
+        auth_method: { type: string, enum: [jwt, oauth, basic, session] }
+        base_url: { type: string }
+    
+    data_state_priority:
+      type: array
+      items: { type: string }
+      description: "API-first setup vs UI, for determinism"
+
+output_schema:
+  type: object
+  properties:
+    automation_shortlist:
+      type: array
+      items:
+        type: object
+        properties:
+          test_case_id: { type: string }
+          recommendation: { type: string, enum: [automate_cypress, keep_manual, defer] }
+          rationale: { type: string }
+    
+    cypress_specs:
+      type: array
+      items:
+        type: object
+        properties:
+          spec_file_name: { type: string }
+          test_code:
+            type: string
+            description: "Cypress test skeleton (TypeScript .cy.ts)"
+          data_fixtures:
+            type: array
+            description: "Fixture file references (cypress/fixtures/*.json)"
+          intercepts:
+            type: array
+            description: "Mocking points (cy.intercept)"
+    
+    api_test_skeletons:
+      type: array
+      items:
+        type: object
+        properties:
+          test_name: { type: string }
+          method: { type: string, enum: [GET, POST, PUT, DELETE, PATCH] }
+          endpoint: { type: string }
+          request_body: { type: object }
+          expected_response: { type: object }
+          setup_steps:
+            type: array
+            description: "API calls to set up state"
+    
+    reusable_commands:
+      type: array
+      description: "Custom Cypress commands (cypress/support/commands.ts)"
+      items:
+        type: object
+        properties:
+          command_name: { type: string }
+          description: { type: string }
+          parameters:
+            type: array
+          example_usage: { type: string }
+    
+    ci_recommendations:
+      type: object
+      properties:
+        artifacts:
+          type: array
+          items: { type: string }
+          example: ["screenshots", "videos", "junit-results", "mochawesome-report"]
+        parallelization_strategy: { type: string }
+        flakiness_mitigation:
+          type: array
+          items: { type: string }
+        cypress_config:
+          type: object
+          properties:
+            retries: { type: integer }
+            video: { type: boolean }
+            screenshotOnRunFailure: { type: boolean }
+            reporter: { type: string }
+
+evaluation:
+  - metric: automation_feasibility
+    target: ">= 80%"
+  - metric: code_skeleton_completeness
+    target: ">= 90%"
+  - metric: locator_stability
+    target: "100% data-testid preferred, no brittle CSS selectors"
+  - metric: test_isolation
+    target: "100% tests independent, no shared state"
+  - metric: secrets_handling
+    target: "100% via cy.env(), never hardcoded"
+
+tags:
+  - automation
+  - cypress
+  - e2e
+  - component-testing
+  - api-testing
+  - ci-cd
+  - test-code

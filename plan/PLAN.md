@@ -51,12 +51,15 @@ De huidige actieve mode wordt bijgehouden in [`mode.yml`](./mode.yml).
 - [ ] Betalingsintegratie Mollie (echte API-aanroep, nu mock)
 - [ ] CRM-koppeling
 
-### Fase 4 – Optimalisatie & Productie
-- [ ] Monitoring & logging dashboard
-- [ ] A/B-testen van prompts
-- [ ] Automatische prompt-verbetering via feedback
-- [ ] Productie-deployment (Docker / Kubernetes)
-- [ ] CI/CD volledig geautomatiseerd
+### Fase 4 – Cloud Deployment (Google Cloud Run)
+- [ ] Google Cloud project aanmaken + APIs inschakelen
+- [ ] Artifact Registry repository aanmaken (`europe-west1`)
+- [ ] Cloud SQL instantie aanmaken (PostgreSQL 16, `db-f1-micro`)
+- [ ] Service account aanmaken voor GitHub Actions (`github-deployer`)
+- [ ] GitHub Secrets instellen: `GCP_SA_KEY`, `GCP_PROJECT_ID`, `DB_PASSWORD`
+- [ ] Backend deployen naar Cloud Run (automatisch via `deploy.yml` bij push naar `main`)
+- [ ] Frontend deployen naar Cloud Run (automatisch via `deploy.yml` bij push naar `main`)
+- [ ] Custom domein koppelen (optioneel)
 
 ---
 
@@ -96,6 +99,7 @@ De huidige actieve mode wordt bijgehouden in [`mode.yml`](./mode.yml).
 | Pipelines | GitHub Actions |
 | Database | PostgreSQL + Redis |
 | Containerisatie | Docker + Docker Compose |
+| Cloud Platform | Google Cloud Run + Cloud SQL |
 
 ---
 

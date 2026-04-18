@@ -1,0 +1,261 @@
+name: developer_agent
+version: 2.0
+type: specialist
+description: "Implementation partner - translates specs into clean, DDD-aligned code-level tasks"
+
+model: llama3
+temperature: 0.4
+max_tokens: 4096
+top_p: 0.9
+
+system_prompt_ref: prompts/system/developer_agent_system.txt
+preprompt_ref: prompts/prepromt/developer_agent_v1.yml
+
+capabilities:
+  # Implementation
+  - analyze_implementation_feasibility
+  - produce_implementation_plan
+  - design_api_contracts
+  - design_ui_contracts
+  - outline_validation_logic
+  - identify_pitfalls
+  - recommend_test_hooks
+  - define_error_messages
+  - plan_audit_logging
+  # DDD tactical implementation
+  - implement_aggregate_roots
+  - implement_value_objects
+  - implement_domain_events
+  - implement_domain_services
+  - implement_repository_interfaces
+  - implement_application_services
+  - apply_cqrs_handlers
+  # Clean Code
+  - apply_single_responsibility
+  - enforce_meaningful_names
+  - write_small_pure_functions
+  - apply_solid_principles
+  - eliminate_code_smells
+  - apply_guard_clauses
+  - remove_magic_numbers
+  - apply_dependency_injection
+
+clean_code_principles:
+  srp: "Every class/function has one reason to change"
+  ocp: "Open for extension, closed for modification"
+  lsp: "Subtypes must be substitutable for their base types"
+  isp: "Prefer small, focused interfaces over fat ones"
+  dip: "Depend on abstractions, not concretions"
+  meaningful_names: "Reveal intent; no abbreviations; domain terminology"
+  small_functions: "Functions do one thing; max ~20 lines; verb names"
+  guard_clauses: "Return early for invalid conditions, avoid deep nesting"
+  pure_functions: "Prefer functions with no side effects where possible"
+  no_magic_numbers: "Extract constants with meaningful names"
+  dry: "Don't Repeat Yourself - extract shared logic"
+  yagni: "Don't add complexity for future requirements not yet needed"
+  tell_dont_ask: "Tell objects to do things, don't ask for data"
+
+ddd_implementation:
+  aggregate:
+    pattern: |
+      class OrderAggregate:
+        def __init__(self, id: OrderId, ...):
+          self._id = id
+          self._events: list[DomainEvent] = []
+        def place(self, items: list[OrderItem]) -> None:
+          # enforce invariants, emit event
+          self._events.append(OrderPlaced(...))
+        def pull_events(self) -> list[DomainEvent]:
+          events, self._events = self._events, []
+          return events
+    rules:
+      - "Only the aggregate root is referenced from outside"
+      - "All state changes go through the root"
+      - "One transaction = one aggregate"
+  value_object:
+    pattern: |
+      @dataclass(frozen=True)
+      class Money:
+        amount: Decimal
+        currency: str
+        def __post_init__(self):
+          if self.amount < 0:
+            raise ValueError("Amount cannot be negative")
+    rules:
+      - "Always frozen/immutable"
+      - "Equality by value, not identity"
+      - "Validate in __post_init__ or factory method"
+  domain_event:
+    pattern: |
+      @dataclass(frozen=True)
+      class OrderPlaced:
+        order_id: OrderId
+        customer_id: CustomerId
+        occurred_at: datetime = field(default_factory=datetime.utcnow)
+    rules:
+      - "Past tense name"
+      - "Immutable"
+      - "Contains enough context to be handled independently"
+
+input_schema:
+  type: object
+  properties:
+    spec:
+      type: string
+      description: "Feature spec or requirements"
+    
+    context:
+      type: object
+      properties:
+        tech_stack:
+          type: object
+          properties:
+            service: { type: string }
+            database: { type: string }
+            event_bus: { type: string }
+            cache: { type: string }
+        
+        existing_patterns:
+          type: array
+          items: { type: string }
+          description: "Existing code patterns to follow"
+        
+        constraints:
+          type: array
+          items: { type: string }
+          description: "Performance, security, compliance constraints"
+
+output_schema:
+  type: object
+  properties:
+    high_level_approach:
+      type: string
+      description: "Summary of implementation strategy"
+    
+    data_model_and_state_transitions:
+      type: object
+      properties:
+        entities:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              fields:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field_name: { type: string }
+                    type: { type: string }
+                    nullable: { type: boolean }
+                    notes: { type: string }
+        
+        state_machine:
+          type: object
+          description: "State transitions and allowed operations per state"
+    
+    validation_rules_pseudocode:
+      type: array
+      items:
+        type: object
+        properties:
+          rule_id: { type: string }
+          description: { type: string }
+          pseudocode: { type: string }
+          edge_cases:
+            type: array
+            items: { type: string }
+    
+    error_messages:
+      type: array
+      items:
+        type: object
+        properties:
+          error_code: { type: string }
+          http_status: { type: integer }
+          message: { type: string }
+          user_facing: { type: boolean }
+    
+    api_endpoints:
+      type: array
+      items:
+        type: object
+        properties:
+          method: { type: string }
+          path: { type: string }
+          request_body_schema: { type: object }
+          response_schema: { type: object }
+          status_codes:
+            type: array
+            items: { type: integer }
+    
+    logging_and_telemetry:
+      type: array
+      items:
+        type: object
+        properties:
+          event_name: { type: string }
+          log_level: { type: string }
+          fields_to_log:
+            type: array
+            items: { type: string }
+          why_important: { type: string }
+    
+    testability_hooks:
+      type: object
+      properties:
+        data_testid_strategy: { type: string }
+        deterministic_api_endpoints:
+          type: array
+          items: { type: string }
+          description: "E.g., seed, reset, snapshot endpoints"
+        feature_flags:
+          type: array
+          items: { type: string }
+    
+    pitfalls_and_mitigations:
+      type: array
+      items:
+        type: object
+        properties:
+          pitfall: { type: string }
+          why_it_happens: { type: string }
+          mitigation: { type: string }
+    
+    rollback_and_migration_notes:
+      type: object
+      properties:
+        schema_changes:
+          type: array
+          items: { type: string }
+        data_migration:
+          type: array
+          items: { type: string }
+        rollback_plan:
+          type: string
+
+evaluation:
+  - metric: implementation_feasibility
+    target: ">= 95%"
+  - metric: acceptance_checkpoint_clarity
+    target: "100%"
+  - metric: pitfall_coverage
+    target: ">= 90%"
+  - metric: clean_code_compliance
+    target: ">= 90% (SRP, naming, guard clauses)"
+  - metric: ddd_pattern_correctness
+    target: ">= 85% (aggregates, value objects, events)"
+
+tags:
+  - development
+  - implementation
+  - backend
+  - api-design
+  - clean-code
+  - solid
+  - ddd
+  - domain-driven-design
+  - value-objects
+  - aggregates
+  - acceptance-criteria

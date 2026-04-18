@@ -1,0 +1,119 @@
+name: test_design_agent
+version: 2.0
+type: specialist_sub_agent
+description: "Converts rules into BDD/Gherkin scenarios, Xray stepwise tests, and Cypress automation skeletons"
+
+model: llama3
+temperature: 0.3
+max_tokens: 4096
+top_p: 0.85
+
+system_prompt_ref: prompts/system/test_design_system.txt
+preprompt_ref: prompts/prepromt/test_design_v1.yml
+
+capabilities:
+  - write_bdd_scenarios
+  - generate_gherkin_features
+  - create_xray_tests
+  - map_traceability_jira
+  - define_preconditions
+  - define_postconditions
+  - set_explicit_test_data
+  - generate_cypress_specs
+  - map_bdd_to_automation
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    rule_list:
+      type: array
+      description: "From domain_validation_agent output"
+    
+    edge_cases:
+      type: array
+      description: "Edge case scenarios"
+    
+    test_level:
+      type: string
+      enum: [smoke, unit, integration, e2e, regression]
+    
+    jira_key:
+      type: string
+      description: "For traceability mapping"
+    
+    domain_terminology:
+      type: object
+      description: "Stable terms from spec (e.g., 'Calculation period')"
+
+output_schema:
+  type: object
+  properties:
+    bdd_features:
+      type: array
+      items:
+        type: object
+        properties:
+          feature_name: { type: string }
+          description: { type: string }
+          scenarios:
+            type: array
+            items:
+              type: object
+              properties:
+                scenario_name: { type: string }
+                scenario_type: { type: string, enum: [happy_path, negative, boundary, permission, audit] }
+                given:
+                  type: array
+                  items: { type: string }
+                when:
+                  type: array
+                  items: { type: string }
+                then:
+                  type: array
+                  items: { type: string }
+                test_data:
+                  type: object
+                  description: "Specific values (dates, amounts) used in scenario"
+    
+    xray_tests:
+      type: array
+      items:
+        type: object
+        properties:
+          test_id: { type: string }
+          test_name: { type: string }
+          jira_key: { type: string }
+          preconditions:
+            type: array
+            items: { type: string }
+          steps:
+            type: array
+            items:
+              type: object
+              properties:
+                step_number: { type: integer }
+                action: { type: string }
+                expected_result: { type: string }
+          test_data:
+            type: object
+          postconditions:
+            type: array
+            items: { type: string }
+
+evaluation:
+  - metric: scenario_coverage
+    target: ">= 90%"
+  - metric: data_value_specificity
+    target: "100%"
+  - metric: traceability_completeness
+    target: ">= 95%"
+
+tags:
+  - test-design
+  - bdd
+  - xray
+  - gherkin
+  - cypress
+  - traceability

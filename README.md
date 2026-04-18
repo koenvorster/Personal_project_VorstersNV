@@ -440,9 +440,7 @@ alembic upgrade head
 ### Vereisten
 
 - Docker & Docker Compose
-- Python 3.12+
-- Node.js 20+
-- [Ollama](https://ollama.ai) (voor lokale AI)
+- Node.js 20+ (optioneel, voor lokale frontend dev)
 
 ### 1. Repository klonen
 
@@ -454,63 +452,94 @@ cd Personal_project_VorstersNV
 ### 2. Omgevingsvariabelen instellen
 
 ```bash
-cp .env.example .env
-# Pas de waarden aan in .env
+# Windows PowerShell
+Copy-Item .env.example .env
+# Pas DB_PASSWORD aan in .env
 ```
 
 ```env
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_DEFAULT_MODEL=llama3
-WEBHOOK_SECRET=verander-dit-in-productie
-DB_URL=postgresql+asyncpg://vorstersNV:wachtwoord@localhost:5432/vorstersNV
-REDIS_URL=redis://localhost:6379
-KEYCLOAK_URL=http://localhost:8080
+DB_PASSWORD=verander-dit
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-### 3. Services starten met Docker
+### 3. Alles starten met Docker Compose
 
-```bash
-docker-compose up -d
+```powershell
+# PowerShell – gebruik ; i.p.v. &&
+docker compose up -d
 ```
 
 Dit start:
 | Service | Poort | Beschrijving |
 |---------|-------|-------------|
-| FastAPI backend | `:8000` | REST API + Swagger |
-| Webhook engine | `:9000` | Event verwerking |
+| Spring Boot API | `:8080` | REST API + Actuator health |
+| Next.js frontend | `:3000` | Webshop & portfolio |
 | PostgreSQL | `:5432` | Database |
-| Redis | `:6379` | Cache |
-| Keycloak | `:8080` | SSO authenticatie |
-
-### 4. AI-modellen downloaden
-
-```bash
-ollama pull llama3
-ollama pull mistral
-```
-
-### 5. Database migraties
-
-```bash
-pip install -r requirements.txt
-alembic upgrade head
-```
-
-### 6. Frontend starten
-
-```bash
-cd frontend
-npm install
-npm run dev   # → http://localhost:3000
-```
-
-### 7. Agents testen
-
-```bash
-python scripts/test_agent.py --agent klantenservice_agent --input "Waar is mijn bestelling?"
-```
 
 ---
+
+## ☁️ Google Cloud deployment
+
+De applicatie draait op **Google Cloud Run** (frontend + backend) met **Cloud SQL** (PostgreSQL).
+CI/CD via GitHub Actions — elke push naar `main` deployt automatisch.
+
+### Eénmalige setup (uitvoeren via gcloud CLI)
+
+```bash
+# Login & project aanmaken
+gcloud auth login
+gcloud projects create vorstersNV --name="VorstersNV"
+gcloud config set project vorstersNV
+
+# APIs inschakelen
+gcloud services enable run.googleapis.com sqladmin.googleapis.com \
+  artifactregistry.googleapis.com cloudbuild.googleapis.com
+
+# Artifact Registry (Docker images opslaan)
+gcloud artifacts repositories create vorstersNV \
+  --repository-format=docker --location=europe-west1
+
+# Cloud SQL aanmaken (PostgreSQL 16)
+gcloud sql instances create vorstersNV-db \
+  --database-version=POSTGRES_16 --tier=db-f1-micro \
+  --region=europe-west1
+gcloud sql databases create vorstersNV --instance=vorstersNV-db
+gcloud sql users set-password postgres --instance=vorstersNV-db \
+  --password=WIJZIG_DIT
+
+# Service account voor GitHub Actions
+gcloud iam service-accounts create github-deployer
+gcloud projects add-iam-policy-binding vorstersNV \
+  --member="serviceAccount:github-deployer@vorstersNV.iam.gserviceaccount.com" \
+  --role="roles/run.admin"
+gcloud projects add-iam-policy-binding vorstersNV \
+  --member="serviceAccount:github-deployer@vorstersNV.iam.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+gcloud projects add-iam-policy-binding vorstersNV \
+  --member="serviceAccount:github-deployer@vorstersNV.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+gcloud projects add-iam-policy-binding vorstersNV \
+  --member="serviceAccount:github-deployer@vorstersNV.iam.gserviceaccount.com" \
+  --role="roles/cloudsql.client"
+
+# JSON-sleutel genereren → toevoegen als GitHub Secret
+gcloud iam service-accounts keys create key.json \
+  --iam-account=github-deployer@vorstersNV.iam.gserviceaccount.com
+```
+
+### GitHub Secrets instellen
+
+Ga naar **repository → Settings → Secrets and variables → Actions** en voeg toe:
+
+| Secret | Waarde |
+|--------|--------|
+| `GCP_SA_KEY` | Inhoud van `key.json` |
+| `GCP_PROJECT_ID` | `vorstersNV` |
+| `DB_PASSWORD` | Wachtwoord van Cloud SQL |
+
+Na het instellen van de secrets: push naar `main` → GitHub Actions deployt automatisch.
+
+
 
 ## 📖 API documentatie
 

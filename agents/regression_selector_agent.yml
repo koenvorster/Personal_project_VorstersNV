@@ -1,0 +1,132 @@
+name: regression_selector_agent
+version: 1.0
+type: specialist_sub_agent
+description: "Intelligent regression selector - proposes focused test packs based on change impact"
+
+model: llama3
+temperature: 0.2
+max_tokens: 3072
+top_p: 0.8
+
+system_prompt_ref: prompts/system/regression_selector_system.txt
+preprompt_ref: prompts/prepromt/regression_selector_v1.yml
+
+capabilities:
+  - analyze_change_impact
+  - map_component_dependencies
+  - identify_integration_risks
+  - select_critical_paths
+  - prioritize_regression_tests
+  - classify_test_urgency
+  - provide_rationale
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    change_description:
+      type: string
+      description: "What changed (feature, bug fix, refactor)"
+    
+    change_type:
+      type: string
+      enum: [feature, bugfix, refactor, schema_change, integration, config]
+    
+    impacted_modules:
+      type: array
+      items: { type: string }
+      description: "Components affected by the change"
+    
+    domain_context:
+      type: string
+      enum: [orders, products, customers, payments, inventory, fraud, payroll]
+      description: "VorstersNV domain (payroll = optional legacy domain)"
+    
+    legal_compliance_areas:
+      type: array
+      items: { type: string }
+      description: "e.g., GDPR, Belgian consumer law, Mollie payment compliance"
+    
+    historical_failures:
+      type: array
+      items:
+        type: object
+        properties:
+          module: { type: string }
+          failure_pattern: { type: string }
+
+output_schema:
+  type: object
+  properties:
+    impact_assessment:
+      type: object
+      properties:
+        affected_components:
+          type: array
+          items: { type: string }
+        integration_points:
+          type: array
+          items: { type: string }
+        high_risk_flows:
+          type: array
+          items: { type: string }
+        compliance_risk_level: { type: string, enum: [low, medium, high, critical] }
+    
+    must_run_tests:
+      type: array
+      items:
+        type: object
+        properties:
+          test_id: { type: string }
+          test_name: { type: string }
+          reason: { type: string }
+          estimated_duration: { type: string }
+    
+    should_run_if_time:
+      type: array
+      items:
+        type: object
+        properties:
+          test_id: { type: string }
+          reason: { type: string }
+    
+    defer_tests:
+      type: array
+      items:
+        type: object
+        properties:
+          test_id: { type: string }
+          reason: { type: string }
+    
+    smoke_test_pack:
+      type: array
+      items: { type: string }
+      description: "Absolute minimum smoke tests"
+    
+    legal_compliance_pack:
+      type: array
+      items: { type: string }
+      description: "Tests for legal/compliance critical paths"
+    
+    rationale:
+      type: object
+      properties:
+        overall_strategy: { type: string }
+        risk_justification: { type: string }
+        time_estimate: { type: string }
+
+evaluation:
+  - metric: impact_accuracy
+    target: ">= 90%"
+  - metric: compliance_risk_detection
+    target: "100%"
+  - metric: false_positive_rate
+    target: "< 5%"
+
+tags:
+  - regression-testing
+  - risk-based-testing
+  - test-selection
+  - compliance
+  - impact-analysis

@@ -1,0 +1,78 @@
+version: 1.0
+model: llama3
+created_at: 2026-04-18
+
+context:
+  system: VorstersNV Smart Home
+  region: Netherlands
+  language: Dutch
+  device_types:
+    - lights
+    - climate
+    - security
+    - power
+
+guidelines:
+  - Always provide structured JSON output
+  - Include clear reasoning for decisions
+  - Suggest energy-saving options
+  - Respect user preferences
+  - Act quickly but verify actions
+
+examples:
+  - input: |
+      Motion detected in living room at 19:00
+      Current state:
+      - Light: off
+      - Temperature: 21°C
+      - Time: 19:00
+      Occupancy: 3 people expected
+      
+    output: |
+      {
+        "status": "success",
+        "actions": [
+          {
+            "entity_id": "light.living_room",
+            "service": "light.turn_on",
+            "data": {"brightness": 150, "color_temp": 3500},
+            "result": "success"
+          }
+        ],
+        "reasoning": "Motion detected in occupied room at evening time. Turning on lights to comfortable brightness.",
+        "recommendations": ["Consider setting scene for movie mode"]
+      }
+
+  - input: |
+      Good morning at 07:00
+      Current state:
+      - All lights: off
+      - Temperature: 18°C (night mode)
+      - Time: 07:00
+      Weather: Sunny, 15°C outside
+      
+    output: |
+      {
+        "status": "success",
+        "actions": [
+          {
+            "entity_id": "climate.heating",
+            "service": "climate.set_temperature",
+            "data": {"temperature": 21},
+            "result": "success"
+          },
+          {
+            "entity_id": "light.bedroom",
+            "service": "light.turn_on",
+            "data": {"brightness": 255, "color_temp": 6500},
+            "result": "success"
+          }
+        ],
+        "reasoning": "Morning routine started. Increasing temperature and providing bright, energizing light.",
+        "recommendations": ["Open blinds to let in natural sunlight"]
+      }
+
+iterations:
+  - version: 1.0
+    date: 2026-04-18
+    changes: "Initial version"

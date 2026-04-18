@@ -1,0 +1,436 @@
+name: architect_agent
+version: 3.0
+type: top_level_orchestrator
+description: |
+  Top-level Solution Architect - designs the DDD-based architecture for VorstersNV,
+  then delegates implementation to developer_agent and testing to test_orchestrator_agent.
+  Entry point for any new feature or domain design work.
+
+model: llama3
+temperature: 0.35
+max_tokens: 4096
+top_p: 0.9
+
+system_prompt_ref: prompts/system/architect_agent_system.txt
+preprompt_ref: prompts/prepromt/architect_agent_v1.yml
+
+capabilities:
+  # Architecture
+  - design_system_architecture
+  - identify_context_boundaries
+  - design_integration_patterns
+  - model_status_lifecycles
+  - design_security_model
+  - design_audit_strategy
+  - plan_data_history_management
+  - identify_non_functional_requirements
+  # DDD Strategic Design
+  - define_bounded_contexts
+  - create_context_map
+  - identify_ubiquitous_language
+  - design_anticorruption_layer
+  - model_shared_kernel
+  - classify_context_relationships
+  # DDD Tactical Design
+  - design_aggregates
+  - identify_aggregate_roots
+  - define_value_objects
+  - design_domain_events
+  - design_domain_services
+  - design_repository_interfaces
+  - apply_cqrs_pattern
+  - apply_event_sourcing
+
+ddd_principles:
+  strategic:
+    bounded_context: "Explicit semantic boundary with its own Ubiquitous Language and model"
+    context_map: "Document all context relationships: Partnership, Shared Kernel, Customer/Supplier, Conformist, ACL, Open Host, Published Language"
+    ubiquitous_language: "Shared vocabulary between domain experts and developers, enforced in code"
+    anticorruption_layer: "Translate external/legacy models to your domain model, never leak foreign concepts"
+  tactical:
+    aggregate: "Cluster of entities enforcing invariants; only root is accessible from outside; one TX = one aggregate"
+    aggregate_root: "Single entry point; holds globally unique ID; enforces all invariants"
+    value_object: "Immutable, identity-less, equality by value; encapsulate domain concepts (Money, DateRange, Email)"
+    entity: "Has identity that persists over time; equality by ID"
+    domain_event: "Immutable record of something that happened in the domain; past tense (OrderPlaced, PaymentReceived)"
+    domain_service: "Stateless operation that doesn't belong to any single entity or value object"
+    repository: "Interface in domain layer; implementation in infrastructure layer; one per aggregate root"
+    factory: "Encapsulates complex creation logic for aggregates or value objects"
+
+input_schema:
+  type: object
+  properties:
+    spec:
+      type: string
+      description: "Feature spec or requirements"
+    
+    context:
+      type: object
+      properties:
+        domain:
+          type: string
+          enum: [orders, products, customers, payments, inventory, fraud, payroll]
+          description: "VorstersNV domain (payroll = optional legacy domain)"
+        
+        scale:
+          type: object
+          properties:
+            expected_throughput:
+              type: string
+              description: "e.g., 500 orders/day"
+            data_volume:
+              type: string
+              description: "e.g., 3 years of order history"
+        
+        integrations:
+          type: array
+          items: { type: string }
+          description: "Mollie, Keycloak, Ollama, external supplier APIs, etc."
+        
+        compliance_requirements:
+          type: array
+          items: { type: string }
+          description: "GDPR, Belgian consumer law, Mollie PSD2"
+
+output_schema:
+  type: object
+  properties:
+    architecture_overview:
+      type: object
+      properties:
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              component_name: { type: string }
+              responsibility: { type: string }
+              interfaces:
+                type: array
+                items: { type: string }
+        
+        diagram_description: { type: string }
+    
+    context_boundaries:
+      type: array
+      items:
+        type: object
+        properties:
+          boundary_name: { type: string }
+          belongs_to_component: { type: string }
+          inputs: { type: array }
+          outputs: { type: array }
+    
+    key_design_decisions:
+      type: array
+      items:
+        type: object
+        properties:
+          decision: { type: string }
+          rationale: { type: string }
+          tradeoffs:
+            type: array
+            items: { type: string }
+          alternatives:
+            type: array
+            items:
+              type: object
+              properties:
+                alternative: { type: string }
+                pros: { type: array }
+                cons: { type: array }
+    
+    integration_patterns:
+      type: array
+      items:
+        type: object
+        properties:
+          pattern_name: { type: string }
+          use_case: { type: string }
+          sync_or_async: { type: string, enum: [sync, async] }
+          retry_strategy: { type: string }
+          idempotency_key:
+            type: object
+            properties:
+              key_fields:
+                type: array
+                items: { type: string }
+              deduplication_window: { type: string }
+          outbox_pattern_needed: { type: boolean }
+    
+    status_and_lifecycle:
+      type: object
+      properties:
+        status_values:
+          type: array
+          items:
+            type: object
+            properties:
+              status: { type: string }
+              entry_transitions:
+                type: array
+                items: { type: string }
+              allowed_actions:
+                type: array
+                items: { type: string }
+              exit_transitions:
+                type: array
+                items: { type: string }
+        
+        declaration_lifecycle_example: { type: string }
+    
+    security_model:
+      type: object
+      properties:
+        rbac_strategy: { type: string, enum: [RBAC, ABAC, hybrid] }
+        scope_types:
+          type: array
+          items: { type: string }
+          description: "global, local, tenant, customer-only"
+        
+        authorization_checks:
+          type: array
+          items: { type: string }
+        
+        data_classification:
+          type: array
+          items:
+            type: object
+            properties:
+              data_type: { type: string }
+              sensitivity: { type: string, enum: [public, internal, confidential, restricted] }
+              handling_rules: { type: array }
+    
+    audit_strategy:
+      type: object
+      properties:
+        immutable_event_log:
+          type: boolean
+          description: "True = all changes are immutable events"
+        
+        audit_fields:
+          type: array
+          items: { type: string }
+          description: "who, when, old_value, new_value, trace_id, etc."
+        
+        retention_policy: { type: string }
+        trace_id_strategy: { type: string }
+    
+    data_history_management:
+      type: object
+      properties:
+        effective_dating:
+          type: boolean
+          description: "True = use effective-dated records"
+        
+        end_date_invariant: { type: string }
+          description: "E.g., end_date = next.start_date - 1 day"
+        
+        max_date_leakage:
+          type: string
+          description: "Strategy to prevent max(9999) dates from UI"
+        
+        history_queries:
+          type: array
+          items:
+            type: object
+            properties:
+              query_name: { type: string }
+              purpose: { type: string }
+    
+    sequence_flows:
+      type: array
+      items:
+        type: object
+        properties:
+          flow_name: { type: string }
+          happy_path:
+            type: array
+            items: { type: string }
+          retry_behavior: { type: string }
+          failure_handling: { type: string }
+    
+    non_functional_requirements:
+      type: object
+      properties:
+        performance:
+          type: object
+          properties:
+            slo_p95: { type: string }
+            bulk_operations: { type: string }
+        
+        scalability:
+          type: object
+          properties:
+            peak_throughput: { type: string }
+            pagination_strategy: { type: string }
+        
+        reliability:
+          type: object
+          properties:
+            availability_target: { type: string }
+            disaster_recovery: { type: string }
+        
+        observability:
+          type: object
+          properties:
+            metrics_to_track:
+              type: array
+              items: { type: string }
+            logs_strategy: { type: string }
+            distributed_tracing: { type: boolean }
+    
+    ddd_design:
+      type: object
+      description: "Domain-Driven Design output"
+      properties:
+        bounded_contexts:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              ubiquitous_language:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    term: { type: string }
+                    definition: { type: string }
+              aggregates:
+                type: array
+                items: { type: string }
+              published_events:
+                type: array
+                items: { type: string }
+              consumed_events:
+                type: array
+                items: { type: string }
+        
+        context_map:
+          type: array
+          items:
+            type: object
+            properties:
+              upstream: { type: string }
+              downstream: { type: string }
+              relationship: { type: string, enum: [Partnership, SharedKernel, CustomerSupplier, Conformist, ACL, OpenHost, PublishedLanguage] }
+              integration_mechanism: { type: string }
+        
+        aggregates:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              bounded_context: { type: string }
+              root_entity: { type: string }
+              invariants:
+                type: array
+                items: { type: string }
+              value_objects:
+                type: array
+                items: { type: string }
+              domain_events:
+                type: array
+                items: { type: string }
+              repository_interface: { type: string }
+        
+        value_objects:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              fields:
+                type: array
+                items: { type: string }
+              validation_rules:
+                type: array
+                items: { type: string }
+              immutable: { type: boolean }
+        
+        domain_events:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              emitted_by: { type: string }
+              payload_fields:
+                type: array
+                items: { type: string }
+              consumers:
+                type: array
+                items: { type: string }
+
+evaluation:
+  - metric: architecture_soundness
+    target: ">= 95%"
+  - metric: compliance_coverage
+    target: "100%"
+  - metric: scalability_planning
+    target: ">= 90%"
+  - metric: ddd_boundary_clarity
+    target: ">= 90%"
+  - metric: ubiquitous_language_completeness
+    target: ">= 85%"
+
+# Sub-agents this architect orchestrates
+sub_agents:
+  - ddd_modeling_agent
+  - developer_agent
+  - test_orchestrator_agent
+  - clean_code_reviewer_agent
+
+delegation_logic:
+  - trigger: "model_domain"
+    route_to: ddd_modeling_agent
+    context_required:
+      - domain_description
+      - existing_terms
+  
+  - trigger: "implement_feature"
+    route_to: developer_agent
+    context_required:
+      - spec
+      - ddd_design
+      - tech_stack
+  
+  - trigger: "validate_quality"
+    route_to: test_orchestrator_agent
+    context_required:
+      - spec
+      - domain_context
+  
+  - trigger: "review_implementation"
+    route_to: clean_code_reviewer_agent
+    context_required:
+      - code_snippets
+      - language
+
+architecture_quality_gates:
+  - gate: "bounded_context_per_domain"
+    description: "Every domain has an explicit bounded context"
+  - gate: "no_cross_aggregate_direct_reference"
+    description: "Aggregates reference each other by ID only"
+  - gate: "acl_for_external_integrations"
+    description: "Mollie, Keycloak, supplier APIs all behind ACL"
+  - gate: "ubiquitous_language_in_code"
+    description: "Code terms match domain expert vocabulary"
+  - gate: "hexagonal_layers_respected"
+    description: "Domain layer has zero infrastructure imports"
+
+tags:
+  - architecture
+  - orchestrator
+  - top-level
+  - design
+  - ddd
+  - domain-driven-design
+  - bounded-contexts
+  - aggregates
+  - compliance
+  - auditability
+  - scalability
+  - security

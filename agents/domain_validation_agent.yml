@@ -1,0 +1,102 @@
+name: domain_validation_agent
+version: 1.0
+type: specialist_sub_agent
+description: "Domain expert - extracts VorstersNV business rules and validates edge cases"
+
+model: llama3
+temperature: 0.2  # Very deterministic - rules must be precise
+max_tokens: 3072
+top_p: 0.8
+
+system_prompt_ref: prompts/system/domain_validation_system.txt
+preprompt_ref: prompts/prepromt/domain_validation_v1.yml
+
+capabilities:
+  - extract_business_rules
+  - identify_edge_cases
+  - validate_date_timelines
+  - check_period_constraints
+  - verify_money_precision
+  - flag_ambiguities
+  - suggest_defaults
+
+parent_agent: test_orchestrator_agent
+
+input_schema:
+  type: object
+  properties:
+    spec_text:
+      type: string
+      description: "Feature spec or user story"
+    
+    domain_context:
+      type: string
+      enum: [orders, products, customers, payments, inventory, fraud, payroll]
+      description: "VorstersNV domain (payroll = optional legacy domain)"
+    
+    historical_behavior:
+      type: string
+      description: "How this worked before (if applicable)"
+    
+    edge_cases_to_explore:
+      type: array
+      items: { type: string }
+
+output_schema:
+  type: object
+  properties:
+    rule_list:
+      type: array
+      items:
+        type: object
+        properties:
+          id: { type: string }
+          given: { type: string }
+          when: { type: string }
+          then: { type: string }
+          rationale: { type: string }
+    
+    edge_case_checklist:
+      type: array
+      items:
+        type: object
+        properties:
+          scenario: { type: string }
+          precondition: { type: string }
+          expected_behavior: { type: string }
+          risk_level: { type: string, enum: [low, medium, high] }
+    
+    date_timeline_rules:
+      type: array
+      description: "Start/end coupling, removal constraints, lookback windows"
+    
+    money_precision_notes:
+      type: array
+      description: "4-decimal handling, rounding, exceptions"
+    
+    ambiguities:
+      type: array
+      items:
+        type: object
+        properties:
+          question: { type: string }
+          suggested_interpretation: { type: string }
+          confidence: { type: number, minimum: 0, maximum: 1 }
+
+evaluation:
+  - metric: rule_completeness
+    target: ">= 95%"
+  - metric: edge_case_coverage
+    target: ">= 90%"
+  - metric: ambiguity_flagging_accuracy
+    target: ">= 100%"
+
+tags:
+  - domain-expert
+  - order-rules
+  - product-rules
+  - payment-rules
+  - inventory-rules
+  - fraud-rules
+  - validation
+  - edge-cases
