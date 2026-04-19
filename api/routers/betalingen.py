@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from api.auth.jwt import TokenData, get_optional_user
 from db.database import get_db
 from db.models import Customer, Order, OrderItem, OrderStatus, Product
 
@@ -75,7 +76,14 @@ class BetalingStatusResponse(BaseModel):
 async def bestelling_aanmaken(
     body: BestellingAanmakenRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[TokenData | None, Depends(get_optional_user)] = None,
 ):
+    # Als de gebruiker ingelogd is, gebruik JWT-email (spoof-safe) en naam
+    if current_user is not None:
+        body = body.model_copy(update={
+            "klant_email": current_user.email,
+            "klant_naam": current_user.naam,
+        })
     # Valideer producten en voorraad via DB (gebruik DB-prijzen, niet client-prijzen)
     product_ids = [i.product_id for i in body.items]
     prod_result = await db.execute(

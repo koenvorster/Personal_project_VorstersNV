@@ -2,8 +2,11 @@
 VorstersNV Authenticatie via Keycloak JWKS
 Tokens worden gevalideerd met Keycloak's publieke sleutels.
 Rollen worden gelezen uit de Keycloak realm_access claim.
+
+Guest checkout: gebruik `get_optional_user` voor routes die beide ondersteunen.
 """
 import os
+import time
 from typing import Annotated
 
 import httpx
@@ -17,24 +20,29 @@ from db.models.user import UserRole
 KEYCLOAK_URL = os.environ.get("KEYCLOAK_URL", "http://localhost:8080")
 KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "vorstersNV")
 KEYCLOAK_CLIENT_ID = os.environ.get("KEYCLOAK_CLIENT_ID", "vorstersNV-api")
+# In productie: zet KEYCLOAK_VERIFY_AUD=true (verplicht audience-check)
+_VERIFY_AUD = os.environ.get("KEYCLOAK_VERIFY_AUD", "false").lower() == "true"
 
 JWKS_URL = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/certs"
 ISSUER = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}"
 
+JWKS_TTL_SECONDS = 3600  # Herlaad JWKS sleutels na 1 uur (key rotation)
+
 bearer_scheme = HTTPBearer(auto_error=False)
 
-# In-memory JWKS cache (herlaad bij fout)
-_jwks_cache: dict | None = None
+# JWKS cache met TTL: tuple (data, timestamp) of None
+_jwks_cache: tuple[dict, float] | None = None
 
 
 async def _get_jwks() -> dict:
     global _jwks_cache
-    if _jwks_cache is None:
+    now = time.monotonic()
+    if _jwks_cache is None or (now - _jwks_cache[1]) > JWKS_TTL_SECONDS:
         async with httpx.AsyncClient() as client:
             resp = await client.get(JWKS_URL, timeout=5)
             resp.raise_for_status()
-            _jwks_cache = resp.json()
-    return _jwks_cache
+            _jwks_cache = (resp.json(), now)
+    return _jwks_cache[0]
 
 
 # ── Schemas ──────────────────────────────────────────────────────────────────
@@ -70,7 +78,7 @@ async def _valideer_keycloak_token(token: str) -> TokenData:
             None,
         )
         if key is None:
-            # Cache verlopen — forceer herlaad
+            # Cache verlopen of nieuwe sleutel — forceer herlaad
             _jwks_cache = None
             jwks = await _get_jwks()
             key = next((k for k in jwks["keys"] if k.get("kid") == header.get("kid")), None)
@@ -78,13 +86,16 @@ async def _valideer_keycloak_token(token: str) -> TokenData:
             raise HTTPException(status_code=401, detail="Onbekende token-sleutel")
 
         public_key = jwk.construct(key)
+        decode_options: dict = {}
+        if not _VERIFY_AUD:
+            decode_options["verify_aud"] = False
         payload = jwt.decode(
             token,
             public_key,
             algorithms=["RS256"],
             audience=KEYCLOAK_CLIENT_ID,
             issuer=ISSUER,
-            options={"verify_aud": False},  # audience optioneel in dev
+            options=decode_options,
         )
 
         # Rollen uit Keycloak realm_access claim halen
@@ -137,3 +148,20 @@ async def require_admin_or_tester(
     if current_user.rol not in (UserRole.admin, UserRole.tester):
         raise HTTPException(status_code=403, detail="Alleen admins en testers hebben toegang")
     return current_user
+
+
+async def get_optional_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+) -> TokenData | None:
+    """
+    Optionele auth dependency voor gast-checkout.
+    Geeft TokenData terug als een geldig Bearer token aanwezig is, anders None.
+    Gooit GEEN 401 als er geen token is — gast mag doorgaan.
+    """
+    if credentials is None:
+        return None
+    try:
+        return await _valideer_keycloak_token(credentials.credentials)
+    except HTTPException:
+        # Ongeldig token behandelen als gast (geen harde fout)
+        return None
