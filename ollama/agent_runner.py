@@ -2,11 +2,14 @@
 VorstersNV Agent Runner
 Voert AI-agents uit met Ollama op basis van YAML-configuraties.
 """
+import asyncio
 import logging
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import httpx
 import yaml
 
 from .client import OllamaClient, get_client
@@ -16,6 +19,21 @@ logger = logging.getLogger(__name__)
 
 AGENTS_DIR = Path(__file__).parent.parent / "agents"
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+# Exceptions that trigger a retry (transient network/timeout issues)
+_RETRYABLE_EXCEPTIONS = (
+    httpx.TimeoutException,
+    httpx.ConnectError,
+    httpx.RemoteProtocolError,
+)
+
+
+@dataclass
+class RetryConfig:
+    """Configuratie voor retry-logica bij Ollama-aanroepen."""
+    max_retries: int = 3
+    delay_seconds: float = 2.0
+    backoff_factor: float = 2.0  # elke poging wacht delay * backoff_factor^attempt
 
 
 class Agent:
@@ -180,6 +198,57 @@ class AgentRunner:
         if agent is None:
             raise ValueError(f"Agent '{agent_name}' niet gevonden. Beschikbaar: {self.list_agents()}")
         return await agent.run(user_input, context=context, client=client)
+
+    async def run_agent_with_retry(
+        self,
+        agent_name: str,
+        user_input: str,
+        context: dict[str, Any] | None = None,
+        client: OllamaClient | None = None,
+        retry_config: RetryConfig | None = None,
+    ) -> tuple[str, str]:
+        """
+        Voer een agent uit met automatische retry bij Ollama timeout/netwerkfouten.
+
+        Args:
+            agent_name: Naam van de agent
+            user_input: Invoer voor de agent
+            context: Extra context-variabelen
+            client: Optioneel een aangepaste Ollama client
+            retry_config: Retry-instellingen (standaard: 3 pogingen, 2s delay, factor 2)
+
+        Returns:
+            Tuple van (antwoord, interaction_id)
+
+        Raises:
+            ValueError: Als de agent niet gevonden wordt
+            Exception: Als alle retry-pogingen mislukken
+        """
+        cfg = retry_config or RetryConfig()
+        last_exc: Exception | None = None
+
+        for attempt in range(cfg.max_retries + 1):
+            try:
+                return await self.run_agent(agent_name, user_input, context=context, client=client)
+            except _RETRYABLE_EXCEPTIONS as exc:
+                last_exc = exc
+                if attempt < cfg.max_retries:
+                    wait = cfg.delay_seconds * (cfg.backoff_factor ** attempt)
+                    logger.warning(
+                        "Agent '%s' timeout/netwerkfout (poging %d/%d) — wacht %.1fs: %s",
+                        agent_name, attempt + 1, cfg.max_retries + 1, wait, exc,
+                    )
+                    await asyncio.sleep(wait)
+                else:
+                    logger.error(
+                        "Agent '%s' mislukt na %d pogingen: %s",
+                        agent_name, cfg.max_retries + 1, exc,
+                    )
+            except Exception:
+                # Niet-retrybare fout — meteen doorgooien
+                raise
+
+        raise last_exc  # type: ignore[misc]
 
 
 # Singleton runner
