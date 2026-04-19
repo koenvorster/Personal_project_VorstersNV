@@ -1,13 +1,14 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, useInView } from 'framer-motion'
 import {
   Activity, Cpu, HardDrive, Wifi, Clock, Server,
   Database, Bot, CheckCircle2, RefreshCw,
-  Terminal, Zap,
+  Terminal, Zap, Star, AlertTriangle,
 } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
+import AgentScoreCard, { type AgentAnalytics } from '@/components/ui/AgentScoreCard'
 
 function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef(null)
@@ -25,22 +26,23 @@ function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; d
   )
 }
 
-const serviceIcons: Record<string, typeof Server> = {
-  'FastAPI Backend': Server,
-  'PostgreSQL': Database,
-  'Redis Cache': Zap,
-  'Keycloak Auth': Activity,
-  'Ollama LLM': Bot,
-  'Webhook Engine': Wifi,
+type ServiceStatus = 'online' | 'offline'
+
+interface ServiceCheck {
+  naam: string
+  poort: number
+  status: ServiceStatus
+  latency: string
+  icon: typeof Server
 }
 
-const defaultServices = [
-  { naam: 'FastAPI Backend', poort: 8000, status: 'offline' as const, latency: '—', icon: Server },
-  { naam: 'PostgreSQL', poort: 5432, status: 'offline' as const, latency: '—', icon: Database },
-  { naam: 'Redis Cache', poort: 6379, status: 'offline' as const, latency: '—', icon: Zap },
-  { naam: 'Keycloak Auth', poort: 8080, status: 'offline' as const, latency: '—', icon: Activity },
-  { naam: 'Ollama LLM', poort: 11434, status: 'offline' as const, latency: '—', icon: Bot },
-  { naam: 'Webhook Engine', poort: 9000, status: 'offline' as const, latency: '—', icon: Wifi },
+const defaultServices: ServiceCheck[] = [
+  { naam: 'FastAPI Backend', poort: 8000, status: 'offline', latency: '—', icon: Server },
+  { naam: 'PostgreSQL', poort: 5432, status: 'offline', latency: '—', icon: Database },
+  { naam: 'Redis Cache', poort: 6379, status: 'offline', latency: '—', icon: Zap },
+  { naam: 'Keycloak Auth', poort: 8080, status: 'offline', latency: '—', icon: Activity },
+  { naam: 'Ollama LLM', poort: 11434, status: 'offline', latency: '—', icon: Bot },
+  { naam: 'Webhook Engine', poort: 9000, status: 'offline', latency: '—', icon: Wifi },
 ]
 
 const aiAgents = [
@@ -77,8 +79,10 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [services, setServices] = useState(defaultServices)
   const [lastCheck, setLastCheck] = useState<string | null>(null)
+  const [agentAnalytics, setAgentAnalytics] = useState<AgentAnalytics[]>([])
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
 
-  const fetchHealth = async () => {
+  const fetchHealth = useCallback(async () => {
     try {
       const res = await fetch('/api/health')
       if (res.ok) {
@@ -89,13 +93,28 @@ export default function DashboardPage() {
     } catch {
       // Keep current state on fetch failure
     }
-  }
+  }, [])
+
+  const fetchAgentAnalytics = useCallback(async () => {
+    try {
+      const res = await fetch('/api/agents')
+      if (res.ok) {
+        const data: AgentAnalytics[] = await res.json()
+        setAgentAnalytics(data)
+      }
+    } catch {
+      // Silently keep empty state
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     fetchHealth()
-    const interval = setInterval(fetchHealth, 30000) // Refresh every 30s
+    fetchAgentAnalytics()
+    const interval = setInterval(fetchHealth, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchHealth, fetchAgentAnalytics])
 
   useEffect(() => {
     // Simulate uptime counter
@@ -114,7 +133,9 @@ export default function DashboardPage() {
 
   const handleRefresh = () => {
     setRefreshing(true)
-    fetchHealth().finally(() => setTimeout(() => setRefreshing(false), 500))
+    setAnalyticsLoading(true)
+    Promise.all([fetchHealth(), fetchAgentAnalytics()])
+      .finally(() => setTimeout(() => setRefreshing(false), 500))
   }
 
   const onlineCount = services.filter(s => s.status === 'online').length
@@ -190,7 +211,7 @@ export default function DashboardPage() {
           </GlassCard>
         </AnimatedSection>
 
-        {/* AI Agents */}
+        {/* AI Agents – live vanuit analytics API */}
         <AnimatedSection delay={0.15}>
           <GlassCard className="p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-5 flex items-center gap-2">
@@ -202,34 +223,95 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
                     <th className="pb-3 text-left">Agent</th>
-                    <th className="pb-3 text-left">Model</th>
                     <th className="pb-3 text-right">Runs</th>
+                    <th className="pb-3 text-right">Score</th>
                     <th className="pb-3 text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {aiAgents.map((agent) => (
-                    <tr key={agent.naam} className="border-b border-white/5 last:border-0">
-                      <td className="py-3 text-white font-medium text-xs sm:text-sm">{agent.naam}</td>
-                      <td className="py-3 text-slate-400 font-mono text-xs">{agent.model}</td>
-                      <td className="py-3 text-right text-slate-300">{agent.runs}</td>
-                      <td className="py-3 text-right">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          agent.status === 'actief'
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-slate-500/20 text-slate-400'
-                        }`}>
-                          {agent.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {analyticsLoading
+                    ? aiAgents.map((agent) => (
+                        <tr key={agent.naam} className="border-b border-white/5 last:border-0">
+                          <td className="py-3 text-white font-medium text-xs sm:text-sm">{agent.naam}</td>
+                          <td className="py-3 text-right text-slate-300">{agent.runs}</td>
+                          <td className="py-3 text-right text-slate-500 text-xs">—</td>
+                          <td className="py-3 text-right">
+                            <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">
+                              {agent.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    : agentAnalytics.map((agent) => (
+                        <tr key={agent.agent_naam} className="border-b border-white/5 last:border-0">
+                          <td className="py-3 text-white font-medium text-xs sm:text-sm">
+                            {agent.agent_naam.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                          </td>
+                          <td className="py-3 text-right text-slate-300">{agent.totaal_interacties.toLocaleString()}</td>
+                          <td className="py-3 text-right">
+                            {agent.beoordeelde_interacties > 0 ? (
+                              <span className={`text-xs font-mono font-bold ${
+                                agent.gemiddelde_score >= 4 ? 'text-emerald-400' :
+                                agent.gemiddelde_score >= 3 ? 'text-amber-400' : 'text-red-400'
+                              }`}>
+                                ★ {agent.gemiddelde_score.toFixed(1)}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-slate-500">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 text-right">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              agent.status === 'actief'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-slate-500/20 text-slate-400'
+                            }`}>
+                              {agent.status === 'actief' ? 'actief' : 'standby'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                  }
                 </tbody>
               </table>
             </div>
           </GlassCard>
         </AnimatedSection>
       </div>
+
+      {/* AI Agent Feedback Analytics */}
+      {agentAnalytics.length > 0 && (
+        <AnimatedSection delay={0.3}>
+          <GlassCard className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-400" />
+                AI Agent Feedback Analytics
+              </h2>
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                {agentAnalytics.some(a => a.lage_scores >= 3) && (
+                  <span className="flex items-center gap-1 text-amber-400">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Actie vereist
+                  </span>
+                )}
+                <span>
+                  Gem. score: {(agentAnalytics
+                    .filter(a => a.beoordeelde_interacties > 0)
+                    .reduce((s, a) => s + a.gemiddelde_score, 0) /
+                    Math.max(agentAnalytics.filter(a => a.beoordeelde_interacties > 0).length, 1)
+                  ).toFixed(1)}/5
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {agentAnalytics.map((agent) => (
+                <AgentScoreCard key={agent.agent_naam} agent={agent} />
+              ))}
+            </div>
+          </GlassCard>
+        </AnimatedSection>
+      )}
 
       {/* Logs + Tech Stack */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
