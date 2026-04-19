@@ -1,7 +1,10 @@
 name: Deploy – Google Cloud Run
 
 on:
-  push:
+  # Alleen deployen als de CI-workflow succesvol is op main
+  workflow_run:
+    workflows: ["CI – Testen & Linting"]
+    types: [completed]
     branches: [main]
 
 env:
@@ -11,10 +14,20 @@ env:
   REGISTRY: europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vorstersNV
 
 jobs:
+  # Guard: alleen deployen als CI groen was
+  check-ci:
+    name: CI-status controleren
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: CI geslaagd – deployment gaat door
+        run: echo "✅ CI succesvol – starten met deployment naar Cloud Run"
+
   deploy-backend:
     name: Backend deployen naar Cloud Run
     runs-on: ubuntu-latest
     environment: productie
+    needs: check-ci
 
     steps:
       - name: Code ophalen
@@ -31,7 +44,14 @@ jobs:
       - name: Docker configureren voor Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
 
-      - name: Backend image bouwen en pushen
+      - name: Webhook service image bouwen en pushen
+        run: |
+          docker build \
+            -t ${{ env.REGISTRY }}/webhooks:${{ github.sha }} \
+            -f Dockerfile.webhooks .
+          docker push ${{ env.REGISTRY }}/webhooks:${{ github.sha }}
+
+      - name: Java backend image bouwen en pushen
         run: |
           docker build -t ${{ env.REGISTRY }}/backend:${{ github.sha }} ./backend
           docker push ${{ env.REGISTRY }}/backend:${{ github.sha }}
@@ -45,6 +65,15 @@ jobs:
             --allow-unauthenticated \
             --add-cloudsql-instances ${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:vorstersNV-db \
             --set-env-vars "SPRING_PROFILES_ACTIVE=cloudrun,CLOUD_SQL_INSTANCE=${{ secrets.GCP_PROJECT_ID }}:${{ env.GCP_REGION }}:vorstersNV-db,DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+
+      - name: Webhook service deployen naar Cloud Run
+        run: |
+          gcloud run deploy vorstersNV-webhooks \
+            --image ${{ env.REGISTRY }}/webhooks:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }},DB_URL=${{ secrets.DB_URL }},REDIS_URL=${{ secrets.REDIS_URL }}"
 
   deploy-frontend:
     name: Frontend deployen naar Cloud Run
@@ -98,12 +127,16 @@ jobs:
     if: always()
 
     steps:
-      - name: Status controleren
+      - name: Deploy-status controleren
         run: |
           if [ "${{ needs.deploy-backend.result }}" == "success" ] && \
              [ "${{ needs.deploy-frontend.result }}" == "success" ]; then
-            echo "✅ Deployment succesvol – backend en frontend live op Cloud Run!"
+            echo "✅ Deployment succesvol – backend, webhooks en frontend live op Cloud Run!"
+            echo "   Commit: ${{ github.sha }}"
           else
             echo "❌ Deployment mislukt – controleer de logs hierboven."
+            echo "   Backend: ${{ needs.deploy-backend.result }}"
+            echo "   Frontend: ${{ needs.deploy-frontend.result }}"
             exit 1
           fi
+

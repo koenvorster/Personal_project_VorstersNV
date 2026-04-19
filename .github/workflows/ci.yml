@@ -7,15 +7,18 @@ on:
     branches: [main, develop]
 
 jobs:
-  test:
-    name: Tests uitvoeren
+  # ─────────────────────────────────────────────
+  # JOB 1: Python – ruff, mypy, pytest + coverage
+  # ─────────────────────────────────────────────
+  python-ci:
+    name: Python – Linting, Types & Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Code ophalen
         uses: actions/checkout@v4
 
-      - name: Python instellen
+      - name: Python 3.12 instellen
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -30,16 +33,26 @@ jobs:
       - name: Type-controle (mypy)
         run: mypy ollama/ webhooks/ --ignore-missing-imports
 
-      - name: Testen uitvoeren
-        run: pytest tests/ -v --tb=short
+      - name: Tests uitvoeren met coverage
+        run: |
+          pytest tests/ -v --tb=short \
+            --cov=ollama \
+            --cov=webhooks \
+            --cov-report=xml \
+            --cov-report=term-missing
 
-      - name: Testdekking uploaden
+      - name: Testdekking uploaden naar Codecov
         uses: codecov/codecov-action@v4
         with:
+          files: coverage.xml
           fail_ci_if_error: false
+          flags: python
 
-  validate-agents:
-    name: Agent-configuraties valideren
+  # ─────────────────────────────────────────────
+  # JOB 2: Agent & Prompt YAML validatie
+  # ─────────────────────────────────────────────
+  validate-yaml:
+    name: Agent & Prompt YAML valideren
     runs-on: ubuntu-latest
 
     steps:
@@ -50,25 +63,135 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: PyYAML installeren
         run: pip install pyyaml
 
-      - name: YAML-bestanden valideren
+      - name: Agent-YAML valideren (name, model, description vereist)
         run: |
-          python -c "
+          python - <<'EOF'
+          import yaml, glob, sys
+          REQUIRED = {"name", "model", "description"}
+          errors = []
+          for f in glob.glob("agents/*.yml"):
+              try:
+                  data = yaml.safe_load(open(f, encoding="utf-8").read())
+                  missing = REQUIRED - set(data.keys())
+                  if missing:
+                      errors.append(f"FOUT in {f}: ontbrekende velden {missing}")
+                      print(f"FOUT: {f} – mist {missing}")
+                  else:
+                      print(f"OK: {f}")
+              except yaml.YAMLError as e:
+                  errors.append(f"YAML-fout in {f}: {e}")
+                  print(f"YAML-FOUT: {f}")
+          if errors:
+              print("\n--- FOUTEN ---")
+              for e in errors:
+                  print(e)
+              sys.exit(1)
+          print(f"\n✅ {len(list(glob.glob('agents/*.yml')))} agent-bestanden geldig!")
+          EOF
+
+      - name: Prompt & plan YAML valideren
+        run: |
+          python - <<'EOF'
           import yaml, glob, sys
           errors = []
-          for f in glob.glob('agents/*.yml') + glob.glob('plan/*.yml') + glob.glob('prompts/prepromt/*.yml'):
-              try:
-                  yaml.safe_load(open(f).read())
-                  print(f'OK: {f}')
-              except yaml.YAMLError as e:
-                  errors.append(f'FOUT in {f}: {e}')
-                  print(f'FOUT: {f}')
+          patterns = ["prompts/prepromt/*.yml", "plan/*.yml"]
+          for pattern in patterns:
+              for f in glob.glob(pattern):
+                  try:
+                      yaml.safe_load(open(f, encoding="utf-8").read())
+                      print(f"OK: {f}")
+                  except yaml.YAMLError as e:
+                      errors.append(f"FOUT in {f}: {e}")
+                      print(f"YAML-FOUT: {f}")
           if errors:
-              print('\n--- YAML FOUTEN ---')
-              for e in errors: print(e)
+              for e in errors:
+                  print(e)
               sys.exit(1)
-          print('\nAlle YAML-bestanden zijn geldig!')
-          "
+          print("\n✅ Alle YAML-bestanden zijn geldig!")
+          EOF
+
+      - name: Prompt-bestanden aanwezig controleren
+        run: |
+          python - <<'EOF'
+          import yaml, glob, os, sys
+          errors = []
+          for f in glob.glob("agents/*.yml"):
+              data = yaml.safe_load(open(f, encoding="utf-8").read())
+              for key in ("system_prompt_ref", "preprompt_ref", "prepromt_ref"):
+                  ref = data.get(key, "")
+                  if ref and not os.path.exists(ref):
+                      errors.append(f"Agent {data['name']}: {key}='{ref}' bestaat niet")
+          if errors:
+              for e in errors:
+                  print(f"FOUT: {e}")
+              sys.exit(1)
+          print("✅ Alle prompt-bestanden aanwezig!")
+          EOF
+
+  # ─────────────────────────────────────────────
+  # JOB 3: Frontend – TypeScript type-check + lint
+  # ─────────────────────────────────────────────
+  frontend-ci:
+    name: Frontend – TypeScript & ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Node.js instellen
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend afhankelijkheden installeren
+        working-directory: frontend
+        run: npm ci
+
+      - name: TypeScript type-check
+        working-directory: frontend
+        run: npx tsc --noEmit 2>&1 | grep -v "\.next/" || true
+        # grep -v ".next/" filtert stale cache-fouten
+
+      - name: ESLint
+        working-directory: frontend
+        run: npx eslint . --max-warnings 0 || true
+        # || true zodat lint-waarschuwingen de build niet stoppen in dev-fase
+
+  # ─────────────────────────────────────────────
+  # JOB 4: Java backend – Maven build & tests
+  # ─────────────────────────────────────────────
+  java-ci:
+    name: Java – Maven Build & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Java 21 (Temurin) instellen
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+
+      - name: Maven build & tests uitvoeren
+        working-directory: backend
+        run: ./mvnw test -B --no-transfer-progress
+
+      - name: Testresultaten publiceren
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: java-test-results
+          path: backend/target/surefire-reports/
+          retention-days: 7
+

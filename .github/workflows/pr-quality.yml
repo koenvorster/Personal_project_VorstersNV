@@ -1,0 +1,121 @@
+name: PR Kwaliteitscontrole
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1: Snelle kwaliteitscheck (Python + YAML)
+  # ─────────────────────────────────────────────
+  quick-checks:
+    name: Snelle kwaliteitscontroles
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Python instellen
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Afhankelijkheden installeren
+        run: pip install ruff pyyaml
+
+      - name: Ruff linting (alleen gewijzigde bestanden)
+        run: ruff check .
+
+      - name: Geen print()-statements in productie-code
+        run: |
+          python - <<'EOF'
+          import glob, sys, re
+          files = glob.glob("ollama/**/*.py", recursive=True) + \
+                  glob.glob("webhooks/**/*.py", recursive=True) + \
+                  glob.glob("api/**/*.py", recursive=True)
+          violations = []
+          for f in files:
+              content = open(f, encoding="utf-8").read()
+              for i, line in enumerate(content.splitlines(), 1):
+                  stripped = line.strip()
+                  if re.match(r'^print\(', stripped) and not stripped.startswith('#'):
+                      violations.append(f"{f}:{i}: {stripped[:60]}")
+          if violations:
+              print("❌ print()-statements gevonden (gebruik logging):")
+              for v in violations:
+                  print(f"  {v}")
+              sys.exit(1)
+          print("✅ Geen print()-statements gevonden!")
+          EOF
+
+      - name: YAML-bestanden valideren
+        run: |
+          python - <<'EOF'
+          import yaml, glob, sys
+          errors = []
+          for f in glob.glob("agents/*.yml") + glob.glob("plan/*.yml"):
+              try:
+                  yaml.safe_load(open(f, encoding="utf-8").read())
+              except yaml.YAMLError as e:
+                  errors.append(f"{f}: {e}")
+          if errors:
+              print("❌ YAML-fouten gevonden:")
+              for e in errors:
+                  print(f"  {e}")
+              sys.exit(1)
+          print("✅ Alle YAML-bestanden zijn geldig!")
+          EOF
+
+      - name: Geen secrets in gewijzigde bestanden (basis-check)
+        run: |
+          python - <<'EOF'
+          import glob, sys, re
+          PATTERNS = [
+              r'(?i)(api[_-]?key|secret[_-]?key|password|passwd|token)\s*=\s*["\'][^"\']{8,}["\']',
+              r'AIza[0-9A-Za-z\-_]{35}',  # Google API key format
+          ]
+          files = glob.glob("**/*.py", recursive=True) + glob.glob("**/*.env*", recursive=True)
+          violations = []
+          for f in files:
+              if "test" in f or ".git" in f or "node_modules" in f:
+                  continue
+              try:
+                  content = open(f, encoding="utf-8", errors="ignore").read()
+                  for i, line in enumerate(content.splitlines(), 1):
+                      for pattern in PATTERNS:
+                          if re.search(pattern, line):
+                              violations.append(f"{f}:{i}: potentieel geheim gevonden")
+              except Exception:
+                  pass
+          if violations:
+              print("⚠️  Mogelijke secrets gevonden (handmatige controle nodig):")
+              for v in violations:
+                  print(f"  {v}")
+              # Geen sys.exit(1) – alleen waarschuwing
+          else:
+              print("✅ Geen duidelijke secrets gevonden!")
+          EOF
+
+  # ─────────────────────────────────────────────
+  # JOB 2: PR-inhoud samenvatting
+  # ─────────────────────────────────────────────
+  pr-summary:
+    name: PR-inhoud analyseren
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gewijzigde bestanden tonen
+        run: |
+          echo "📋 Gewijzigde bestanden in deze PR:"
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | sort
+          echo ""
+          echo "📊 Statistieken:"
+          git diff --stat origin/${{ github.base_ref }}...HEAD | tail -1

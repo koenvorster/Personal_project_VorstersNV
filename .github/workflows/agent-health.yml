@@ -1,0 +1,146 @@
+name: Agent & Prompt Gezondheidscontrole
+
+on:
+  # Wekelijks op maandag 07:00 UTC
+  schedule:
+    - cron: "0 7 * * 1"
+  # Of handmatig starten
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: "Uitgebreide output tonen?"
+        required: false
+        default: "false"
+        type: boolean
+
+jobs:
+  agent-health:
+    name: Volledig agent-systeem controleren
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Python 3.12 instellen
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Afhankelijkheden installeren
+        run: pip install pyyaml
+
+      - name: Alle agent-YAML's inspecteren
+        run: |
+          python - <<'EOF'
+          import yaml, glob, os, sys
+          REQUIRED_FIELDS = {"name", "model", "description"}
+          RECOMMENDED_FIELDS = {"capabilities", "evaluation", "system_prompt_ref"}
+          VALID_MODELS = {"llama3", "mistral", "llama3.1", "llama3.2", "codellama"}
+
+          results = {"ok": [], "warnings": [], "errors": []}
+
+          for f in sorted(glob.glob("agents/*.yml")):
+              try:
+                  data = yaml.safe_load(open(f, encoding="utf-8").read())
+              except yaml.YAMLError as e:
+                  results["errors"].append(f"YAML-syntaxfout in {f}: {e}")
+                  continue
+
+              name = data.get("name", f)
+
+              # Verplichte velden
+              missing = REQUIRED_FIELDS - set(data.keys())
+              if missing:
+                  results["errors"].append(f"{name}: mist verplichte velden {missing}")
+              else:
+                  results["ok"].append(name)
+
+              # Modelvalidatie
+              model = data.get("model", "")
+              if model and model not in VALID_MODELS:
+                  results["warnings"].append(f"{name}: onbekend model '{model}'")
+
+              # Aanbevolen velden
+              missing_rec = RECOMMENDED_FIELDS - set(data.keys())
+              if missing_rec:
+                  results["warnings"].append(f"{name}: mist aanbevolen velden {missing_rec}")
+
+              # Prompt-bestand aanwezig?
+              for key in ("system_prompt_ref", "preprompt_ref", "prepromt_ref"):
+                  ref = data.get(key, "")
+                  if ref and not os.path.exists(ref):
+                      results["warnings"].append(f"{name}: {key}='{ref}' niet gevonden op schijf")
+
+          print(f"\n✅ OK ({len(results['ok'])}): {', '.join(results['ok'])}")
+
+          if results["warnings"]:
+              print(f"\n⚠️  WAARSCHUWINGEN ({len(results['warnings'])}):")
+              for w in results["warnings"]:
+                  print(f"  - {w}")
+
+          if results["errors"]:
+              print(f"\n❌ FOUTEN ({len(results['errors'])}):")
+              for e in results["errors"]:
+                  print(f"  - {e}")
+              sys.exit(1)
+
+          total = len(glob.glob("agents/*.yml"))
+          print(f"\n📊 Totaal: {total} agents, {len(results['warnings'])} waarschuwingen, 0 fouten")
+          EOF
+
+      - name: Prompt-bestanden tellen en rapporteren
+        run: |
+          python - <<'EOF'
+          import glob, os
+          system_prompts = glob.glob("prompts/system/*.txt")
+          preprompts = glob.glob("prompts/prepromt/*.yml")
+          promptbooks = glob.glob("prompts/promptbooks/*.md")
+          iter_logs = glob.glob("prompts/prepromt/*_iterations.yml")
+
+          print(f"📚 Prompt-overzicht:")
+          print(f"  System prompts:      {len(system_prompts)}")
+          print(f"  Preprompts (YAML):   {len(preprompts)}")
+          print(f"  Promptbooks:         {len(promptbooks)}")
+          print(f"  Iteratielogs:        {len(iter_logs)}")
+
+          # Leeg-check
+          empty = [f for f in system_prompts + preprompts if os.path.getsize(f) == 0]
+          if empty:
+              print(f"\n⚠️  Lege bestanden: {empty}")
+          else:
+              print(f"\n✅ Geen lege prompt-bestanden gevonden")
+          EOF
+
+      - name: Iteratielog-statistieken
+        run: |
+          python - <<'EOF'
+          import yaml, glob, os
+          for f in sorted(glob.glob("prompts/prepromt/*_iterations.yml")):
+              try:
+                  data = yaml.safe_load(open(f, encoding="utf-8").read()) or {}
+                  interactions = data.get("interactions", [])
+                  if interactions:
+                      scores = [i.get("score", 0) for i in interactions if "score" in i]
+                      avg = sum(scores) / len(scores) if scores else 0
+                      print(f"  {os.path.basename(f)}: {len(interactions)} interacties, gem. score {avg:.1f}")
+                  else:
+                      print(f"  {os.path.basename(f)}: geen interacties")
+              except Exception as e:
+                  print(f"  Fout bij {f}: {e}")
+          EOF
+
+      - name: Gezondheidsrapport genereren
+        run: |
+          echo "================================================"
+          echo " VorstersNV Agent-systeem Gezondheidsrapport"
+          echo " $(date +'%Y-%m-%d %H:%M UTC')"
+          echo "================================================"
+          echo ""
+          echo "Agents in agents/:          $(ls agents/*.yml 2>/dev/null | wc -l)"
+          echo "System prompts:             $(ls prompts/system/*.txt 2>/dev/null | wc -l)"
+          echo "Preprompts:                 $(ls prompts/prepromt/*.yml 2>/dev/null | wc -l)"
+          echo "Tests in tests/:            $(find tests/ -name 'test_*.py' | wc -l)"
+          echo ""
+          echo "✅ Rapport voltooid!"
