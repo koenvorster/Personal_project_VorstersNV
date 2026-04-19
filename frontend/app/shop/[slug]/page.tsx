@@ -1,13 +1,16 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingBag } from 'lucide-react'
+import { ShoppingBag, ArrowLeft, Tag } from 'lucide-react'
 import type { Product } from '../ProductGrid'
 import ProductDetailClient from './ProductDetailClient'
 
+const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000'
+
 async function getProduct(slug: string): Promise<Product | null> {
   try {
-    const res = await fetch(`http://localhost:8000/api/products/${slug}`, {
+    const res = await fetch(`${FASTAPI_URL}/api/products/slug/${slug}`, {
       next: { revalidate: 60 },
     })
     if (!res.ok) return null
@@ -50,6 +53,15 @@ export default async function ProductDetailPage({
   return (
     <div className="min-h-screen px-4 sm:px-6 py-8 sm:py-12">
       <div className="max-w-6xl mx-auto">
+        {/* Breadcrumb */}
+        <Link
+          href="/shop"
+          className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-purple-300 transition-colors mb-6 sm:mb-8 group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          Terug naar shop
+        </Link>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: image */}
           <div className="space-y-3">
@@ -70,6 +82,13 @@ export default async function ProductDetailPage({
 
           {/* Right: details */}
           <div className="flex flex-col">
+            {product.category_naam && (
+              <div className="flex items-center gap-1.5 mb-3">
+                <Tag className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-sm text-purple-400">{product.category_naam}</span>
+              </div>
+            )}
+
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
               {product.naam}
             </h1>

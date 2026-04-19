@@ -11,7 +11,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
       product_id: product.id,
       naam: product.naam,
       prijs: product.prijs,
-      afbeelding_url: product.afbeelding_url,
+      afbeelding_url: product.afbeelding_url ?? undefined,
     })
   }
 
