@@ -202,3 +202,65 @@ class TestPromptIterator:
 
             result = iterator.analyse_feedback()
             assert result["status"] == "geen_feedback"
+
+    def test_analyse_feedback_with_ratings(self):
+        """analyse_feedback berekent gemiddelde score correct."""
+        import time
+        from ollama.prompt_iterator import PromptIterator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            iterator = PromptIterator.__new__(PromptIterator)
+            iterator.agent_name = "test_agent"
+            iterator.log_dir = Path(tmp)
+            iterator.iterations_file = Path(tmp) / "iterations.yml"
+
+            # Log 3 interacties + voeg ratings toe (kleine pauze voor unieke timestamps)
+            id1 = iterator.log_interaction("vraag1", "antwoord1")
+            time.sleep(0.01)
+            id2 = iterator.log_interaction("vraag2", "antwoord2")
+            time.sleep(0.01)
+            id3 = iterator.log_interaction("vraag3", "antwoord3")
+            iterator.add_feedback(id1, 5, "Uitstekend")
+            iterator.add_feedback(id2, 3, "Gemiddeld")
+            iterator.add_feedback(id3, 1, "Slecht")
+
+            result = iterator.analyse_feedback()
+            assert result["beoordeelde_interacties"] == 3
+            assert result["gemiddelde_score"] == pytest.approx(3.0)
+            assert result["lage_scores"] == 1  # rating <=2
+
+    def test_create_new_version_bumps_minor(self):
+        """create_new_version verhoogt het minor versienummer."""
+        from ollama.prompt_iterator import PromptIterator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            iterator = PromptIterator.__new__(PromptIterator)
+            iterator.agent_name = "test_agent"
+            iterator.log_dir = Path(tmp)
+            # Gebruik tijdelijke prompts map
+            import yaml as _yaml
+            iterations_file = Path(tmp) / "test_agent_iterations.yml"
+            iterations_file.write_text(
+                _yaml.dump({
+                    "agent": "test_agent",
+                    "iterations": [{"version": "1.0", "status": "actief", "date": "2025-01-01"}],
+                }),
+                encoding="utf-8",
+            )
+            iterator.iterations_file = iterations_file
+
+            # Patch PROMPTS_DIR zodat we niet in de echte map schrijven
+            import ollama.prompt_iterator as _pi
+            original = _pi.PROMPTS_DIR
+            _pi.PROMPTS_DIR = Path(tmp)
+            try:
+                (Path(tmp) / "prepromt").mkdir()
+                new_ver = iterator.create_new_version("Nieuwe prompt tekst", "Testwijziging")
+                assert new_ver == "1.1"
+                # Iterations bestand bijgewerkt
+                data = _yaml.safe_load(iterations_file.read_text(encoding="utf-8"))
+                active = [it for it in data["iterations"] if it.get("status") == "actief"]
+                assert len(active) == 1
+                assert active[0]["version"] == "1.1"
+            finally:
+                _pi.PROMPTS_DIR = original

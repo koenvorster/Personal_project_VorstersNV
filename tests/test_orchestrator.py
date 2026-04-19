@@ -359,3 +359,139 @@ class TestProductPipeline:
         assert "productbeschrijving" in result.outputs
         assert "seo_output" in result.outputs
         assert "notificatie_email" in result.outputs
+
+
+# ─────────────────────────────────────────────────────────
+# Parallelle uitvoering tests
+# ─────────────────────────────────────────────────────────
+
+class TestParallelExecution:
+    @pytest.mark.asyncio
+    async def test_parallel_alle_agents_worden_uitgevoerd(self):
+        """run_parallel voert alle stappen tegelijkertijd uit."""
+        from ollama.orchestrator import ParallelStep
+
+        runner = _make_runner({
+            "seo_agent": "seo output",
+            "product_beschrijving_agent": "beschrijving output",
+        })
+        orchestrator = AgentOrchestrator(runner=runner)
+
+        parallel = ParallelStep(
+            description="Parallelle content generatie",
+            steps=[
+                OrchestratorStep(
+                    agent_name="seo_agent",
+                    description="SEO",
+                    context_key="seo",
+                ),
+                OrchestratorStep(
+                    agent_name="product_beschrijving_agent",
+                    description="Beschrijving",
+                    context_key="beschrijving",
+                ),
+            ],
+        )
+        outputs = await orchestrator.run_parallel(parallel, shared_input="product info")
+        assert outputs["seo"] == "seo output"
+        assert outputs["beschrijving"] == "beschrijving output"
+
+    @pytest.mark.asyncio
+    async def test_parallel_optionele_stap_fout_gaat_door(self):
+        """Optionele mislukte parallelle stap stopt niet de andere stappen."""
+        from ollama.orchestrator import ParallelStep
+
+        async def _run(agent_name, user_input, context=None, client=None, retry_config=None):
+            if agent_name == "failing_agent":
+                raise RuntimeError("Tijdelijke fout")
+            return f"output_{agent_name}", "id"
+
+        runner = MagicMock(spec=AgentRunner)
+        runner.run_agent_with_retry = AsyncMock(side_effect=_run)
+        orchestrator = AgentOrchestrator(runner=runner)
+
+        parallel = ParallelStep(
+            description="Parallel met optionele fout",
+            steps=[
+                OrchestratorStep(
+                    agent_name="seo_agent",
+                    description="SEO",
+                    context_key="seo",
+                    required=False,
+                ),
+                OrchestratorStep(
+                    agent_name="failing_agent",
+                    description="Mislukt",
+                    context_key="fail",
+                    required=False,
+                ),
+            ],
+        )
+        # Optionele fout mag geen exception gooien
+        outputs = await orchestrator.run_parallel(parallel, shared_input="test")
+        assert "seo" in outputs
+        assert "fail" not in outputs  # Mislukt, dus niet in outputs
+
+    @pytest.mark.asyncio
+    async def test_parallel_verplichte_stap_fout_gooit_exception(self):
+        """Verplichte mislukte parallelle stap gooit exception."""
+        from ollama.orchestrator import ParallelStep
+
+        runner = MagicMock(spec=AgentRunner)
+        runner.run_agent_with_retry = AsyncMock(side_effect=RuntimeError("Kritieke fout"))
+        orchestrator = AgentOrchestrator(runner=runner)
+
+        parallel = ParallelStep(
+            description="Parallel met verplichte fout",
+            steps=[
+                OrchestratorStep(
+                    agent_name="klantenservice_agent",
+                    description="Verplicht",
+                    context_key="output",
+                    required=True,
+                ),
+            ],
+        )
+        with pytest.raises(RuntimeError, match="Kritieke fout"):
+            await orchestrator.run_parallel(parallel, shared_input="test")
+
+
+# ─────────────────────────────────────────────────────────
+# OrchestratorResult velden
+# ─────────────────────────────────────────────────────────
+
+class TestOrchestratorResult:
+    @pytest.mark.asyncio
+    async def test_result_bevat_workflow_naam(self):
+        runner = _make_runner({"agent_a": "output"})
+        orchestrator = AgentOrchestrator(runner=runner)
+        steps = [OrchestratorStep(agent_name="agent_a", description="Test", context_key="a")]
+        result = await orchestrator.run_workflow("mijn_workflow", steps, "input")
+        assert result.workflow_name == "mijn_workflow"
+
+    @pytest.mark.asyncio
+    async def test_steps_total_correct_met_overgeslagen_stap(self):
+        """steps_total wordt verminderd bij overgeslagen stappen."""
+        runner = _make_runner({"agent_a": "output"})
+        orchestrator = AgentOrchestrator(runner=runner)
+        steps = [
+            OrchestratorStep(agent_name="agent_a", description="A", context_key="a"),
+            OrchestratorStep(
+                agent_name="conditional",
+                description="Conditional",
+                condition_key="bestaat_niet",
+            ),
+        ]
+        result = await orchestrator.run_workflow("test", steps, "input")
+        assert result.steps_completed == 1
+        assert result.steps_total == 1  # Verminderd door overgeslagen stap
+
+    @pytest.mark.asyncio
+    async def test_fraud_blocked_false_by_default(self):
+        runner = _make_runner({"agent_a": "output"})
+        orchestrator = AgentOrchestrator(runner=runner)
+        steps = [OrchestratorStep(agent_name="agent_a", description="A", context_key="a")]
+        result = await orchestrator.run_workflow("test", steps, "input")
+        assert result.fraud_blocked is False
+        assert result.fraud_score is None
+        assert result.escalatie_vereist is False
