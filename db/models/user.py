@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from sqlalchemy import Boolean, DateTime, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-from db.database import Base
+from db.base import Base
 
 
 def utcnow():

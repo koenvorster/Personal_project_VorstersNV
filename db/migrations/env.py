@@ -8,7 +8,7 @@ from alembic import context
 # Voeg projectroot toe aan sys.path zodat imports werken
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from db.models.models import Base
+from db.base import Base
 from db.models.user import User  # noqa: F401 – zorgt dat User ook in migraties zit
 
 config = context.config

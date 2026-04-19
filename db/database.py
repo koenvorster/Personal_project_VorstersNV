@@ -4,16 +4,13 @@ Async SQLAlchemy engine + sessie factory.
 """
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+
+from db.base import Base  # noqa: F401 – re-export voor backward compat
 
 DATABASE_URL = os.environ.get(
     "DB_URL",
     "postgresql+asyncpg://vorstersNV:dev-password-change-me@localhost:5432/vorstersNV",
 )
-
-
-class Base(DeclarativeBase):
-    pass
 
 
 engine = create_async_engine(DATABASE_URL, echo=False)

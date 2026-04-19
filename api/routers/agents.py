@@ -203,9 +203,9 @@ async def maak_nieuwe_versie(
 )
 async def agent_interacties(
     agent_naam: str,
+    current_user: Annotated[TokenData, Depends(require_admin_or_tester)],
     max_rating: int | None = None,
     limiet: int = 20,
-    current_user: Annotated[TokenData, Depends(require_admin_or_tester)],
 ) -> list[dict]:
     if agent_naam not in OPERATIONAL_AGENTS:
         raise HTTPException(

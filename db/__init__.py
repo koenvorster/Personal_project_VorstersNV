@@ -1,5 +1,6 @@
-"""Database package."""
-from .database import Base, engine, AsyncSessionLocal, get_db
+"""Database package — exporteert alleen modellen.
+Engine en sessie-factory importeer je rechtstreeks uit db.database.
+"""
 from .models import (
     Category, Product, Customer, Order, OrderItem,
     Invoice, AgentLog, OrderStatus, ToneOfVoice,
@@ -7,7 +8,6 @@ from .models import (
 from .models.user import User, UserRole
 
 __all__ = [
-    "Base", "engine", "AsyncSessionLocal", "get_db",
     "Category", "Product", "Customer", "Order", "OrderItem",
     "Invoice", "AgentLog", "OrderStatus", "ToneOfVoice",
     "User", "UserRole",
