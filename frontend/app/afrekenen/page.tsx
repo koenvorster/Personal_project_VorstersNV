@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/lib/cartStore'
 
 const VERZENDKOSTEN = 4.95
@@ -43,10 +42,10 @@ function validate(form: FormData): Partial<Record<keyof FormData, string>> {
 }
 
 export default function AfrekenPage() {
-  const router = useRouter()
   const { items, totaal, clear } = useCartStore()
   const subtotaal = totaal()
   const verzendkosten = subtotaal >= 50 ? 0 : VERZENDKOSTEN
+  const btwBedrag = subtotaal * BTW
   const eindtotaal = subtotaal + verzendkosten
 
   const [form, setForm] = useState<FormData>(defaultForm)
@@ -76,30 +75,46 @@ export default function AfrekenPage() {
     setApiError('')
 
     try {
-      const res = await fetch('http://localhost:8000/api/bestellingen', {
+      const res = await fetch('/api/bestellingen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map((i) => ({ product_id: i.product_id, aantal: i.aantal })),
+          items: items.map((i) => ({
+            product_id: i.product_id,
+            naam: i.naam,
+            prijs: i.prijs,
+            aantal: i.aantal,
+          })),
           klant_naam: form.naam,
           klant_email: form.email,
-          betaalmethode: form.betaalmethode,
+          klant_adres: form.straat,
+          klant_stad: form.stad,
+          klant_postcode: form.postcode,
+          klant_land: 'BE',
+          opmerking: null,
         }),
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Bestelling mislukt')
+        const detail = data?.detail
+        if (typeof detail === 'object' && detail?.voorraad_problemen) {
+          throw new Error((detail.voorraad_problemen as string[]).join(' • '))
+        }
+        throw new Error(typeof detail === 'string' ? detail : 'Bestelling mislukt')
       }
 
-      const data: { order_id: number; bedrag: number; betaal_url: string; status: string } = await res.json()
+      const result = data as {
+        bestelling_id: string
+        betaal_url: string
+        totaal_excl: number
+        btw: number
+        totaal_incl: number
+      }
+
       clear()
-
-      if (data.betaal_url) {
-        window.location.href = data.betaal_url
-      } else {
-        router.push('/')
-      }
+      window.location.href = result.betaal_url
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Er is iets misgegaan. Probeer opnieuw.')
     } finally {
@@ -200,8 +215,12 @@ export default function AfrekenPage() {
 
                 <div className="border-t border-white/10 pt-4 space-y-2 text-sm">
                   <div className="flex justify-between text-white/60">
-                    <span>Subtotaal</span>
+                    <span>Subtotaal (excl. BTW)</span>
                     <span>{formatPrijs(subtotaal)}</span>
+                  </div>
+                  <div className="flex justify-between text-white/60">
+                    <span>BTW (21%)</span>
+                    <span>{formatPrijs(btwBedrag)}</span>
                   </div>
                   <div className="flex justify-between text-white/60">
                     <span>Verzendkosten</span>
@@ -210,7 +229,7 @@ export default function AfrekenPage() {
                   <div className="flex justify-between font-bold text-white text-base pt-2 border-t border-white/10">
                     <span>Totaal</span>
                     <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                      {formatPrijs(eindtotaal)}
+                      {formatPrijs(eindtotaal + btwBedrag)}
                     </span>
                   </div>
                 </div>
