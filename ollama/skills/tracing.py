@@ -124,7 +124,6 @@ class AgentTracer:
         otel_span = None
         if _otel_tracer is not None:
             try:
-                from opentelemetry import trace as otel_trace  # type: ignore[import]
                 otel_span = _otel_tracer.start_span(f"agent/{agent_name}")
                 otel_span.set_attribute("agent.name", agent_name)
                 otel_span.set_attribute("agent.model", model)

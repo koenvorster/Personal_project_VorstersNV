@@ -143,7 +143,6 @@ class AgentRateLimiter:
     ) -> tuple[bool, int]:
         """Sliding window rate check via Redis sorted set."""
         try:
-            import redis.asyncio as aioredis  # type: ignore[import]
             now = time.time()
             cutoff = now - window_seconds
 
