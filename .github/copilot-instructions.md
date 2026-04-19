@@ -20,31 +20,51 @@ Het project bestaat uit een **FastAPI backend**, **Next.js frontend** en een **Y
 
 ```
 Personal_project_VorstersNV/
-├── agents/               # YAML-definities per AI-agent
-├── ollama/               # Ollama client + agent runner + prompt iterator
-│   ├── client.py         # OllamaClient – HTTP-communicatie met Ollama
-│   ├── agent_runner.py   # Laadt agent YAML + voert agent uit
-│   └── prompt_iterator.py# Prompt-versies vergelijken via feedback-scores
-├── webhooks/             # FastAPI webhook handlers
-│   ├── app.py            # Hoofd FastAPI app + HMAC-verificatie
-│   └── handlers/         # order_handler, payment_handler, inventory_handler
-├── db/                   # (te bouwen) SQLAlchemy modellen + Alembic
-├── api/                  # (te bouwen) FastAPI routers: products, orders, inventory
-├── frontend/             # (te bouwen) Next.js webshop
+├── .github/
+│   ├── agents/               # 15 Copilot development agents (.agent.md)
+│   └── copilot-instructions.md
+├── agents/                   # Runtime Ollama agent YAML-definities (21 bestanden)
+├── ollama/                   # Ollama Python module
+│   ├── client.py             # OllamaClient – HTTP-communicatie met Ollama
+│   ├── agent_runner.py       # Laadt agent YAML + voert agent uit
+│   └── prompt_iterator.py    # Prompt-versies vergelijken via feedback-scores
+├── backend/                  # Java Spring Boot 3.3.5 (Java 21) – aparte API-laag
+│   └── src/main/java/dev/koenvorsters/
+├── webhooks/                 # Python FastAPI webhook handlers
+│   ├── app.py                # Hoofd FastAPI app + HMAC-verificatie
+│   └── handlers/             # order_handler, payment_handler, inventory_handler
+├── api/                      # FastAPI routers: products, orders, inventory
+├── db/                       # SQLAlchemy modellen + Alembic migraties
+├── frontend/                 # Next.js 14 webshop (App Router, TypeScript)
 ├── prompts/
-│   ├── system/           # System prompts per agent (.txt)
-│   ├── prepromt/         # Preprompts per versie + iteratie-logs (.yml)
-│   └── promptbooks/      # Uitgebreide prompt-documentatie (.md)
-├── scripts/              # Hulpscripts: set_mode.py, setup_ollama.py, test_agent.py
-├── tests/                # Pytest tests
+│   ├── system/               # System prompts per agent (.txt)
+│   ├── prepromt/             # Preprompts per versie + iteratie-logs (.yml)
+│   └── promptbooks/          # Uitgebreide prompt-documentatie (.md)
+├── scripts/                  # Hulpscripts: set_mode.py, setup_ollama.py, test_agent.py
+├── tests/                    # Pytest tests
 ├── plan/
-│   ├── PLAN.md           # Projectplan met fases en checklists
-│   └── mode.yml          # Actieve projectmode (plan / build / review)
-├── docker-compose.yml    # Lokale services: Ollama, PostgreSQL, Redis, Webhooks
-├── Dockerfile.webhooks   # Docker image voor de webhook service
-├── requirements.txt      # Python dependencies
-└── pyproject.toml        # Ruff + mypy + pytest configuratie
+│   ├── PLAN.md               # Projectplan met fases en checklists
+│   └── mode.yml              # Actieve projectmode (plan / build / review)
+├── docker-compose.yml        # Lokale services: Ollama, PostgreSQL, Redis, Webhooks
+├── Dockerfile.webhooks       # Docker image voor de webhook service
+├── requirements.txt          # Python dependencies
+└── pyproject.toml            # Ruff + mypy + pytest configuratie
 ```
+
+---
+
+## DDD Bounded Contexts
+
+| Context | Aggregates | Verantwoordelijkheid |
+|---------|-----------|---------------------|
+| **Catalog** | Product, Category | Producten, beschrijvingen, prijzen, stock-niveau |
+| **Orders** | Order, OrderLine | Bestelflow, statussen, fraudecheck |
+| **Inventory** | StockItem, Warehouse | Voorraadbeheer, herbesteldrempels |
+| **Customer** | Customer, Address | Klantgegevens, adressen, voorkeuren |
+| **Payments** | Payment, Refund | Mollie-integratie, terugbetalingen |
+| **Notifications** | Notification | E-mails, SMS, push-berichten |
+
+Ubiquitous language per context staat in de domein-agent YAML-bestanden in `agents/`.
 
 ---
 
@@ -53,33 +73,87 @@ Personal_project_VorstersNV/
 | Laag | Technologie |
 |------|-------------|
 | Frontend | Next.js 14 (TypeScript, App Router, Tailwind CSS) |
-| Backend API | FastAPI (Python 3.12) |
+| Backend API (Python) | FastAPI (Python 3.12) |
+| Backend API (Java) | Spring Boot 3.3.5 (Java 21) in `backend/` |
 | Lokale AI | Ollama – modellen: `llama3`, `mistral` |
 | Agent Framework | YAML-definities geladen door `agent_runner.py` |
 | Database | PostgreSQL 16 via SQLAlchemy (async) + Alembic migraties |
 | Cache | Redis 7 |
 | Betalingen | Mollie (primair) |
+| Auth | Keycloak (dev) — productie-beslissing nog open |
 | Containerisatie | Docker + Docker Compose |
 | CI/CD | GitHub Actions |
 | Code kwaliteit | Ruff (linter), mypy (type-check), pytest |
 
 ---
 
-## AI-agents
+## Copilot Development Agent Fleet
 
-Elke agent is gedefinieerd als een YAML-bestand in `agents/` en heeft:
+Gebruik `@agent-naam` in Copilot Chat om een gespecialiseerde agent in te schakelen. Alle agents staan in `.github/agents/`.
+
+### Architectuur & Design
+| Agent | Aanroep | Doel |
+|-------|---------|------|
+| Architect | `@architect` | Systeemontwerp, ADRs, bounded contexts, integraties |
+| DDD Modeler | `@ddd-modeler` | Domain model, aggregates, events, ubiquitous language |
+| Domain Validator | `@domain-validator` | Valideer code vs domeinregels (Catalog, Orders, Inventory, Customer, Payments) |
+
+### Ontwikkeling
+| Agent | Aanroep | Doel |
+|-------|---------|------|
+| Developer | `@developer` | Python/FastAPI/Next.js/Java implementatie |
+| Clean Code Reviewer | `@clean-code-reviewer` | Code review: SOLID, clean code, refactoring |
+| Security & Permissions | `@security-permissions` | HMAC, auth, input validatie, OWASP |
+
+### Domein Experts
+| Agent | Aanroep | Doel |
+|-------|---------|------|
+| Klantenservice Expert | `@klantenservice-expert` | Agent-prompts, escalatieflows, retourprocedures |
+| Product Content | `@product-content` | Productbeschrijvingen, USPs, content kwaliteit |
+| SEO Specialist | `@seo-specialist` | Meta tags, structured data, sitemap, robots.txt |
+| Order Expert | `@order-expert` | Order lifecycle, fraudedetectie, Mollie-flow |
+
+### Testing & Kwaliteit
+| Agent | Aanroep | Doel |
+|-------|---------|------|
+| Test Orchestrator | `@test-orchestrator` | Teststrategie, risicoanalyse, coverage |
+| Test Data Designer | `@test-data-designer` | Testdata sets, boundary values, combinatorics |
+| Playwright MCP | `@playwright-mcp` | E2E tests: shop, checkout, admin flows |
+| Automation Cypress | `@automation-cypress` | Cypress component + API tests |
+| Regression Selector | `@regression-selector` | Welke tests na een wijziging uitvoeren |
+
+---
+
+## Runtime AI-agents (Ollama)
+
+Elke runtime-agent is gedefinieerd als een YAML-bestand in `agents/` en heeft:
 - `model`: het Ollama-model (llama3 of mistral)
 - `system_prompt_ref`: pad naar de system prompt
 - `prepromt_ref`: pad naar de preprompt (versie-gebaseerd)
 - `capabilities`: lijst van wat de agent kan
 - `evaluation`: metrics + feedback_loop flag
 
-| Agent | Model | Doel |
-|-------|-------|------|
-| `klantenservice_agent` | llama3 | Klantvragen, retouren, order-info |
-| `product_beschrijving_agent` | mistral | Productbeschrijvingen + SEO-tekst genereren |
-| `seo_agent` | mistral | SEO-optimalisatie van pagina's en producten |
-| `order_verwerking_agent` | llama3 | Orderbevestiging, facturen, notificaties |
+### Kern Agents
+| Agent YAML | Model | Doel |
+|------------|-------|------|
+| `klantenservice_agent_v2.yml` | llama3 | Klantvragen, escalatie, sentimentanalyse |
+| `product_beschrijving_agent.yml` | llama3 | Productbeschrijvingen + SEO-tekst |
+| `seo_agent.yml` | llama3 | SEO-optimalisatie pagina's en producten |
+| `order_verwerking_agent.yml` | llama3 | Orderbevestiging, facturen, notificaties |
+
+### Sub-agents
+| Agent YAML | Model | Doel |
+|------------|-------|------|
+| `retour_verwerking_agent.yml` | llama3 | Retouraanvragen verwerken |
+| `email_template_agent.yml` | llama3 | E-mailsjablonen genereren |
+| `fraude_detectie_agent.yml` | llama3 | Fraudescores berekenen (0-100) |
+| `voorraad_check_agent.yml` | llama3 | Voorraadbeheer + herbesteladvies |
+
+### Prompt Iteratie
+- System prompts: `prompts/system/<agent>.txt`
+- Preprompts per versie: `prompts/prepromt/<agent>_v1.txt`
+- Iteratielogs: `prompts/prepromt/<agent>_iterations.yml`
+- Feedback opslaan via `ollama/prompt_iterator.py`
 
 ---
 
