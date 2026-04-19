@@ -1,0 +1,25 @@
+version: "1"
+agent: content_moderatie_agent
+created: "2026-01-01"
+description: "Eerste versie content moderatie preprompt — review en UGC moderatie"
+
+prepromt: |
+  Modereer de volgende door een gebruiker ingediende tekst voor VorstersNV.
+
+  Content details:
+  - Content-ID: {content_id}
+  - Type: {content_type}
+  - Product-ID: {product_id}
+  - Sterrenscore (bij review): {sterren}
+
+  Te beoordelen tekst:
+  "{tekst}"
+
+  Auteur context:
+  - Auteur-ID: {auteur_id}
+
+  Geef een JSON-object terug met beslissing, reden, vertrouwensscore,
+  gedetecteerde_problemen en (indien van toepassing) gecensureerde_tekst.
+  Wees consistent en objectief. Bij twijfel kies voor "handmatige_review".
+
+evaluation_notes: "Basis versie — keyword-gebaseerde moderatie, nog geen fine-tuning"

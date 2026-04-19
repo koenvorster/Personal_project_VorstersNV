@@ -12,7 +12,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from .handlers import order_handler, payment_handler, inventory_handler
+from .handlers import order_handler, payment_handler, inventory_handler, mollie_handler
 
 logger = logging.getLogger(__name__)
 
@@ -196,3 +196,33 @@ async def webhook_agent_feedback(request: Request):
         "huidige_analyse": analyse,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })
+
+
+# ── Mollie betalingen (B3) ──────────────────────────────────────────────────
+
+@app.post("/webhooks/mollie")
+async def webhook_mollie(request: Request):
+    """
+    Verwerk Mollie betaal-statuswijziging webhooks.
+
+    Mollie POST-t enkel het payment ID (form-encoded: id=tr_xxxxx).
+    Authenticatie via Mollie API zelf (we halen de status op met API key).
+    Zie: https://docs.mollie.com/docs/webhooks
+    """
+    try:
+        form = await request.form()
+        payment_id = form.get("id", "")
+    except Exception:
+        # Fallback: probeer JSON body
+        try:
+            body = await request.json()
+            payment_id = body.get("id", "")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Ongeldige Mollie webhook payload")
+
+    if not payment_id:
+        raise HTTPException(status_code=400, detail="Mollie payment ID ontbreekt in webhook")
+
+    logger.info("Mollie webhook ontvangen: payment_id=%s", payment_id)
+    result = await mollie_handler.handle_mollie_payment_webhook(payment_id)
+    return JSONResponse(content=result, status_code=200)

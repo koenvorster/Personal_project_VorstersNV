@@ -1,0 +1,94 @@
+name: aanbeveling_agent
+version: "1.0"
+type: specialist
+description: "AI-agent voor gepersonaliseerde productaanbevelingen op basis van aankoophistorie, browsgedraging en klantprofiel bij VorstersNV"
+
+model: mistral
+temperature: 0.6
+max_tokens: 1024
+language: nl
+
+system_prompt_ref: "prompts/system/aanbeveling.txt"
+preprompt_ref: "prompts/prepromt/aanbeveling_v1.txt"
+
+capabilities:
+  - genereer_aanbevelingen
+  - upsell_suggesties
+  - cross_sell_suggesties
+  - trending_producten
+  - seizoensgebonden_aanbevelingen
+  - complementaire_producten
+  - herbestellings_herinnering
+
+sub_agents:
+  - name: seo_agent
+    trigger: product_tekst_nodig
+    description: "Optimaliseer aanbevelingsteksten voor SEO indien nodig"
+
+tools:
+  - name: aankoophistorie_ophalen
+    description: "Haal de aankoophistorie van de klant op (laatste 12 maanden)"
+    endpoint: "/api/orders/history/{klant_id}"
+  - name: bekeken_producten_ophalen
+    description: "Haal recent bekeken producten op voor de klant"
+    endpoint: "/api/analytics/viewed-products/{klant_id}"
+  - name: populaire_producten_ophalen
+    description: "Haal bestsellers op per categorie"
+    endpoint: "/api/products/bestsellers"
+  - name: complementaire_producten_ophalen
+    description: "Haal complementaire producten op voor een specifiek product"
+    endpoint: "/api/products/{product_id}/related"
+
+input_schema:
+  type: object
+  properties:
+    klant_id:
+      type: string
+      description: "Uniek klant-ID"
+    context:
+      type: string
+      enum: [homepage, product_pagina, checkout, email, winkelwagen]
+      description: "Waar worden aanbevelingen getoond"
+    product_id:
+      type: string
+      description: "Optioneel: huidig product voor cross-sell"
+    categorie:
+      type: string
+      description: "Optioneel: filter op productcategorie"
+    max_aanbevelingen:
+      type: integer
+      default: 5
+
+output_schema:
+  type: object
+  properties:
+    aanbevelingen:
+      type: array
+      items:
+        type: object
+        properties:
+          product_id:
+            type: string
+          product_naam:
+            type: string
+          reden:
+            type: string
+            description: "Waarom dit product wordt aanbevolen (voor transparantie)"
+          prioriteit:
+            type: integer
+    uitleg_tekst:
+      type: string
+      description: "Korte klantvriendelijke uitleg voor de aanbevelingswidget"
+    aanbeveling_type:
+      type: string
+      enum: [personalized, trending, cross_sell, upsell, seasonal]
+
+evaluation:
+  metrics:
+    - click_through_rate
+    - conversie_percentage_aanbevelingen
+    - gemiddelde_orderwaarde_stijging
+  feedback_loop: true
+  log_dir: "logs/aanbeveling"
+
+iteration_log: "prompts/prepromt/aanbeveling_iterations.yml"

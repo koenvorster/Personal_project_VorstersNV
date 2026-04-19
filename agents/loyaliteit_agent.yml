@@ -1,0 +1,96 @@
+name: loyaliteit_agent
+version: "1.0"
+type: specialist
+description: "AI-agent voor loyaliteitsprogramma communicatie — punten, beloningen, tier-upgrades en retentiecommunicatie bij VorstersNV"
+
+model: llama3
+temperature: 0.5
+max_tokens: 1024
+language: nl
+
+system_prompt_ref: "prompts/system/loyaliteit.txt"
+preprompt_ref: "prompts/prepromt/loyaliteit_v1.txt"
+
+capabilities:
+  - punten_status_uitleggen
+  - tier_upgrade_communicatie
+  - beloning_activeren
+  - verloopwaarschuwing_sturen
+  - welkom_nieuw_lid
+  - retentie_communicatie
+  - exclusief_aanbod_genereren
+
+sub_agents:
+  - name: email_template_agent
+    trigger: email_versturen
+    description: "Genereer gepersonaliseerde loyaliteits-emails"
+
+tools:
+  - name: loyaliteitsprofiel_ophalen
+    description: "Haal punten, tier en transactiehistorie van de klant op"
+    endpoint: "/api/loyalty/profile/{klant_id}"
+  - name: beschikbare_beloningen_ophalen
+    description: "Haal beschikbare beloningen op voor dit tier"
+    endpoint: "/api/loyalty/rewards/{tier}"
+  - name: punten_boeken
+    description: "Boek loyaliteitspunten bij of af voor een klant"
+    endpoint: "/api/loyalty/transactions"
+
+input_schema:
+  type: object
+  properties:
+    klant_id:
+      type: string
+    klant_voornaam:
+      type: string
+    huidige_punten:
+      type: integer
+    huidig_tier:
+      type: string
+      enum: [brons, zilver, goud, platina]
+    trigger:
+      type: string
+      enum: [aankoop_gedaan, tier_upgrade, punten_verlopen, welkom, inactief_60_dagen, beloning_ingewisseld]
+    punten_verdiend:
+      type: integer
+      description: "Punten verdiend bij huidige transactie (optioneel)"
+    order_id:
+      type: string
+      description: "Gekoppeld ordernummer (optioneel)"
+
+output_schema:
+  type: object
+  properties:
+    bericht:
+      type: string
+      description: "Gepersonaliseerd loyaliteitsbericht voor de klant"
+    punten_overzicht:
+      type: object
+      properties:
+        huidig:
+          type: integer
+        verdiend_deze_actie:
+          type: integer
+        punten_tot_volgend_tier:
+          type: integer
+    actie_aanbevolen:
+      type: string
+      enum: [geen, stuur_email, toon_popup, stuur_pushnotificatie]
+    email_type:
+      type: string
+
+error_handling:
+  retry:
+    max_attempts: 2
+    delay_seconds: 1
+  fallback: "Stuur standaard 'punten bijgeschreven' bericht zonder personalisatie"
+
+evaluation:
+  metrics:
+    - programma_deelname_percentage
+    - punten_inwisselingsrate
+    - retentie_na_tier_upgrade
+  feedback_loop: false
+  log_dir: "logs/loyaliteit"
+
+iteration_log: "prompts/prepromt/loyaliteit_iterations.yml"

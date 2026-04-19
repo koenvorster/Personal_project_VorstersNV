@@ -1,0 +1,87 @@
+name: content_moderatie_agent
+version: "1.0"
+type: specialist
+description: "AI-agent voor moderatie van klantreviews, Q&A en UGC bij VorstersNV — detecteert spam, ongepaste inhoud en valse reviews"
+
+model: llama3
+temperature: 0.1
+max_tokens: 512
+language: nl
+
+system_prompt_ref: "prompts/system/content_moderatie.txt"
+preprompt_ref: "prompts/prepromt/content_moderatie_v1.txt"
+
+capabilities:
+  - review_modereren
+  - spam_detecteren
+  - ongepaste_taal_detecteren
+  - valse_review_signaleren
+  - qa_modereren
+  - inhoud_categoriseren
+  - moderatie_reden_genereren
+
+input_schema:
+  type: object
+  required:
+    - content_type
+    - tekst
+  properties:
+    content_id:
+      type: string
+      description: "ID van de review of het bericht"
+    content_type:
+      type: string
+      enum: [review, vraag, antwoord, comment]
+    tekst:
+      type: string
+      description: "Te modereren tekst"
+    auteur_id:
+      type: string
+      description: "Klant-ID van de auteur (optioneel)"
+    product_id:
+      type: string
+      description: "Gekoppeld product (optioneel)"
+    sterren:
+      type: integer
+      minimum: 1
+      maximum: 5
+      description: "Sterrenbeoordeling bij een review (optioneel)"
+
+output_schema:
+  type: object
+  properties:
+    beslissing:
+      type: string
+      enum: [goedgekeurd, afgewezen, handmatige_review]
+    reden:
+      type: string
+      description: "Uitleg van de moderatiebeslissing"
+    vertrouwensscore:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+      description: "Zekerheid van de beslissing (1.0 = zeker)"
+    gedetecteerde_problemen:
+      type: array
+      items:
+        type: string
+        enum: [spam, ongepaste_taal, valse_review, irrelevant, persoonlijke_gegevens, reclame, haatspraak]
+    gecensureerde_tekst:
+      type: string
+      description: "Versie met gecensureerde passages (indien gedeeltelijk goedgekeurd)"
+
+error_handling:
+  retry:
+    max_attempts: 1
+    delay_seconds: 0.5
+  fallback: "Stuur naar handmatige review — niet automatisch afwijzen bij agent-fout"
+
+evaluation:
+  metrics:
+    - moderatie_nauwkeurigheid
+    - vals_positief_percentage
+    - gemiddelde_verwerkingstijd_ms
+  feedback_loop: true
+  log_dir: "logs/content_moderatie"
+
+iteration_log: "prompts/prepromt/content_moderatie_iterations.yml"
