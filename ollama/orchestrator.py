@@ -499,6 +499,153 @@ class AgentOrchestrator:
         return result
 
     # ─────────────────────────────────────────────
+    # PIPELINE 4: Checkout
+    # ─────────────────────────────────────────────
+
+    async def run_checkout_pipeline(
+        self,
+        order_id: str,
+        klant_naam: str,
+        klant_email: str,
+        klant_land: str,
+        cart_items: list[dict[str, Any]],
+        totaal_incl: float,
+        btw_bedrag: float,
+        betaalmethode: str,
+        betaal_url: str,
+        retry_config: RetryConfig | None = None,
+    ) -> OrchestratorResult:
+        """
+        Pipeline: checkout-begeleiding → orderbevestigingsmail.
+
+        Stap 1: checkout_begeleiding_agent — valideer checkout-context en geef klantfeedback (optioneel)
+        Stap 2: email_template_agent — stuur orderbevestiging incl. betaallink
+
+        Gebruik deze pipeline nadat de order succesvol aangemaakt is in de DB
+        en de Mollie-betaallink beschikbaar is.
+        """
+        steps = [
+            OrchestratorStep(
+                agent_name="checkout_begeleiding_agent",
+                description="Checkout-context valideren en klant begeleiden",
+                context_key="checkout_status",
+                required=False,
+            ),
+            OrchestratorStep(
+                agent_name="email_template_agent",
+                description="Orderbevestiging + betaallink versturen",
+                context_key="bevestigings_email",
+                required=False,
+            ),
+        ]
+        cart_samenvatting = ", ".join(
+            f"{i.get('naam', 'artikel')} x{i.get('aantal', 1)}" for i in cart_items
+        )
+        initial_input = (
+            f"Checkout voltooid voor order {order_id}. "
+            f"Klant: {klant_naam} ({klant_email}). "
+            f"Totaal: €{totaal_incl:.2f} incl. BTW. "
+            f"Betaalmethode: {betaalmethode}."
+        )
+        return await self.run_workflow(
+            workflow_name="checkout_pipeline",
+            steps=steps,
+            initial_input=initial_input,
+            shared_context={
+                "order_id": order_id,
+                "klant_naam": klant_naam,
+                "klant_voornaam": klant_naam.split()[0] if klant_naam else "klant",
+                "klant_email": klant_email,
+                "klant_land": klant_land,
+                "totaal_incl": totaal_incl,
+                "btw_bedrag": btw_bedrag,
+                "totaal_excl": round(totaal_incl - btw_bedrag, 2),
+                "betaalmethode": betaalmethode,
+                "betaal_url": betaal_url,
+                "cart_samenvatting": cart_samenvatting,
+                "checkout_stap": "bevestiging",
+                "fout_code": "",
+                "fout_details": "",
+                "aantal_pogingen": 0,
+                "email_type": "orderbevestiging",
+                "is_transactioneel": "true",
+                "aanspreking": "informeel",
+            },
+            retry_config=retry_config,
+        )
+
+    # ─────────────────────────────────────────────
+    # PIPELINE 5: Betaling mislukt
+    # ─────────────────────────────────────────────
+
+    async def run_payment_failed_pipeline(
+        self,
+        order_id: str,
+        betaling_id: str,
+        klant_naam: str,
+        klant_email: str,
+        klant_land: str,
+        bedrag: float,
+        betaalmethode: str,
+        mollie_status: str,
+        mollie_fout_code: str = "",
+        aantal_pogingen: int = 1,
+        retry_config: RetryConfig | None = None,
+    ) -> OrchestratorResult:
+        """
+        Pipeline: betaling_status_agent → (conditioneel) email betaling_mislukt.
+
+        Stap 1: betaling_status_agent — diagnosticeer fout, geef alternatieve methoden
+        Stap 2: email_template_agent — stuur betaling_mislukt e-mail met nieuwe betaallink (optioneel)
+
+        Wordt getriggerd door Mollie webhook: payment.failed / payment.expired / payment.cancelled.
+        """
+        steps = [
+            OrchestratorStep(
+                agent_name="betaling_status_agent",
+                description="Betalingsfout diagnosticeren en alternatieven voorstellen",
+                context_key="betaling_diagnose",
+            ),
+            OrchestratorStep(
+                agent_name="email_template_agent",
+                description="Betaling mislukt e-mail sturen met herbetalingsopties",
+                context_key="betaling_mislukt_email",
+                required=False,
+            ),
+        ]
+        initial_input = (
+            f"Betaling mislukt voor order {order_id}. "
+            f"Betaling-ID: {betaling_id}. "
+            f"Mollie-status: {mollie_status}. "
+            f"Fout: {mollie_fout_code or 'onbekend'}. "
+            f"Methode: {betaalmethode}. "
+            f"Bedrag: €{bedrag:.2f}. "
+            f"Poging {aantal_pogingen}/3."
+        )
+        return await self.run_workflow(
+            workflow_name="payment_failed_pipeline",
+            steps=steps,
+            initial_input=initial_input,
+            shared_context={
+                "order_id": order_id,
+                "betaling_id": betaling_id,
+                "klant_naam": klant_naam,
+                "klant_voornaam": klant_naam.split()[0] if klant_naam else "klant",
+                "klant_email": klant_email,
+                "klant_land": klant_land,
+                "bedrag": bedrag,
+                "betaalmethode": betaalmethode,
+                "mollie_status": mollie_status,
+                "mollie_fout_code": mollie_fout_code,
+                "aantal_pogingen": aantal_pogingen,
+                "email_type": "betaling_mislukt",
+                "is_transactioneel": "true",
+                "aanspreking": "informeel",
+            },
+            retry_config=retry_config,
+        )
+
+    # ─────────────────────────────────────────────
     # Parallelle uitvoering
     # ─────────────────────────────────────────────
 

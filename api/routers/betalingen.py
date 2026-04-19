@@ -275,13 +275,3 @@ async def betaling_status(
         aangemaakt_op=order.aangemaakt_op.isoformat(),
     )
 
-    return BestellingResponse(
-        bestelling_id=bestelling_id,
-        status="wacht_op_betaling",
-        totaal_excl=excl,
-        btw=btw,
-        totaal_incl=incl,
-        betaal_url=betaal_url,
-        aangemaakt_op=nu,
-    )
-

@@ -1,0 +1,111 @@
+name: checkout_begeleiding_agent
+version: "1.0"
+type: specialist
+description: "AI-agent die klanten begeleidt bij checkout-fouten: adresproblemen, betalingsmislukkingen, voorraadwijzigingen en formuliervalidatie"
+model: llama3
+temperature: 0.3
+max_tokens: 1024
+language: nl
+
+system_prompt_ref: "prompts/system/checkout_begeleiding.txt"
+preprompt_ref: "prompts/prepromt/checkout_begeleiding_v1.yml"
+
+capabilities:
+  - adres_validatie_fout_uitleggen
+  - betaling_mislukt_begeleiden
+  - voorraadwijziging_communiceren
+  - alternatieve_producten_suggereren
+  - checkout_stap_uitleggen
+  - formuliervalidatie_feedback
+  - betaalmethode_wisselen_begeleiden
+
+parent_agents:
+  - klantenservice_agent
+
+sub_agents:
+  - name: betaling_status_agent
+    trigger: betaling_mislukt
+    description: "Delegeer bij betalingsfout voor alternatieve methode-suggesties"
+  - name: email_template_agent
+    trigger: checkout_voltooid
+    description: "Stuur orderbevestiging na succesvolle checkout"
+
+tools:
+  - name: valideer_adres
+    description: "Controleer geldigheid van bezorgadres (postcode + stad + land)"
+    endpoint: "/api/checkout/validate-address"
+  - name: check_voorraad
+    description: "Controleer actuele voorraad van cartitems vlak voor betaling"
+    endpoint: "/api/products/{product_id}/stock"
+  - name: haal_betaalmethoden_op
+    description: "Lijst van beschikbare betaalmethoden via Mollie"
+    endpoint: "/api/betalingen/methoden"
+
+triggers:
+  - event: checkout.address_error
+    webhook: "/webhooks/checkout-error"
+  - event: checkout.payment_failed
+    webhook: "/webhooks/payment-failed"
+  - event: checkout.stock_changed
+    webhook: "/webhooks/stock-changed"
+
+input_schema:
+  type: object
+  properties:
+    checkout_stap:
+      type: string
+      enum: [adres, betaling, overzicht, bevestiging]
+    fout_code:
+      type: string
+      description: "Foutcode van checkout (bijv. ADDRESS_INVALID, PAYMENT_FAILED, OUT_OF_STOCK)"
+    fout_details:
+      type: string
+      description: "Technische foutmelding (niet tonen aan klant)"
+    klant_naam:
+      type: string
+    cart_items:
+      type: array
+      description: "Items in de winkelwagen"
+    totaal_incl:
+      type: number
+    betaalmethode:
+      type: string
+    order_id:
+      type: string
+      description: "Order ID als al aangemaakt"
+
+output_schema:
+  type: object
+  properties:
+    bericht:
+      type: string
+      description: "Klantvriendelijke uitleg van het probleem"
+    actie_klant:
+      type: string
+      description: "Concrete stap die de klant moet nemen"
+    actie_systeem:
+      type: string
+      enum: [geen, herlaad_cart, redirect_betaling, escaleer, annuleer_order]
+    alternatieve_betaalmethoden:
+      type: array
+      items:
+        type: string
+    opgelost:
+      type: boolean
+
+error_handling:
+  retry:
+    max_attempts: 2
+    delay_seconds: 1
+  fallback: "Verwijs klant naar klantenservice via klantenservice@vorsternsnv.be of telefonisch"
+  escalation_trigger: "checkout_stap == 'betaling' AND fout_herhaald >= 2"
+
+evaluation:
+  metrics:
+    - checkout_voltooiingsrate
+    - gemiddelde_herstelstijd_seconden
+    - escalatie_percentage
+  feedback_loop: true
+  log_dir: "logs/checkout_begeleiding"
+
+iteration_log: "prompts/prepromt/checkout_begeleiding_iterations.yml"

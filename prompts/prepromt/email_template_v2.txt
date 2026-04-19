@@ -13,14 +13,18 @@ preprompt: |
   Voornaam: {klant_voornaam}
   Aanspreking: {aanspreking}  # formeel / informeel
   
-  ## Order/Retour-gegevens
+  ## Order/Retour/Factuur-gegevens
   Order-ID: {order_id}
   Orderdatum: {orderdatum}
   Orderwaarde incl. BTW: €{orderwaarde}
+  Totaal excl. BTW: €{totaal_excl}
+  BTW (21%): €{btw_bedrag}
   Producten: {producten_samenvatting}  # bijv. "3 artikelen (zie bijlage)"
   Verwachte leverdatum: {verwachte_leverdatum}
   Track & trace URL: {track_and_trace_url}  # null als niet beschikbaar
   Retour-ID: {retour_id}  # null als niet van toepassing
+  Factuur-nummer: {factuur_nummer}  # null als niet van toepassing
+  Factuur PDF URL: {factuur_pdf_url}  # null als niet van toepassing
   
   ## Communicatiecontext
   Reden bericht: {reden}  # bijv. "vertraging door stockprobleem bij leverancier"

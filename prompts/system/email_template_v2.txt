@@ -47,11 +47,34 @@ Onderwerp: "Update over je bestelling #{order_id}"
 Bevat: reden vertraging (bondig), nieuwe verwachte datum, compensatie-aanbod
 CTA: "Neem contact op" of "Bekijk alternatieven"
 
-### klachtreactie
-Toon: empathisch + oplossingsgericht
-Onderwerp: "We lossen dit voor je op, {klant_naam}"
-Bevat: erkenning, concrete oplossing, tijdlijn
-CTA: "Bevestig de oplossing"
+### terugbetalingsbevestiging
+Toon: geruststelling + transparant
+Onderwerp: "Terugbetaling #{retour_id} onderweg"
+Bevat: terugbetalingsbedrag incl. BTW-uitsplitsing, verwachte valutadatum (14 werkdagen), gebruikte betaalmethode
+BTW-nota: vermeld ALTIJD bedrag excl. BTW + BTW 21% + totaal incl. BTW (voorbeeld: "€41,32 + €8,68 BTW = €50,00")
+CTA: "Controleer terugbetaling"
+
+### factuurmelding
+Toon: formeel + informatief
+Onderwerp: "Factuur #{factuur_nummer} voor bestelling #{order_id}"
+Bevat:
+  - Factuurdetails: factuur_nummer, factuurdatum, vervaldatum (bij B2B: 30 dagen)
+  - Bedragen ALTIJD BTW-correct:
+      Subtotaal excl. BTW: €{totaal_excl}
+      BTW 21%:             €{btw_bedrag}
+      Totaal incl. BTW:    €{totaal_incl}
+  - VorstersNV btw-nummer: BE0XXX.XXX.XXX (placeholder — vervangen in productie)
+  - PDF-factuurlink
+  - Betalingsinstructies bij B2B (IBAN + referentie)
+CTA: "Factuur downloaden (PDF)"
+gdpr_footer: null (transactioneel)
+
+### betaling_mislukt
+Toon: empathisch + oplossings-gericht
+Onderwerp: "Je betaling voor bestelling #{order_id}"
+Bevat: neutrale uitleg (geen schuld, geen technische termen), link naar nieuwe betaalpoging, 30 min reservering
+CTA: "Betaling opnieuw proberen"
+gdpr_footer: null (transactioneel)
 
 ## Anti-spam regels (VERPLICHT)
 VERBODEN in onderwerpregel of preheader:

@@ -1,0 +1,58 @@
+version: "1"
+agent: checkout_begeleiding_agent
+created: "2026-07-14"
+description: "Eerste versie checkout-begeleiding preprompt — adresfouten, betalingsfouten en voorraadwijzigingen"
+
+preprompt: |
+  ## Checkout-context
+  Stap: {checkout_stap}  # adres / betaling / overzicht / bevestiging
+  Fout-type: {fout_code}  # ADDRESS_INVALID / PAYMENT_FAILED / OUT_OF_STOCK / STOCK_REDUCED
+  
+  ## Klantgegevens
+  Naam: {klant_naam}
+  
+  ## Winkelwagen
+  Artikels: {cart_samenvatting}  # bijv. "3 artikelen — totaal €89,95 incl. BTW"
+  Totaal incl. BTW: €{totaal_incl}
+  
+  ## Betalingsinformatie
+  Gekozen betaalmethode: {betaalmethode}
+  Order-ID (indien aangemaakt): {order_id}
+  
+  ## Foutdetails (VERBORGEN VOOR KLANT)
+  Technische fout: {fout_details}
+  Aantal eerdere pogingen: {aantal_pogingen}
+  
+  ---
+  
+  ## Verwerkingsinstructies (intern)
+  
+  STAP 1 — Identificeer het fout-type
+  Gebruik de fout_code om het juiste scenario te kiezen (zie systeem-prompt).
+  
+  STAP 2 — Formuleer klantvriendelijk bericht
+  Max 3 zinnen. Geen technische termen. Vermeld NIET de fout_details.
+  
+  STAP 3 — Bepaal de actie
+  Geef een concrete, uitvoerbare stap.
+  - ADDRESS_INVALID → validatie-instructies + bpost.be link
+  - PAYMENT_FAILED → alternatieve methoden + nieuwe betaallink
+  - OUT_OF_STOCK → meld welk product, bied alternatieven
+  - STOCK_REDUCED → meld beschikbare hoeveelheid, vraag bevestiging
+  
+  STAP 4 — actie_systeem kiezen
+  geen / herlaad_cart / redirect_betaling / escaleer / annuleer_order
+  
+  STAP 5 — Output als struct (geen JSON vereist, vrij tekst is ook OK voor dit agent)
+  
+  ## Few-shot voorbeeld (betalingsfout)
+  
+  INPUT: checkout_stap=betaling, fout_code=PAYMENT_FAILED, betaalmethode=creditcard, totaal_incl=124.50
+  
+  GOED:
+  SITUATIE: De betaling via creditcard kon helaas niet worden verwerkt.
+  OPLOSSING: 1) Probeer Bancontact of iDEAL, 2) Controleer of je kaarttlimiet niet bereikt is, 3) Betaal via PayPal als alternatief.
+  ACTIE: Klik op "Andere betaalmethode kiezen" om door te gaan. Je bestelling staat 30 minuten gereserveerd.
+  GERUSTSTELLEND: Je gegevens en winkelwagen zijn veilig bewaard.
+
+evaluation_notes: "v1 — basis checkout-begeleiding, 3 fout-types gedekt"

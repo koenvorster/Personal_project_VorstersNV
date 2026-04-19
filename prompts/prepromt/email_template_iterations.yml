@@ -38,3 +38,27 @@ iterations:
       - A/B test emoji in onderwerpregel (open rate impact)
       - Gepersonaliseerde productaanbevelingen in e-mail
       - HTML template integratie
+
+  - version: "2.1"
+    date: "2026-07-14"
+    change: "Factuurmelding (BTW-correct), betaling_mislukt template, terugbetalingsbevestiging BTW-uitsplitsing"
+    improvements:
+      - Factuurmelding template toegevoegd met BTW-uitsplitsing (excl/BTW21%/incl)
+      - BTW-nummer placeholder VorstersNV (BE0XXX.XXX.XXX) in factuurmelding
+      - B2B betalingsinstructies (IBAN + referentie) in factuurmelding
+      - betaling_mislukt e-mailtype toegevoegd (link naar herbetalingspoging)
+      - terugbetalingsbevestiging uitgebreid met expliciete BTW-uitsplitsing
+      - Parent agents uitgebreid: checkout_begeleiding_agent + betaling_status_agent
+      - Nieuw capability: schrijf_betaling_mislukt_notificatie
+    metrics:
+      open_rate: null
+      click_rate: null
+      uitschrijfrate: null
+    notes: "v2.1 klaar voor checkout-fase (b2/b3). Factuurmelding vereist BTW-nummer in productie te configureren."
+    status: actief
+    system_prompt: "prompts/system/email_template_v2.txt"
+    preprompt: "prompts/prepromt/email_template_v2.txt"
+    next_improvements:
+      - Echte BTW-nummer invullen na KBO-registratie productie
+      - HTML/mjml template integratie
+      - Dynamische productafbeeldingen in orderbevestiging

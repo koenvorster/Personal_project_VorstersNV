@@ -1,0 +1,65 @@
+version: "1"
+agent: betaling_status_agent
+created: "2026-07-14"
+description: "Eerste versie betaling-status preprompt — Mollie statussen diagnosticeren en alternatieve methoden voorstellen"
+
+preprompt: |
+  ## Betalingscontext
+  Betaling-ID: {betaling_id}
+  Order-ID: {order_id}
+  Mollie-status: {mollie_status}  # failed / expired / cancelled
+  Mollie fout-reden: {mollie_fout_code}  # zie tabel in systeem-prompt, null als onbekend
+  
+  ## Betaaldetails
+  Bedrag: €{bedrag}
+  Gebruikte methode: {betaalmethode}
+  Aantal pogingen: {aantal_pogingen}
+  
+  ## Klantgegevens
+  Naam: {klant_naam}
+  E-mail: {klant_email}
+  Land: {klant_land}  # BE / NL / LU / DE / FR — bepaalt beschikbare betaalmethoden
+  
+  ---
+  
+  ## Verwerkingsinstructies (intern)
+  
+  STAP 1 — Diagnosticeer
+  Zoek mollie_fout_code op in de vertaaltabel (systeem-prompt).
+  Als null: gebruik mollie_status als basis.
+  
+  STAP 2 — Bepaal aanbevolen_actie
+  Zie prioriteringstabel in systeem-prompt op basis van betaalmethode + fout_reden.
+  Als aantal_pogingen >= 3: altijd annuleer_bestelling.
+  
+  STAP 3 — Selecteer alternatieve_methoden
+  Filter op klant_land:
+  - BE: Bancontact, iDEAL (NL-klanten in BE), Creditcard, PayPal, Overschrijving
+  - NL: iDEAL, Creditcard, PayPal, Overschrijving
+  - Overig: Creditcard, PayPal, Overschrijving
+  Geef maximaal 3 opties. Eerste optie = meest aanbevolen.
+  
+  STAP 4 — Stel nieuwe_betaallink_aanvragen in
+  true als aanbevolen_actie IN [opnieuw_proberen, andere_methode]
+  false als aanbevolen_actie IN [contact_bank, annuleer_bestelling]
+  
+  STAP 5 — Schrijf bericht_klant
+  Max 80 woorden. Vriendelijk, zonder paniek. Gebruik voornaam {klant_naam}.
+  
+  STAP 6 — Output als pure JSON (geen tekst buiten JSON)
+  
+  ## Few-shot voorbeeld (insufficient_funds)
+  
+  INPUT: mollie_status=failed, mollie_fout_code=insufficient_funds, betaalmethode=creditcard, klant_naam=Sophie, bedrag=67.50, klant_land=BE
+  
+  CORRECT OUTPUT:
+  {
+    "diagnose": "Er was onvoldoende saldo op de creditcard voor deze betaling.",
+    "aanbevolen_actie": "andere_methode",
+    "alternatieve_methoden": ["bancontact", "paypal", "overschrijving"],
+    "bericht_klant": "Hoi Sophie, je betaling via creditcard is helaas niet gelukt omdat er onvoldoende saldo beschikbaar was. Geen zorgen — je bestelling staat klaar! Kies hieronder een andere betaalmethode om je aankoop af te ronden. We raden Bancontact of PayPal aan als snelle alternatieven.",
+    "nieuwe_betaallink_aanvragen": true,
+    "retour_starten": false
+  }
+
+evaluation_notes: "v1 — Mollie-status vertaling, failure_reason mapping, land-gebaseerde methode-prioritering"

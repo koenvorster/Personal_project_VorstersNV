@@ -1,5 +1,5 @@
 name: email_template_agent
-version: "1.0"
+version: "2.0"
 type: sub_agent
 description: "Sub-agent voor het genereren van klantgerichte e-mails voor VorstersNV"
 model: llama3
@@ -10,6 +10,8 @@ parent_agents:
   - klantenservice_agent
   - order_verwerking_agent
   - retour_verwerking_agent
+  - checkout_begeleiding_agent
+  - betaling_status_agent
 
 system_prompt_ref: "prompts/system/email_template_v2.txt"
 preprompt_ref: "prompts/prepromt/email_template_v2.txt"
@@ -19,9 +21,11 @@ capabilities:
   - schrijf_verzendbevestiging
   - schrijf_retourbevestiging
   - schrijf_terugbetalingsbevestiging
+  - schrijf_factuurmelding
   - schrijf_vertragingsbericht
   - schrijf_klantklacht_reactie
   - schrijf_backorder_bericht
+  - schrijf_betaling_mislukt_notificatie
 
 input_schema:
   type: object
@@ -33,6 +37,8 @@ input_schema:
         - verzendbevestiging
         - retourbevestiging
         - terugbetalingsbevestiging
+        - factuurmelding
+        - betaling_mislukt
         - vertragingsbericht
         - klachtreactie
         - backorder

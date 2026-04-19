@@ -1,0 +1,123 @@
+name: betaling_status_agent
+version: "1.0"
+type: specialist
+description: "AI-agent die reageert op betalingsfouten (payment.failed): legt uit wat er fout ging, stelt alternatieve betaalmethoden voor en begeleid bij retour-procedure indien nodig"
+model: llama3
+temperature: 0.2
+max_tokens: 768
+language: nl
+
+system_prompt_ref: "prompts/system/betaling_status.txt"
+preprompt_ref: "prompts/prepromt/betaling_status_v1.yml"
+
+capabilities:
+  - betalingsfout_diagnosticeren
+  - alternatieve_methoden_voorstellen
+  - mollie_status_vertalen
+  - retour_procedure_starten
+  - betaallink_vernieuwen_initiëren
+  - klant_geruststellen_bij_fout
+
+parent_agents:
+  - order_verwerking_agent
+  - checkout_begeleiding_agent
+
+sub_agents:
+  - name: email_template_agent
+    trigger: betaling_definitief_mislukt
+    description: "Stuur informatieemail bij definitief mislukte betaling"
+  - name: retour_verwerking_agent
+    trigger: terugbetaling_vereist
+    description: "Start retourprocedure als betaling al deels verwerkt was"
+
+tools:
+  - name: betaling_status_ophalen
+    description: "Haal Mollie-betalingsstatus op voor een betaling-ID"
+    endpoint: "/api/betalingen/{betaling_id}"
+  - name: betaalmethoden_ophalen
+    description: "Beschikbare betaalmethoden voor het bedrag en land"
+    endpoint: "/api/betalingen/methoden"
+  - name: betaallink_genereren
+    description: "Genereer een nieuwe Mollie betaallink voor bestaande order"
+    endpoint: "/api/betalingen/herbetalingslink"
+  - name: order_annuleren
+    description: "Annuleer order en boek voorraad terug"
+    endpoint: "/api/orders/{order_id}/annuleer"
+
+triggers:
+  - event: payment.failed
+    webhook: "/webhooks/payment-failed"
+  - event: payment.expired
+    webhook: "/webhooks/payment-expired"
+  - event: payment.cancelled
+    webhook: "/webhooks/payment-cancelled"
+
+input_schema:
+  type: object
+  required: [betaling_id, mollie_status]
+  properties:
+    betaling_id:
+      type: string
+      description: "Mollie payment ID (tr_xxxxx) of intern PAY-xxxxx"
+    order_id:
+      type: string
+    mollie_status:
+      type: string
+      enum: [failed, expired, cancelled, open, pending, authorized, paid]
+    mollie_fout_code:
+      type: string
+      description: "Mollie failure_reason (bijv. insufficient_funds, authentication_abandoned)"
+    betaalmethode:
+      type: string
+      description: "Gebruikte betaalmethode (bijv. ideal, creditcard, bancontact)"
+    bedrag:
+      type: number
+    klant_naam:
+      type: string
+    klant_email:
+      type: string
+    aantal_pogingen:
+      type: integer
+      default: 1
+
+output_schema:
+  type: object
+  properties:
+    diagnose:
+      type: string
+      description: "Klantvriendelijke uitleg van de fout (geen technische termen)"
+    aanbevolen_actie:
+      type: string
+      enum: [opnieuw_proberen, andere_methode, contact_bank, annuleer_bestelling, wacht_even]
+    alternatieve_methoden:
+      type: array
+      items:
+        type: string
+      description: "Lijst van aanbevolen alternatieven (bijv. ['bancontact', 'paypal', 'overschrijving'])"
+    bericht_klant:
+      type: string
+      description: "Volledig klantvriendelijk bericht"
+    nieuwe_betaallink_aanvragen:
+      type: boolean
+      description: "True als het systeem een nieuwe betaallink moet genereren"
+    retour_starten:
+      type: boolean
+      description: "True als retourprocedure gestart moet worden"
+
+error_handling:
+  retry:
+    max_attempts: 2
+    delay_seconds: 1
+  fallback: "Verwijs naar klantenservice. Sla betaling_id en fout op in agent_logs voor handmatige opvolging."
+  escalation_trigger: "aantal_pogingen >= 3 OR mollie_fout_code IN ['fraud_suspected', 'card_declined_permanently']"
+
+evaluation:
+  metrics:
+    - herstelrate_percentage
+    - tijd_tot_alternatieve_betaling_seconden
+    - escalatie_percentage
+    - definitief_mislukt_percentage
+  feedback_loop: true
+  log_dir: "logs/betaling_status"
+
+iteration_log: "prompts/prepromt/betaling_status_iterations.yml"
