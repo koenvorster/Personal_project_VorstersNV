@@ -1,5 +1,6 @@
 name: seo_agent
 version: "1.1"
+type: specialist
 description: "AI-agent voor SEO-optimalisatie van webshoppagina's en producten"
 model: llama3
 temperature: 0.5
@@ -7,7 +8,7 @@ max_tokens: 1500
 language: nl
 
 system_prompt_ref: "prompts/system/seo.txt"
-prepromt_ref: "prompts/prepromt/seo_v1.txt"
+preprompt_ref: "prompts/prepromt/seo_v1.txt"
 
 capabilities:
   - analyseer_keywords
@@ -20,20 +21,36 @@ capabilities:
   - structured_data_valideren
 
 input_schema:
-  pagina_url: string
-  huidige_inhoud: string
-  doelzoekwoorden: list
-  concurrenten: list
+  type: object
+  properties:
+    pagina_url:
+      type: string
+    huidige_inhoud:
+      type: string
+    doelzoekwoorden:
+      type: array
+    concurrenten:
+      type: array
 
 output_schema:
-  aanbevolen_titel: string
-  aanbevolen_meta_description: string
-  primary_keyword: string
-  secondary_keywords: list
-  content_suggesties: list
-  interne_links: list
-  schema_markup: object
-  seo_score: integer
+  type: object
+  properties:
+    aanbevolen_titel:
+      type: string
+    aanbevolen_meta_description:
+      type: string
+    primary_keyword:
+      type: string
+    secondary_keywords:
+      type: array
+    content_suggesties:
+      type: array
+    interne_links:
+      type: array
+    schema_markup:
+      type: object
+    seo_score:
+      type: integer
 
 tools:
   - name: keyword_analyse

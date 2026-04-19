@@ -1,16 +1,16 @@
 name: voorraad_advies_agent
 version: "1.0"
+type: sub_agent
 description: "Sub-agent voor voorraadanalyse en besteladvies bij VorstersNV"
 model: llama3
 temperature: 0.2
 max_tokens: 2048
 language: nl
-role: sub_agent
 parent_agents:
   - order_verwerking_agent
 
 system_prompt_ref: "prompts/system/voorraad_advies.txt"
-prepromt_ref: "prompts/prepromt/voorraad_advies_v1.txt"
+preprompt_ref: "prompts/prepromt/voorraad_advies_v1.txt"
 
 capabilities:
   - analyseer_voorraadniveaus
@@ -22,20 +22,36 @@ capabilities:
   - abc_classificatie
 
 input_schema:
-  datum: string
-  magazijn: string
-  voorraad_data: list
-  verkoop_trends: list
-  inkooporders: list
-  seizoensindex: number
+  type: object
+  properties:
+    datum:
+      type: string
+    magazijn:
+      type: string
+    voorraad_data:
+      type: array
+    verkoop_trends:
+      type: array
+    inkooporders:
+      type: array
+    seizoensindex:
+      type: number
 
 output_schema:
-  kritieke_producten: list
-  laag_voorraad_producten: list
-  overstock_producten: list
-  langzaam_lopende_producten: list
-  besteladvies: list
-  totaal_inkoopwaarde_aanbevolen: number
+  type: object
+  properties:
+    kritieke_producten:
+      type: array
+    laag_voorraad_producten:
+      type: array
+    overstock_producten:
+      type: array
+    langzaam_lopende_producten:
+      type: array
+    besteladvies:
+      type: array
+    totaal_inkoopwaarde_aanbevolen:
+      type: number
 
 tools:
   - name: haal_voorraad_op

@@ -1,18 +1,18 @@
 name: email_template_agent
 version: "1.0"
+type: sub_agent
 description: "Sub-agent voor het genereren van klantgerichte e-mails voor VorstersNV"
 model: llama3
 temperature: 0.6
 max_tokens: 1024
 language: nl
-role: sub_agent
 parent_agents:
   - klantenservice_agent
   - order_verwerking_agent
   - retour_verwerking_agent
 
 system_prompt_ref: "prompts/system/email_template.txt"
-prepromt_ref: "prompts/prepromt/email_template_v1.txt"
+preprompt_ref: "prompts/prepromt/email_template_v1.txt"
 
 capabilities:
   - schrijf_orderbevestiging
@@ -24,37 +24,49 @@ capabilities:
   - schrijf_backorder_bericht
 
 input_schema:
-  email_type:
-    type: enum
-    values:
-      - orderbevestiging
-      - verzendbevestiging
-      - retourbevestiging
-      - terugbetalingsbevestiging
-      - vertragingsbericht
-      - klachtreactie
-      - backorder
-  klant_naam: string
-  aanspreektitel:
-    type: enum
-    values: [de heer, mevrouw, beste]
-  context: string
-  details: object
-  tone_of_voice:
-    type: enum
-    values: [vriendelijk, formeel, empathisch]
-    default: vriendelijk
-  taal:
-    type: enum
-    values: [nl, en]
-    default: nl
+  type: object
+  properties:
+    email_type:
+      type: string
+      enum:
+        - orderbevestiging
+        - verzendbevestiging
+        - retourbevestiging
+        - terugbetalingsbevestiging
+        - vertragingsbericht
+        - klachtreactie
+        - backorder
+    klant_naam:
+      type: string
+    aanspreektitel:
+      type: string
+      enum: [de heer, mevrouw, beste]
+    context:
+      type: string
+    details:
+      type: object
+    tone_of_voice:
+      type: string
+      enum: [vriendelijk, formeel, empathisch]
+      default: vriendelijk
+    taal:
+      type: string
+      enum: [nl, en]
+      default: nl
 
 output_schema:
-  onderwerpregel: string
-  preheader: string
-  email_tekst: string
-  cta_knoptekst: string
-  cta_url: string
+  type: object
+  properties:
+    onderwerpregel:
+      type: string
+    preheader:
+      type: string
+    email_tekst:
+      type: string
+    cta_knoptekst:
+      type: string
+    cta_url:
+      type: string
 
 evaluation:
   metrics:

@@ -1,5 +1,6 @@
 name: product_beschrijving_agent
 version: "1.1"
+type: specialist
 description: "AI-agent voor het genereren van professionele productbeschrijvingen"
 model: llama3
 temperature: 0.7
@@ -7,7 +8,7 @@ max_tokens: 2048
 language: nl
 
 system_prompt_ref: "prompts/system/product_beschrijving.txt"
-prepromt_ref: "prompts/prepromt/product_beschrijving_v1.txt"
+preprompt_ref: "prompts/prepromt/product_beschrijving_v1.txt"
 
 capabilities:
   - genereer_productbeschrijving
@@ -19,26 +20,42 @@ capabilities:
   - herschrijf_bestaande_beschrijving
 
 input_schema:
-  product_naam: string
-  categorie: string
-  kenmerken: list
-  doelgroep: string
-  prijsklasse:
-    type: enum
-    values: [budget, midden, premium, luxe]
-  tone_of_voice:
-    type: enum
-    values: [professioneel, vriendelijk, luxe, technisch]
+  type: object
+  properties:
+    product_naam:
+      type: string
+    categorie:
+      type: string
+    kenmerken:
+      type: array
+    doelgroep:
+      type: string
+    prijsklasse:
+      type: string
+      enum: [budget, midden, premium, luxe]
+    tone_of_voice:
+      type: string
+      enum: [professioneel, vriendelijk, luxe, technisch]
 
 output_schema:
-  titel: string
-  korte_beschrijving: string
-  lange_beschrijving: string
-  usp_lijst: list
-  faq: list
-  seo_meta_title: string
-  seo_meta_description: string
-  tags: list
+  type: object
+  properties:
+    titel:
+      type: string
+    korte_beschrijving:
+      type: string
+    lange_beschrijving:
+      type: string
+    usp_lijst:
+      type: array
+    faq:
+      type: array
+    seo_meta_title:
+      type: string
+    seo_meta_description:
+      type: string
+    tags:
+      type: array
 
 evaluation:
   metrics:

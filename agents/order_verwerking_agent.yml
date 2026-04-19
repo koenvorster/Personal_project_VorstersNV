@@ -1,5 +1,6 @@
 name: order_verwerking_agent
 version: "1.1"
+type: specialist
 description: "AI-agent voor geautomatiseerde orderverwerking en communicatie"
 model: llama3
 temperature: 0.1
@@ -7,7 +8,7 @@ max_tokens: 512
 language: nl
 
 system_prompt_ref: "prompts/system/order_verwerking.txt"
-prepromt_ref: "prompts/prepromt/order_verwerking_v1.txt"
+preprompt_ref: "prompts/prepromt/order_verwerking_v1.txt"
 
 sub_agents:
   - name: fraude_detectie_agent

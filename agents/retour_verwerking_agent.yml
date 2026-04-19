@@ -1,17 +1,17 @@
 name: retour_verwerking_agent
 version: "1.0"
+type: sub_agent
 description: "Sub-agent voor het verwerken van retouraanvragen bij VorstersNV"
 model: llama3
 temperature: 0.2
 max_tokens: 1024
 language: nl
-role: sub_agent
 parent_agents:
   - klantenservice_agent
   - order_verwerking_agent
 
 system_prompt_ref: "prompts/system/retour_verwerking.txt"
-prepromt_ref: "prompts/prepromt/retour_verwerking_v1.txt"
+preprompt_ref: "prompts/prepromt/retour_verwerking_v1.txt"
 
 capabilities:
   - valideer_retouraanvraag
@@ -22,28 +22,46 @@ capabilities:
   - genereer_retourlabel
 
 input_schema:
-  retour_id: string
-  order_id: string
-  aanvraagdatum: string
-  retour_reden:
-    type: enum
-    values: [defect, verkeerd_product, niet_zoals_verwacht, bestelfout_klant, te_laat]
-  klant_naam: string
-  klant_email: string
-  producten: list
-  orderdatum: string
-  ontvangstdatum: string
+  type: object
+  properties:
+    retour_id:
+      type: string
+    order_id:
+      type: string
+    aanvraagdatum:
+      type: string
+    retour_reden:
+      type: string
+      enum: [defect, verkeerd_product, niet_zoals_verwacht, bestelfout_klant, te_laat]
+    klant_naam:
+      type: string
+    klant_email:
+      type: string
+    producten:
+      type: array
+    orderdatum:
+      type: string
+    ontvangstdatum:
+      type: string
 
 output_schema:
-  geldig: boolean
-  verwerkingsactie:
-    type: enum
-    values: [terugbetaling, ruil, creditnota, afwijzen]
-  retournummer: string
-  klantbericht: string
-  verzendinstructies: string
-  terugbetalingsbedrag: number
-  verwerkingstijd_werkdagen: integer
+  type: object
+  properties:
+    geldig:
+      type: boolean
+    verwerkingsactie:
+      type: string
+      enum: [terugbetaling, ruil, creditnota, afwijzen]
+    retournummer:
+      type: string
+    klantbericht:
+      type: string
+    verzendinstructies:
+      type: string
+    terugbetalingsbedrag:
+      type: number
+    verwerkingstijd_werkdagen:
+      type: integer
 
 tools:
   - name: zoek_order

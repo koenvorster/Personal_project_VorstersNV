@@ -223,7 +223,8 @@ output_schema:
           type: boolean
           description: "True = use effective-dated records"
         
-        end_date_invariant: { type: string }
+        end_date_invariant:
+          type: string
           description: "E.g., end_date = next.start_date - 1 day"
         
         max_date_leakage:

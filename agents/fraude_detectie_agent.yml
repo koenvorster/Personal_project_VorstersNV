@@ -1,17 +1,17 @@
 name: fraude_detectie_agent
 version: "1.0"
+type: sub_agent
 description: "Sub-agent voor het detecteren van frauduleuze bestellingen bij VorstersNV"
 model: llama3
 temperature: 0.1
 max_tokens: 512
 language: nl
-role: sub_agent
 parent_agents:
   - order_verwerking_agent
   - klantenservice_agent
 
 system_prompt_ref: "prompts/system/fraude_detectie.txt"
-prepromt_ref: "prompts/prepromt/fraude_detectie_v1.txt"
+preprompt_ref: "prompts/prepromt/fraude_detectie_v1.txt"
 
 capabilities:
   - risicoscore_berekenen
@@ -20,26 +20,45 @@ capabilities:
   - audit_log_aanmaken
 
 input_schema:
-  order_id: string
-  besteldatum: string
-  orderwaarde: number
-  betaalmethode: string
-  klant_id: string
-  account_aanmaakdatum: string
-  aantal_eerdere_orders: integer
-  eerdere_chargebacks: integer
-  klant_email: string
-  bezorgadres: string
-  ip_adres: string
-  adressen_gelijk: boolean
+  type: object
+  properties:
+    order_id:
+      type: string
+    besteldatum:
+      type: string
+    orderwaarde:
+      type: number
+    betaalmethode:
+      type: string
+    klant_id:
+      type: string
+    account_aanmaakdatum:
+      type: string
+    aantal_eerdere_orders:
+      type: integer
+    eerdere_chargebacks:
+      type: integer
+    klant_email:
+      type: string
+    bezorgadres:
+      type: string
+    ip_adres:
+      type: string
+    adressen_gelijk:
+      type: boolean
 
 output_schema:
-  risicoscore: integer
-  risicosignalen: list
-  aanbeveling:
-    type: enum
-    values: [verwerken, verificatie, review, blokkeren]
-  motivatie: string
+  type: object
+  properties:
+    risicoscore:
+      type: integer
+    risicosignalen:
+      type: array
+    aanbeveling:
+      type: string
+      enum: [verwerken, verificatie, review, blokkeren]
+    motivatie:
+      type: string
 
 tools:
   - name: zoek_klanthistorie
