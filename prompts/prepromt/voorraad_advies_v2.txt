@@ -1,0 +1,81 @@
+version: "2"
+agent: voorraad_advies_agent
+created: "2026-07-01"
+description: "Verbeterde voorraad-advies pre-prompt met berekeningsformules, ABC-analyse en few-shot"
+
+preprompt: |
+  ## Analyse-parameters
+  Analyse-datum: {analyse_datum}
+  Magazijn: {magazijn_naam}
+  Analyseperiode: {analyse_periode_dagen} dagen  # standaard 30
+  
+  ## Voorraaddata
+  # Verwacht als lijst van producten met volgende velden per product:
+  {voorraaddata}
+  # Formaat per product:
+  # - product_id, product_naam, categorie
+  # - huidige_voorraad (stuks)
+  # - totale_verkoop_30d (stuks)
+  # - inkoopprijs_eur (excl. BTW)
+  # - omzet_30d_eur (incl. BTW)
+  # - levertijd_leverancier_dagen
+  # - seizoensindex  # 1.0 = normaal, >1.0 = hoog seizoen, <1.0 = laag seizoen
+  
+  ## Drempelwaarden (overschrijfbaar)
+  kritiek_drempel_dagen: {kritiek_drempel}  # standaard 7
+  laag_drempel_dagen: {laag_drempel}  # standaard 14
+  overstock_drempel_dagen: {overstock_drempel}  # standaard 90
+  langzaam_lopend_geen_verkoop_dagen: {langzaam_lopend_drempel}  # standaard 60
+  
+  ---
+  
+  ## Berekeningsinstructies (intern, stap voor stap)
+  
+  STAP 1 — ABC-classificatie
+  Sorteer producten op omzet_30d_eur DESC.
+  Top 20% omzet → klasse A
+  Volgende 30% omzet → klasse B
+  Overige → klasse C
+  
+  STAP 2 — Bereken per product
+  DGV = totale_verkoop_30d / analyse_periode_dagen
+  
+  Veiligheidsstock_dagen per klasse:
+    A → 14 dagen, B → 10 dagen, C → 7 dagen
+  
+  VV = DGV × veiligheidsstock_dagen × seizoensindex
+  Bestelpunt = DGV × levertijd_leverancier_dagen + VV
+  Verwachte_uitputtingsdatum = analyse_datum + ceil(huidige_voorraad / DGV) dagen
+    (als DGV == 0: uitputtingsdatum = null, alert_type = LANGZAAM_LOPEND indien > {langzaam_lopend_drempel}d geen verkoop)
+  
+  Bestelhoeveelheid = max(0, ceil(DGV × (levertijd + veiligheidsstock_dagen) - huidige_voorraad))
+  
+  STAP 3 — Alert toewijzen per product
+  huidige_voorraad < DGV × 7  → KRITIEK
+  huidige_voorraad < DGV × 14 → LAAG
+  huidige_voorraad > DGV × 90 → OVERSTOCK
+  DGV == 0 EN voorraad > 0    → LANGZAAM_LOPEND
+  Anders                       → NORMAAL
+  
+  STAP 4 — Samenvatting berekenen
+  Tel KRITIEK, LAAG, OVERSTOCK, LANGZAAM_LOPEND producten.
+  Bereken totale_inkoopwaarde = som van (bestelhoeveelheid × inkoopprijs) voor alle producten.
+  
+  STAP 5 — Output als JSON (gebruik output-formaat uit systeem-prompt)
+  Sorteer besteladvies: KRITIEK eerst, dan LAAG, dan NORMAAL met bestelhoeveelheid > 0.
+  Producten met NORMAAL en bestelhoeveelheid == 0 weglaten.
+  
+  ## Few-shot voorbeeld
+  
+  Product: Ergonomische Bureaustoel Pro (SKU: MSTL-001)
+  Huidige voorraad: 8 stuks
+  Totale verkoop 30d: 30 stuks → DGV = 1.0/dag
+  Levertijd: 7 dagen, ABC: A, seizoensindex: 1.2
+  
+  VV = 1.0 × 14 × 1.2 = 16.8 → 17 stuks
+  Bestelpunt = 1.0 × 7 + 17 = 24 stuks
+  Bestelhoeveelheid = max(0, ceil(1.0 × (7+14) - 8)) = max(0, 13) = 13 stuks
+  Alert: KRITIEK (8 < 7)
+  Uitputtingsdatum: analyse_datum + 8 dagen
+
+evaluation_notes: "v2 — formules, ABC, seizoensindex, few-shot berekening, LANGZAAM_LOPEND logica"

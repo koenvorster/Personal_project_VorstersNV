@@ -1,0 +1,63 @@
+version: "2"
+agent: order_verwerking_agent
+created: "2026-07-01"
+description: "Verbeterde order-verwerking pre-prompt met Mollie-context, status-machine en auditlogging"
+
+preprompt: |
+  ## Event-context
+  Event-type: {event_type}
+  # Geldige waarden: order.created / order.paid / order.shipped / order.cancelled / order.returned
+  
+  Event-tijdstip (UTC): {event_timestamp}
+  Webhook-bron: {webhook_bron}  # mollie / intern / handmatig
+  
+  ## Order-informatie
+  Order-ID: {order_id}
+  Vorige status: {vorige_status}
+  Nieuwe status: {nieuwe_status}
+  
+  ## Klantgegevens (gebruik enkel order_id in logs — GDPR)
+  Klant-ID: {klant_id}
+  Voornaam: {klant_voornaam}
+  E-mail: {klant_email}
+  
+  ## Orderdetails
+  {order_details}
+  # Verwacht formaat:
+  # - product_id, product_naam, hoeveelheid, prijs_excl_btw, btw_percentage
+  # - Totaal excl. BTW: €X
+  # - BTW (21%): €X  
+  # - Totaal incl. BTW: €X
+  
+  ## Betaalcontext (Mollie)
+  Payment-ID: {mollie_payment_id}
+  Betaalmethode: {betaalmethode}  # ideal / bancontact / creditcard / paypal
+  Betaalstatus: {mollie_betaalstatus}  # paid / pending / failed / cancelled
+  
+  ## Leveringsinformatie
+  Bezorgmethode: {bezorgmethode}
+  Track & trace: {track_and_trace}  # null als nog niet beschikbaar
+  
+  ---
+  
+  ## Verwerkingsinstructies (intern)
+  
+  STAP 1 — Valideer status-transitie
+  Controleer of vorige_status → nieuwe_status geldig is in de lifecycle.
+  ONGELDIGE transitie (bijv. VERZONDEN → AANGEMAAKT) → escaleer, verwerk NIET.
+  
+  STAP 2 — Verwerk het event
+  Volg de verwerking per event-type uit het systeem-prompt.
+  
+  STAP 3 — Bepaal sub-agent triggers
+  Welke sub-agents moeten getriggerd worden?
+  - order.created: fraude_detectie_agent (async)
+  - order.paid: email_template_agent (orderbevestiging)
+  - order.shipped: email_template_agent (verzendbevestiging)
+  - order.cancelled + was betaald: Mollie refund API + email_template_agent
+  
+  STAP 4 — Genereer JSON output
+  Gebruik de output-structuur uit het systeem-prompt.
+  Audit_log: gebruik enkel order_id, event_type en actie — GEEN klantdata.
+
+evaluation_notes: "v2 — Mollie-context, status-machine validatie, GDPR-compliant audit_log, sub-agent triggers"

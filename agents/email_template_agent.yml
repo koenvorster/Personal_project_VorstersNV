@@ -11,8 +11,8 @@ parent_agents:
   - order_verwerking_agent
   - retour_verwerking_agent
 
-system_prompt_ref: "prompts/system/email_template.txt"
-preprompt_ref: "prompts/prepromt/email_template_v1.txt"
+system_prompt_ref: "prompts/system/email_template_v2.txt"
+preprompt_ref: "prompts/prepromt/email_template_v2.txt"
 
 capabilities:
   - schrijf_orderbevestiging

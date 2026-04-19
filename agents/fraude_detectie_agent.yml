@@ -10,8 +10,8 @@ parent_agents:
   - order_verwerking_agent
   - klantenservice_agent
 
-system_prompt_ref: "prompts/system/fraude_detectie.txt"
-preprompt_ref: "prompts/prepromt/fraude_detectie_v1.txt"
+system_prompt_ref: "prompts/system/fraude_detectie_v2.txt"
+preprompt_ref: "prompts/prepromt/fraude_detectie_v2.txt"
 
 capabilities:
   - risicoscore_berekenen

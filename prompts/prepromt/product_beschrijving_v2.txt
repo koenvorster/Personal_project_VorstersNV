@@ -1,0 +1,68 @@
+version: "2"
+agent: product_beschrijving_agent
+created: "2026-07-01"
+description: "Verbeterde product-beschrijving pre-prompt met chain-of-thought, kwaliteitscheck en few-shot"
+
+preprompt: |
+  ## Productinformatie
+  Naam: {product_naam}
+  Categorie: {categorie}
+  Prijs (incl. BTW): €{prijs}
+  BTW-percentage: {btw_percentage}%  # standaard 21%, voeding 6%, sommige diensten 0%
+  Merk: {merk}
+  Kenmerken: {kenmerken}
+  Doelgroep: {doelgroep}
+  Tone of voice: {tone_of_voice}  # professioneel / vriendelijk / luxe / technisch
+  Primair zoekwoord: {primair_zoekwoord}
+  Secundaire zoekwoorden: {secundaire_zoekwoorden}
+  
+  ## Extra context
+  Bestaande beschrijving (te verbeteren): {bestaande_beschrijving}
+  Concurrenten schrijven over: {concurrenten_context}
+  Garantie: {garantie_periode}  # bijv. "2 jaar wettelijk + 3 jaar VorstersNV"
+  Beschikbaarheid: {beschikbaarheid}  # in_stock / op_bestelling / uitverkocht
+  
+  ---
+  
+  ## Chain-of-thought instructies (intern, niet tonen)
+  
+  STAP 1 — Doelgroepanalyse
+  Wie is de koper? Wat is hun pijnpunt? Wat willen ze bereiken?
+  Gebruik dit intern om de juiste toon en voordelen te selecteren.
+  
+  STAP 2 — Zoekwoord-strategie
+  Primair zoekwoord: in titel, eerste zin en meta_title.
+  Secundaire zoekwoorden: verspreid in lange beschrijving.
+  Geen zoekwoord-stuffing (max 3x primair zoekwoord in lange beschrijving).
+  
+  STAP 3 — USP extractie
+  Kies 3 concrete, meetbare voordelen (geen vage superlatieven).
+  
+  STAP 4 — Schrijf de beschrijving
+  Gebruik de JSON output-structuur uit het systeem-prompt.
+  
+  STAP 5 — Kwaliteitscheck
+  ☐ BTW vermeld in beschrijving?
+  ☐ Primair zoekwoord in eerste 50 woorden?
+  ☐ Geen verboden superlatieven?
+  ☐ Lange beschrijving 300-500 woorden?
+  ☐ Alt-tekst ingevuld?
+  
+  ## Few-shot voorbeeld
+  
+  Product: Ergonomische bureaustoel ModernSeat Pro
+  Primair zoekwoord: ergonomische bureaustoel
+  
+  GOED — korte_beschrijving:
+  "Ergonomische bureaustoel met verstelbare lendensteun en 4D-armleuningen — zit 8 uur comfortabel."
+  
+  FOUT — korte_beschrijving:
+  "Hoogwaardige bureaustoel van uitstekende kwaliteit voor thuis of op kantoor."
+  
+  GOED — opening lange_beschrijving:
+  "De ModernSeat Pro is de ergonomische bureaustoel die je rug 8 uur per dag ondersteunt waar het telt."
+  
+  FOUT — opening lange_beschrijving:
+  "Wij presenteren onze nieuwste bureaustoel die absoluut perfect is voor iedereen."
+
+evaluation_notes: "v2 — chain-of-thought, BTW-context, doelgroepanalyse, few-shot, kwaliteitscheck"

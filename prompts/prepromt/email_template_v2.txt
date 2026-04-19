@@ -1,0 +1,75 @@
+version: "2"
+agent: email_template_agent
+created: "2026-07-01"
+description: "Verbeterde email-template pre-prompt met karakterlimiet-enforcement, GDPR en few-shot"
+
+preprompt: |
+  ## E-mailcontext
+  Type: {email_type}
+  # Geldige waarden: orderbevestiging / verzendbevestiging / retourbevestiging /
+  #                  vertragingsbericht / klachtreactie / terugbetalingsbevestiging
+  
+  ## Klantgegevens
+  Voornaam: {klant_voornaam}
+  Aanspreking: {aanspreking}  # formeel / informeel
+  
+  ## Order/Retour-gegevens
+  Order-ID: {order_id}
+  Orderdatum: {orderdatum}
+  Orderwaarde incl. BTW: €{orderwaarde}
+  Producten: {producten_samenvatting}  # bijv. "3 artikelen (zie bijlage)"
+  Verwachte leverdatum: {verwachte_leverdatum}
+  Track & trace URL: {track_and_trace_url}  # null als niet beschikbaar
+  Retour-ID: {retour_id}  # null als niet van toepassing
+  
+  ## Communicatiecontext
+  Reden bericht: {reden}  # bijv. "vertraging door stockprobleem bij leverancier"
+  Compensatie aangeboden: {compensatie}  # bijv. "10% korting op volgende bestelling" of null
+  
+  ## GDPR-context
+  E-mailtype is transactioneel: {is_transactioneel}  # true = geen uitschrijflink
+  
+  ---
+  
+  ## Verwerkingsinstructies (intern)
+  
+  STAP 1 — Kies template
+  Gebruik het juiste template per email_type (zie systeem-prompt).
+  
+  STAP 2 — Pas aanspreking aan
+  formeel → "Geachte mevrouw/heer {klant_voornaam},"
+  informeel → "Hoi {klant_voornaam},"
+  
+  STAP 3 — Schrijf tekst
+  Hoofdtekst: max 120 woorden
+  Onderwerpregel: max 50 tekens — tel tekens expliciet
+  Preheader: max 90 tekens — tel tekens expliciet
+  
+  STAP 4 — GDPR footer
+  is_transactioneel == true → gdpr_footer: null
+  is_transactioneel == false → gdpr_footer: "Geen marketing-e-mails meer? <uitschrijflink>"
+  
+  STAP 5 — Zelfevaluatie voor output
+  ☐ Onderwerpregel ≤ 50 tekens (tel exact)?
+  ☐ Preheader ≤ 90 tekens?
+  ☐ Hoofdtekst ≤ 120 woorden (tel exact)?
+  ☐ CTA aanwezig?
+  ☐ GDPR footer correct?
+  
+  STAP 6 — Output als pure JSON
+  
+  ## Few-shot voorbeeld (verzendbevestiging)
+  
+  INPUT: order_id=VON-2026-4521, klant_voornaam=Koen, verwachte_leverdatum=04/07/2026
+  
+  GOED:
+  onderwerpregel: "📦 Je bestelling is onderweg!" (35 tekens ✓)
+  preheader: "Je pakket komt aan op 04/07 — volg het hier live." (50 tekens ✓)
+  openingszin: "Goed nieuws, Koen — je bestelling is net vertrokken uit ons magazijn!"
+  cta_tekst: "Volg je pakket"
+  
+  FOUT:
+  onderwerpregel: "Heel goed nieuws over je recente bestelling bij VorstersNV!" (60 tekens ✗)
+  cta_tekst: "Klik hier om je pakket te volgen via onze track & trace pagina"
+
+evaluation_notes: "v2 — karakterlimiet-enforcement, GDPR footer logic, few-shot, aanspreking-varianten"

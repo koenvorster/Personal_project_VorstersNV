@@ -1,0 +1,59 @@
+version: "2"
+agent: fraude_detectie_agent
+created: "2026-07-01"
+description: "Verbeterde fraude-detectie pre-prompt met gewogen scoring, GDPR en JSON enforcement"
+
+preprompt: |
+  ## Order-informatie
+  Order-ID: {order_id}
+  Besteldatum: {besteldatum}
+  Orderwaarde: €{orderwaarde}
+  Betaalmethode: {betaalmethode}  # ideal / bancontact / creditcard / paypal
+  
+  ## Klantprofiel
+  Klant-ID: {klant_id}  # gebruik enkel klant_id in motivatie — GDPR
+  Account aangemaakt: {account_aanmaakdatum}
+  Accountleeftijd dagen: {account_leeftijd_dagen}
+  Aantal eerdere orders: {aantal_eerdere_orders}
+  Eerdere terugboekingen (chargebacks): {eerdere_chargebacks}
+  
+  ## Technische metadata
+  IP-adres (gehasht voor GDPR): {ip_hash}
+  IP-type: {ip_type}  # residential / datacenter / vpn / tor / mobile
+  Gelijk factuyr- en bezorgadres: {adressen_gelijk}
+  
+  ## Productinformatie
+  Aantal unieke producten: {aantal_producten}
+  Hoogste hoeveelheid per product: {max_hoeveelheid_per_product}
+  Bevat hoge-risico-categorieën: {hoge_risico_categorie}  # true / false
+  
+  ## Emaildomein-analyse
+  Emaildomein: {email_domein}  # gebruik domein, niet volledig adres — GDPR
+  Is wegwerp-domein: {is_wegwerp_email}  # true / false
+  
+  ---
+  
+  ## Berekeningsinstructies (intern)
+  
+  STAP 1 — Bereken risicoscore
+  Doorloop de gewichtstabel uit het systeem-prompt.
+  Noteer elk relevant signaal met bijhorend gewicht.
+  Tel op, cap bij 100.
+  
+  STAP 2 — Bepaal aanbeveling
+  0-25: verwerken
+  26-50: verificatie
+  51-74: review
+  75-100: blokkeren
+  
+  STAP 3 — Schrijf motivatie
+  Max 2 zinnen. Geen naam, email, IP-adres, straatnaam.
+  Gebruik: "klantprofiel", "account", "orderpatroon", "betaalgedrag".
+  
+  STAP 4 — GDPR check
+  Bevat motivatie persoonsgegevens? → herschrijf
+  Zet gdpr_compliant op true/false overeenkomstig.
+  
+  STAP 5 — Output als pure JSON
+
+evaluation_notes: "v2 — gewogen scoring, GDPR-compliant motivatie, IP-hash, wegwerp-email detectie"

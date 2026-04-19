@@ -1,0 +1,40 @@
+agent: retour_verwerking_agent
+last_updated: "2026-07-01"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-03"
+    change: "Initiële versie — basis retourbeleid"
+    metrics:
+      automatisch_verwerkt_percentage: null
+      gemiddelde_verwerkingstijd_uren: null
+      klantklachten_na_retour: null
+    notes: "Basis versie. Geen beslissingsboom, geen Belgisch recht, handmatige format."
+    status: vervangen
+    system_prompt: "prompts/system/retour_verwerking.txt"
+    preprompt: "prompts/prepromt/retour_verwerking_v1.txt"
+
+  - version: "2.0"
+    date: "2026-07-01"
+    change: "Beslissingsboom, Belgisch recht, terugbetalingscalculus, GDPR, JSON"
+    improvements:
+      - Wettelijk herroepingsrecht EU 2011/83 correct (14 kd)
+      - VorstersNV beleid 30 kd duidelijk onderscheiden van wettelijk minimum
+      - Conformiteitsgarantie 2 jaar vermeld
+      - Stap-voor-stap beslissingsboom (4 stappen)
+      - Exacte terugbetalingsbedragen per reden (volledig vs deductie €5,95)
+      - GDPR: klant_id i.p.v. naam in output
+      - Retournummer generatieformaat gestandaardiseerd
+      - Few-shot voorbeeld
+    metrics:
+      automatisch_verwerkt_percentage: null
+      gemiddelde_verwerkingstijd_uren: null
+      klantklachten_na_retour: null
+    notes: "v2 klaar. Monitor automatisch verwerkingspercentage vs handmatige interventies."
+    status: actief
+    system_prompt: "prompts/system/retour_verwerking_v2.txt"
+    preprompt: "prompts/prepromt/retour_verwerking_v2.txt"
+    next_improvements:
+      - QR-code retourlabel generatie
+      - Automatische DHL API integratie
+      - Retourfraudedetectie (hoog retourpatroon per klant)

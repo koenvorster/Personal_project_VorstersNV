@@ -1,0 +1,55 @@
+version: "2"
+agent: seo_agent
+created: "2026-07-01"
+description: "Verbeterde SEO pre-prompt met Next.js context, Core Web Vitals, nl-BE en score-berekening"
+
+preprompt: |
+  ## Pagina-informatie
+  URL: {pagina_url}
+  Type: {pagina_type}  # productpagina / categoriepagina / homepage / blogpost
+  Huidige meta_title: {huidige_meta_title}
+  Huidige meta_description: {huidige_meta_description}
+  Hoofdtekst: {pagina_inhoud}
+  
+  ## Technische context
+  Framework: Next.js 14 (App Router)
+  Locale: nl-BE (primair), nl-NL (secundair)
+  Huidige LCP: {huidige_lcp_ms}ms  # < 2500 = goed
+  Huidige CLS: {huidige_cls}  # < 0.1 = goed
+  Huidige INP: {huidige_inp_ms}ms  # < 200 = goed
+  
+  ## Zoekwoordcontext
+  Doel-zoekwoord: {doel_zoekwoord}
+  Maandelijks zoekvolume (BE): {zoekvolume_be}
+  Concurrentieniveau: {concurrentieniveau}  # laag / medium / hoog
+  Ranking voor dit zoekwoord nu: positie {huidige_ranking}
+  
+  ## Interne links beschikbaar
+  {beschikbare_interne_links}
+  
+  ---
+  
+  ## Chain-of-thought instructies (intern)
+  
+  STAP 1 — Bereken SEO-score
+  Gebruik de berekeningsmethode uit het systeem-prompt.
+  Noteer score per component in je analyse (intern).
+  
+  STAP 2 — Bepaal prioriteiten
+  Sorteer verbeteringen op impact/inspanning ratio (hoog impact + laag inspanning = eerste).
+  
+  STAP 3 — Genereer geoptimaliseerde metatags
+  Controleer karakterlimieten: title ≤ 60, description ≤ 155.
+  
+  STAP 4 — Structured data
+  Bij productpagina: genereer Product schema.org JSON-LD
+  Bij categorie: genereer ItemList schema.org
+  Bij homepage: genereer Organization schema.org
+  
+  STAP 5 — Core Web Vitals aanbevelingen
+  Analyseer de huidige waarden en geef Next.js-specifieke fixes:
+  - LCP > 2500ms → next/image met priority={true}, preload hints
+  - CLS > 0.1 → reserveer ruimte voor dynamische content (aspect-ratio CSS)
+  - INP > 200ms → reduceer JS bundle, gebruik React.lazy(), Server Components
+
+evaluation_notes: "v2 — Next.js 14, Core Web Vitals, nl-BE, score-berekening chain-of-thought"

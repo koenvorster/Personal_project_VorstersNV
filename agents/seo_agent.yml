@@ -7,8 +7,8 @@ temperature: 0.5
 max_tokens: 1500
 language: nl
 
-system_prompt_ref: "prompts/system/seo.txt"
-preprompt_ref: "prompts/prepromt/seo_v1.txt"
+system_prompt_ref: "prompts/system/seo_v2.txt"
+preprompt_ref: "prompts/prepromt/seo_v2.txt"
 
 capabilities:
   - analyseer_keywords

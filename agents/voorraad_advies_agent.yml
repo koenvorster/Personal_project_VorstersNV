@@ -9,8 +9,8 @@ language: nl
 parent_agents:
   - order_verwerking_agent
 
-system_prompt_ref: "prompts/system/voorraad_advies.txt"
-preprompt_ref: "prompts/prepromt/voorraad_advies_v1.txt"
+system_prompt_ref: "prompts/system/voorraad_advies_v2.txt"
+preprompt_ref: "prompts/prepromt/voorraad_advies_v2.txt"
 
 capabilities:
   - analyseer_voorraadniveaus

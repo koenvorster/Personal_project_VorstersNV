@@ -10,8 +10,8 @@ parent_agents:
   - klantenservice_agent
   - order_verwerking_agent
 
-system_prompt_ref: "prompts/system/retour_verwerking.txt"
-preprompt_ref: "prompts/prepromt/retour_verwerking_v1.txt"
+system_prompt_ref: "prompts/system/retour_verwerking_v2.txt"
+preprompt_ref: "prompts/prepromt/retour_verwerking_v2.txt"
 
 capabilities:
   - valideer_retouraanvraag

@@ -1,8 +1,33 @@
 agent: order_verwerking_agent
-last_updated: "2026-04-03"
+last_updated: "2026-07-01"
 
 iterations:
   - version: "1.0"
     date: "2026-04-03"
     change: "Initiële versie"
+    status: vervangen
+    system_prompt: "prompts/system/order_verwerking.txt"
+    preprompt: "prompts/prepromt/order_verwerking_v1.txt"
+
+  - version: "2.0"
+    date: "2026-07-01"
+    change: "Status-machine, Mollie-context, GDPR audit_log, sub-agent triggers, JSON"
+    improvements:
+      - Order lifecycle state machine met geldige transities
+      - Mollie payment-ID verificatie en webhook-context
+      - GDPR-conforme auditlogging (geen persoonsdata)
+      - Sub-agent triggers per event-type (fraude/email)
+      - Belgische leveringstermijnen informatief vermeld
+      - JSON output afgedwongen
+      - Escalatielogica bij ongeldige transitie
+    metrics:
+      verwerkingstijd_ms: null
+      escalatie_percentage: null
+      json_parse_errors: null
+    notes: "v2 klaar voor productietesting met Mollie webhooks."
     status: actief
+    system_prompt: "prompts/system/order_verwerking_v2.txt"
+    preprompt: "prompts/prepromt/order_verwerking_v2.txt"
+    next_improvements:
+      - Integratie stock-update via database transaction agent
+      - Retry-logica voor mislukte Mollie API calls

@@ -1,0 +1,71 @@
+version: "2"
+agent: retour_verwerking_agent
+created: "2026-07-01"
+description: "Verbeterde retour-verwerking pre-prompt met beslissingsboom, Belgisch recht en few-shot"
+
+preprompt: |
+  ## Retouraanvraag
+  Retour-ID (genereren): RET-{order_id}-{datum_yyyymmdd}
+  Aanvraagdatum: {aanvraagdatum}
+  
+  ## Ordergegevens
+  Order-ID: {order_id}
+  Ontvangstdatum product: {ontvangstdatum}
+  Dagen sinds ontvangst: {dagen_sinds_ontvangst}
+  Orderwaarde incl. BTW: €{orderwaarde}
+  Originele verzendkosten: €{originele_verzendkosten}
+  
+  ## Productgegevens
+  Product-ID: {product_id}
+  Product-naam: {product_naam}
+  Categorie: {product_categorie}
+  Is maatwerkproduct: {is_maatwerk}
+  Is hygiëneproduct (geopend): {is_hygiene_geopend}
+  Is digitale content: {is_digitaal}
+  
+  ## Retourgegevens
+  Reden: {retour_reden}
+  # Geldige waarden: defect / verkeerd_product / niet_verwacht / bestelfout_klant / te_laat
+  Klant-ID: {klant_id}  # gebruik klant_id in output, niet naam — GDPR
+  
+  ---
+  
+  ## Beslissingsboom (intern doorlopen)
+  
+  STAP 1 — Termijncheck
+  dagen_sinds_ontvangst > 30 EN retour_reden != "defect"?
+  → AFWIJZEN: termijn verstreken
+  
+  STAP 1b — Conformiteitsgebrek check
+  retour_reden == "defect" → wettelijke garantie 2 jaar, termijn geen belemmering
+  
+  STAP 2 — Categoriecheck
+  is_maatwerk == true → AFWIJZEN: maatwerkuitzondering
+  is_hygiene_geopend == true → AFWIJZEN: hygiëne-uitzondering
+  is_digitaal == true → AFWIJZEN: digitale content
+  
+  STAP 3 — Bereken terugbetalingsbedrag
+  defect / verkeerd_product: terugbetaling = orderwaarde + originele_verzendkosten
+                              retourverzending_gratis = true
+  niet_verwacht / bestelfout_klant: terugbetaling = orderwaarde - 5.95 (verzendkosten)
+                                     retourverzending_gratis = false
+  
+  STAP 4 — Genereer klantbericht (max 100 woorden, empathisch, genummerd)
+  
+  STAP 5 — Output als JSON (gebruik output-formaat uit systeem-prompt)
+  
+  ## Few-shot voorbeeld
+  
+  Scenario: product defect, 12 dagen na ontvangst
+  
+  geldig: true
+  terugbetalingsbedrag: orderwaarde + originele_verzendkosten (volledig)
+  klant_betaalt_retourverzending: false
+  klantbericht: "Wat vervelend dat je product defect was aangekomen. Volg deze stappen:
+    1. Scan de bijgevoegde retourlabel.
+    2. Verpak het product in de originele doos (indien mogelijk).
+    3. Lever in bij elk DHL-punt.
+    We verwerken je retour binnen 5 werkdagen. Terugbetaling volgt binnen 14 werkdagen."
+  wettelijke_basis: "EU-herroepingsrecht (14 dagen) + VorstersNV beleid (30 dagen)"
+
+evaluation_notes: "v2 — beslissingsboom, Belgisch recht, GDPR klant_id, few-shot, terugbetaalberekening"

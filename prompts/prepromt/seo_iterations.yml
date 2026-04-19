@@ -5,4 +5,25 @@ iterations:
   - version: "1.0"
     date: "2026-04-03"
     change: "Initiële versie"
+    status: vervangen
+    system_prompt: "prompts/system/seo.txt"
+    preprompt: "prompts/prepromt/seo_v1.txt"
+
+  - version: "2.0"
+    date: "2026-07-01"
+    author: "copilot-agent"
+    change: "Verbeterd — Next.js 14, Core Web Vitals, nl-BE, score-berekening"
+    improvements:
+      - Next.js 14 App Router Metadata API snippet
+      - Core Web Vitals targets (LCP/INP/CLS) met drempelwaarden
+      - nl-BE + nl-NL hreflang
+      - SEO-score berekeningsmethode (0-100 gewogen)
+      - Chain-of-thought stap-voor-stap
+      - Structured data per paginatype
+    metrics:
+      seo_score_gemiddeld: null
+      google_ranking_verbetering: null
+    notes: "v2 klaar voor gebruik. Koppel aan Lighthouse API voor automatische CWV meting."
     status: actief
+    system_prompt: "prompts/system/seo_v2.txt"
+    preprompt: "prompts/prepromt/seo_v2.txt"
