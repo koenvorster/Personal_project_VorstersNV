@@ -102,8 +102,13 @@ Gebruik `@agent-naam` in Copilot Chat om een gespecialiseerde agent in te schake
 | Agent | Aanroep | Doel |
 |-------|---------|------|
 | Developer | `@developer` | Python/FastAPI/Next.js/Java implementatie |
+| Frontend Specialist | `@frontend-specialist` | Next.js 14, App Router, Tailwind, TypeScript |
 | Clean Code Reviewer | `@clean-code-reviewer` | Code review: SOLID, clean code, refactoring |
 | Security & Permissions | `@security-permissions` | HMAC, auth, input validatie, OWASP |
+| DevOps Engineer | `@devops-engineer` | Docker, GitHub Actions CI/CD, Cloud Run |
+| Database Expert | `@database-expert` | SQLAlchemy, Alembic migraties, PostgreSQL query-tuning |
+| Mollie Expert | `@mollie-expert` | Betaalintegratie, webhooks, terugbetalingen |
+| Performance Optimizer | `@performance-optimizer` | Core Web Vitals, Redis-caching, query-optimalisatie |
 
 ### Domein Experts
 | Agent | Aanroep | Doel |
@@ -112,6 +117,23 @@ Gebruik `@agent-naam` in Copilot Chat om een gespecialiseerde agent in te schake
 | Product Content | `@product-content` | Productbeschrijvingen, USPs, content kwaliteit |
 | SEO Specialist | `@seo-specialist` | Meta tags, structured data, sitemap, robots.txt |
 | Order Expert | `@order-expert` | Order lifecycle, fraudedetectie, Mollie-flow |
+| Prompt Engineer | `@prompt-engineer` | AI prompt-iteratie, feedback-analyse, temperature-tuning |
+
+---
+
+## Copilot Prompt Skills
+
+Herbruikbare prompt-templates in `.github/prompts/`. Gebruik via `#file:.github/prompts/<naam>.prompt.md` in Copilot Chat of via het `@` agent-systeem.
+
+| Prompt File | Gebruik |
+|-------------|---------|
+| `nieuw-endpoint.prompt.md` | Genereer complete FastAPI endpoint + schema + test |
+| `nieuwe-agent.prompt.md` | Maak nieuwe runtime Ollama agent (YAML + prompts) |
+| `db-migratie.prompt.md` | SQLAlchemy model + Alembic migratie aanmaken |
+| `security-audit.prompt.md` | OWASP security audit op code of module |
+| `agent-debug.prompt.md` | Debug falende of underperformende Ollama agent |
+| `mollie-checkout.prompt.md` | Volledige Mollie checkout flow implementeren |
+| `productpagina.prompt.md` | Next.js productpagina met SEO + structured data |
 
 ### Testing & Kwaliteit
 | Agent | Aanroep | Doel |
