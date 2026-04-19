@@ -19,3 +19,6 @@ backend/target/
 *.jar
 !backend/mvnw
 
+
+# VS Code workspace bestanden
+*.code-workspace
