@@ -1,3 +1,11 @@
+---
+name: nextjs-frontend
+description: >
+  Use when: building Next.js 14 App Router components, Server/Client Components, TypeScript strict,
+  Tailwind CSS, adding data-testid attributes, API routes, or debugging hydration errors.
+  Triggers: "next.js", "app router", "react component", "tailwind", "data-testid", "frontend"
+---
+
 # SKILL: Next.js Frontend
 
 Reference knowledge for the VorstersNV Next.js 14 App Router frontend.

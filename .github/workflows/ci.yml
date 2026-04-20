@@ -36,10 +36,18 @@ jobs:
       - name: Tests uitvoeren met coverage
         run: |
           pytest tests/ -v --tb=short \
+            --cov=api \
             --cov=ollama \
             --cov=webhooks \
             --cov-report=xml \
             --cov-report=term-missing
+        env:
+          DB_URL: "sqlite+aiosqlite:///:memory:"
+          KEYCLOAK_SERVER_URL: "http://localhost:8080"
+          KEYCLOAK_REALM: "test"
+          KEYCLOAK_CLIENT_ID: "test"
+          MOLLIE_API_KEY: "test_mock"
+          REDIS_URL: "redis://localhost:6379"
 
       - name: Testdekking uploaden naar Codecov
         uses: codecov/codecov-action@v4

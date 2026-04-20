@@ -1,3 +1,11 @@
+---
+name: fastapi-ddd
+description: >
+  Use when: implementing FastAPI endpoints, SQLAlchemy async patterns, DDD aggregates/services/
+  repositories, Pydantic v2 schemas, Alembic migrations, pytest async API tests.
+  Triggers: "fastapi", "sqlalchemy", "async endpoint", "alembic", "pydantic", "ddd", "repository"
+---
+
 # SKILL: FastAPI + DDD Patterns
 
 Reference knowledge for implementing FastAPI endpoints using Domain-Driven Design patterns in the VorstersNV platform.

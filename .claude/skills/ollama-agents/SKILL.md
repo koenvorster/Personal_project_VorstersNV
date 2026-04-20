@@ -1,3 +1,12 @@
+---
+name: ollama-agents
+description: >
+  Use when: creating or improving Ollama YAML agent definitions, writing system prompts,
+  choosing between llama3/mistral/codellama, designing input/output schemas,
+  or building agent orchestration with agent_runner.py.
+  Triggers: "ollama", "agent yaml", "system prompt", "llama", "mistral", "agent runner"
+---
+
 # SKILL: Ollama Agent Design
 
 Reference knowledge for creating and improving Ollama-based YAML agent definitions in the VorstersNV agent system.
