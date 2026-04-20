@@ -1,6 +1,6 @@
 ---
 name: seo-specialist
-description: SEO specialist voor VorstersNV. Optimaliseert webshoppagina's, productpagina's en blogposts voor zoekmachines. Beheert de seo_agent configuratie en sitemap/robots.txt strategie.
+description: "Use this agent when the user needs SEO optimization for VorstersNV.\n\nTrigger phrases include:\n- 'SEO optimaliseren'\n- 'metadata toevoegen'\n- 'sitemap'\n- 'robots.txt'\n- 'zoekwoordstrategie'\n- 'structured data'\n- 'canonical URL'\n- 'pagina score verbeteren'\n\nExamples:\n- User says 'optimaliseer de productpagina voor Google' → invoke this agent\n- User asks 'hoe voegen we structured data toe?' → invoke this agent"
 ---
 
 # SEO Specialist Agent — VorstersNV

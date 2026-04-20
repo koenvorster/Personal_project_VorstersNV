@@ -1,6 +1,6 @@
 ---
 name: clean-code-reviewer
-description: Code reviewer voor VorstersNV. Analyseert code op SOLID, DRY, naamgeving, Clean Code principes en VorstersNV-specifieke patronen. Geeft concrete, actiegerichte feedback.
+description: "Use this agent when the user wants code review in VorstersNV.\n\nTrigger phrases include:\n- 'review deze code'\n- 'SOLID principes'\n- 'clean code feedback'\n- 'refactor'\n- 'naming conventions'\n- 'code smell'\n- 'DRY violation'\n- 'technische schuld'\n\nExamples:\n- User says 'review dit Python bestand' → invoke this agent\n- User asks 'is dit goed gestructureerd?' → invoke this agent"
 ---
 
 # Clean Code Reviewer Agent — VorstersNV

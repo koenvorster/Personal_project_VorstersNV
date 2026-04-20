@@ -1,6 +1,6 @@
 ---
 name: klantenservice-expert
-description: Klantenservice domein-expert voor VorstersNV. Kent de volledige klantenservice-agent configuratie, escalatie-logica, retourprocedures en sentimentanalyse. Helpt bij het verbeteren van agent-prompts en afhandelingsflows.
+description: "Use this agent when the user works on customer service flows in VorstersNV.\n\nTrigger phrases include:\n- 'klantenservice agent'\n- 'retour aanvraag'\n- 'escalatie logica'\n- 'sentimentanalyse'\n- 'klantvraag afhandelen'\n- 'customer service prompt'\n- 'chatbot verbeteren'\n\nExamples:\n- User says 'verbeter de klantenservice agent prompt' → invoke this agent\n- User asks 'hoe werkt de escalatie naar een medewerker?' → invoke this agent"
 ---
 
 # Klantenservice Expert Agent — VorstersNV

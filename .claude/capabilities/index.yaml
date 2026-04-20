@@ -1,0 +1,68 @@
+# Capability Registry — VorstersNV AI Agent System
+# Centrale index van alle capabilities in dit systeem.
+
+version: "1.0"
+updated: "2026-04-20"
+owner: "Koen Vorsters"
+
+capabilities:
+  - id: feature-development
+    file: feature-development.yaml
+    audience: [developer]
+    category: technisch
+    platforms: [claude, copilot]
+
+  - id: code-review
+    file: code-review.yaml
+    audience: [developer]
+    category: kwaliteit
+    platforms: [claude, copilot]
+
+  - id: test-generation
+    file: test-generation.yaml
+    audience: [developer, tester]
+    category: kwaliteit
+    platforms: [claude, copilot]
+
+  - id: gdpr-compliance
+    file: gdpr-compliance.yaml
+    audience: [developer, owner]
+    category: compliance
+    platforms: [claude]
+
+  - id: database-exploration
+    file: database-exploration.yaml
+    audience: [developer]
+    category: analyse
+    platforms: [claude]
+
+  - id: ollama-agent-design
+    file: ollama-agent-design.yaml
+    audience: [developer]
+    category: ai
+    platforms: [claude]
+
+  - id: ci-debugging
+    file: ci-debugging.yaml
+    audience: [developer]
+    category: operationeel
+    platforms: [claude, copilot]
+
+# Platform beschikbaarheid
+platforms:
+  claude:
+    type: specialist
+    strength: complexe analyse, codebase, documentatie, chaining
+    agent_dir: .claude/agents/
+    skill_dir: .claude/skills/
+
+  copilot:
+    type: repo
+    strength: repo context, PR analyse, code linking
+    requires: GitHub Copilot Chat
+
+  ollama:
+    type: local-ai
+    strength: lokale inferentie, business-specifieke agents
+    agent_dir: agents/
+    runner: agent_runner.py

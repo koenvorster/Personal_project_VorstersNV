@@ -1,0 +1,68 @@
+# Capability: test-generation
+# pytest + Cypress tests genereren voor VorstersNV
+
+id: test-generation
+name: "Test Generatie"
+version: "1.0"
+
+audience:
+  - developer
+  - tester
+
+category: kwaliteit
+risk: medium  # Schrijft testbestanden
+
+description: >
+  Genereert complete testpakketten voor VorstersNV: pytest API-tests met httpx.AsyncClient,
+  Cypress E2E tests met data-testid selectors, en Playwright MCP automation.
+  Volgt de VorstersNV testpyramide: unit → integratie → E2E.
+
+inputs:
+  - naam: "Wat te testen"
+    voorbeeld: "Het nieuwe reviews endpoint, de checkout flow"
+    verplicht: true
+  - naam: "Test niveau"
+    opties: [unit, integratie, e2e, volledig]
+    verplicht: false
+    default: integratie
+  - naam: "Bounded context"
+    opties: [Catalog, Orders, Inventory, Customer, Payments]
+    verplicht: false
+
+outputs:
+  - "pytest test bestand"
+  - "conftest fixtures (indien nieuw)"
+  - "Cypress E2E test (indien E2E gevraagd)"
+  - "Test data sets"
+  - "Coverage rapport"
+
+testpyramide:
+  unit:
+    tooling: "pytest + unittest.mock"
+    locatie: "tests/unit/"
+    doel: "Domain logic, calculaties, agent runner"
+  integratie:
+    tooling: "pytest + httpx.AsyncClient + TestClient"
+    locatie: "tests/integration/"
+    doel: "FastAPI routers, DB queries, webhook handlers"
+  e2e:
+    tooling: "Cypress"
+    locatie: "frontend/cypress/"
+    doel: "Volledige user journeys via browser"
+  automation:
+    tooling: "Playwright MCP"
+    doel: "Agentic browser taken, web scraping"
+
+execution:
+  primary: claude
+  agent: test-orchestrator
+  model: sonnet
+  permissionMode: auto
+
+sources:
+  - type: skill
+    ref: .claude/skills/testing-patterns/SKILL.md
+
+related_capabilities:
+  - feature-development
+  - code-review

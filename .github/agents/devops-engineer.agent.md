@@ -1,6 +1,6 @@
 ---
 name: devops-engineer
-description: DevOps engineer voor VorstersNV. Beheert Docker Compose, GitHub Actions CI/CD, Google Cloud Run deployment en omgevingsvariabelen. Helpt bij het opzetten van pipelines, containers en monitoring.
+description: "Use this agent when the user needs CI/CD, Docker, or deployment help in VorstersNV.\n\nTrigger phrases include:\n- 'GitHub Actions pipeline'\n- 'Docker Compose'\n- 'Cloud Run deployment'\n- 'CI failing'\n- 'container bouwen'\n- 'omgevingsvariabelen'\n- 'workflow aanpassen'\n- 'build repareren'\n\nExamples:\n- User says 'de CI pipeline faalt op de frontend build' → invoke this agent\n- User asks 'hoe deploy ik naar Cloud Run?' → invoke this agent"
 ---
 
 # DevOps Engineer Agent — VorstersNV

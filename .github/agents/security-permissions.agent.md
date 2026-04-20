@@ -1,6 +1,6 @@
 ---
 name: security-permissions
-description: Security & permissions specialist voor VorstersNV. Valideert RBAC-model, HMAC-verificatie, JWT-implementatie, GDPR-compliance en Mollie PSD2-vereisten. Detecteert IDOR, injection en auth-bypass risico's.
+description: "Use this agent when the user needs security or GDPR review in VorstersNV.\n\nTrigger phrases include:\n- 'security review'\n- 'RBAC valideren'\n- 'GDPR compliance'\n- 'JWT validatie'\n- 'IDOR risico'\n- 'SQL injection'\n- 'Keycloak permissions'\n- 'HMAC verificatie'\n- 'recht op vergetelheid'\n\nExamples:\n- User says 'controleer of deze endpoint beveiligd is' → invoke this agent\n- User asks 'voldoet onze auth aan GDPR?' → invoke this agent"
 ---
 
 # Security & Permissions Agent — VorstersNV

@@ -1,0 +1,63 @@
+# Capability: code-review
+# Code review op DDD-correctheid, security, en kwaliteit
+
+id: code-review
+name: "Code Review"
+version: "1.0"
+
+audience:
+  - developer
+
+category: kwaliteit
+risk: low  # Read-only
+
+description: >
+  Reviewt code op DDD-correctheid, FastAPI/Next.js patronen, security (HMAC webhooks,
+  JWT auth), Mollie PSD2 compliance, en aanwezigheid van data-testid attributen.
+  Geeft must-fix vs nice-to-have feedback.
+
+inputs:
+  - naam: "Branch of PR URL"
+    voorbeeld: "feature/review-systeem"
+    verplicht: true
+  - naam: "Focus"
+    opties: [volledig, DDD-patronen, security, GDPR, tests, performance]
+    verplicht: false
+    default: volledig
+
+outputs:
+  - "Review samenvatting"
+  - "Must-fix bevindingen"
+  - "Nice-to-have suggesties"
+  - "Security en GDPR bevindingen"
+
+checklist:
+  ddd:
+    - "Business logic niet in routers"
+    - "Aggregates communiceren via ID"
+    - "Domain layer geen infrastructure imports"
+    - "Guard clauses in domain methods"
+  fastapi:
+    - "Alle endpoints async"
+    - "Pydantic v2 schemas gebruikt"
+    - "Alembic migration aanwezig bij schema-wijziging"
+    - "HMAC verificatie in webhooks"
+  nextjs:
+    - "data-testid op alle interactieve elementen"
+    - "Server Components waar mogelijk"
+    - "Geen inline styles"
+    - "Geen hardcoded API URLs"
+  security:
+    - "Geen secrets in code"
+    - "Input validatie aanwezig"
+    - "SQL injection risico via raw queries"
+
+execution:
+  primary: claude
+  agent: mr-reviewer
+  model: sonnet
+  permissionMode: plan
+
+related_capabilities:
+  - gdpr-compliance
+  - test-generation

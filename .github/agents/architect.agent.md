@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Top-level Solution Architect voor VorstersNV. Ontwerpt DDD-gebaseerde architectuur, definieert bounded contexts en orkestreert alle andere agents bij het bouwen van nieuwe features.
+description: "Use this agent when the user needs high-level architecture design for VorstersNV.\n\nTrigger phrases include:\n- 'architectuur ontwerpen'\n- 'hoe structureren we dit'\n- 'bounded context aanmaken'\n- 'nieuwe feature plannen'\n- 'DDD strategie'\n- 'module structuur'\n- 'welke agents nodig'\n- 'systeem ontwerp'\n\nExamples:\n- User says 'hoe voegen we een loyaltyprogramma toe?' → invoke this agent\n- User asks 'ontwerp de architectuur voor notificaties' → invoke this agent"
 ---
 
 # Architect Agent — VorstersNV

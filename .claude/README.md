@@ -65,6 +65,9 @@ Complete overview van alle Claude agents, skills en scripts voor dit project.
 | `mr-reviewer` | sonnet | Code review (FastAPI, Next.js, security) | plan |
 | `ci-debugger` | haiku | GitHub Actions falen analyseren | plan |
 | `ai-architect` | opus | Meta-agent: AI ecosystem beheer | plan |
+| `feature-worker` | sonnet | Parallelle feature-ontwikkeling in git worktrees | auto (isolation: worktree) |
+| `gdpr-advisor` | sonnet | GDPR compliance: anonimisatie, bewaartermijnen, Art.17 | plan |
+| `db-explorer` | haiku | Database-analyse: schema, queries, 3-mode safety | plan |
 
 ---
 
@@ -79,6 +82,8 @@ Skills worden automatisch getriggerd op basis van context-keywords.
 | `ollama-agents` | `skills/ollama-agents/` | "ollama", "agent yaml", "llama", "mistral", "system prompt" |
 | `testing-patterns` | `skills/testing-patterns/` | "pytest", "conftest", "fixture", "test coverage" |
 | `alembic-migrations` | `skills/alembic-migrations/` | "migration", "alembic", "schema", "kolom toevoegen" |
+| `gdpr-privacy` | `skills/gdpr-privacy/` | "gdpr", "anonimisatie", "bewaartermijn", "recht op vergetelheid", "verwerkingsregister" |
+| `database-explorer` | `skills/database-explorer/` | "schema analyseren", "query genereren", "db structuur", "tabel overzicht" |
 
 ---
 
@@ -109,14 +114,59 @@ Skills worden automatisch getriggerd op basis van context-keywords.
 
 ---
 
+## Capabilities (`.claude/capabilities/`)
+
+Geregistreerde capabilities die Claude kan uitvoeren via `/capability run <naam>`:
+
+| Capability | Beschrijving |
+|------------|-------------|
+| `feature-development` | Volledige feature bouwen: architectuur → code → tests → review |
+| `code-review` | Code review met SOLID, security, performance checks |
+| `test-generation` | pytest + Cypress E2E testsuites genereren |
+| `gdpr-compliance` | GDPR audit: bewaartermijnen, anonimisatie, verwerkingsregister |
+| `database-exploration` | DB schema analyseren en queries genereren |
+| `ollama-agent-design` | Nieuwe Ollama runtime agent ontwerpen en testen |
+| `ci-debugging` | GitHub Actions CI-fouten analyseren en fixen |
+
+---
+
+## Quick start — Nieuwe agents
+
+### GDPR compliance check
+```
+"Controleer of onze klantdata GDPR-compliant bewaard wordt"
+"Wat is de bewaartermijn voor besteldata?"
+"Hoe implementeren we het recht op vergetelheid?"
+```
+→ `gdpr-advisor` agent + `gdpr-privacy` skill
+
+### Database analyse
+```
+"Analyseer het schema van de orders tabel"
+"Schrijf een query voor alle openstaande betalingen"
+"Toon de database structuur"
+```
+→ `db-explorer` agent + `database-explorer` skill
+
+### Parallelle feature-ontwikkeling
+```
+"Werk aan feature X en Y tegelijkertijd"
+"Geef me een aparte worktree voor deze bugfix"
+```
+→ `feature-worker` agent (isolation: worktree)
+
+---
+
 ## Scripts (`.claude/scripts/`)
 
 | Script | Gebruik |
 |--------|---------|
 | `check-env.mjs` | Valideert `.env` vs `.env.example` — meldt ontbrekende variabelen |
+| `validate-agents.mjs` | Valideert alle Claude agents op correcte YAML frontmatter |
 
 ```bash
 node .claude/scripts/check-env.mjs
+node .claude/scripts/validate-agents.mjs
 ```
 
 ---

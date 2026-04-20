@@ -1,6 +1,6 @@
 ---
 name: product-content
-description: Product content specialist voor VorstersNV. Beheert de product_beschrijving_agent configuratie en verbetert productbeschrijvingen, USP-teksten en FAQ-content. Kent de promptiteratie-aanpak voor continue verbetering.
+description: "Use this agent when the user needs product content or AI product description improvements in VorstersNV.\n\nTrigger phrases include:\n- 'productbeschrijving verbeteren'\n- 'USP tekst'\n- 'product content'\n- 'FAQ schrijven'\n- 'product_beschrijving_agent'\n- 'AI content genereren'\n- 'productpagina tekst'\n\nExamples:\n- User says 'verbeter de productbeschrijvingen voor laptops' → invoke this agent\n- User asks 'hoe configureer ik de product beschrijving agent beter?' → invoke this agent"
 ---
 
 # Product Content Agent — VorstersNV

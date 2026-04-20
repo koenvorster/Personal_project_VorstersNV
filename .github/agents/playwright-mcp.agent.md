@@ -1,6 +1,6 @@
 ---
 name: playwright-mcp
-description: Playwright MCP automation agent voor VorstersNV. Schrijft agentic browser workflows, webinteracties aangestuurd door LLMs, en autonome browsertaken via het MCP-protocol. NIET voor E2E testsuites (dat is @automation-cypress).
+description: "Use this agent when the user needs agentic browser automation with Playwright MCP in VorstersNV.\n\nTrigger phrases include:\n- 'Playwright MCP'\n- 'browser automation'\n- 'agentic browsing'\n- 'LLM browser workflow'\n- 'autonome browsertaak'\n- 'web scraping'\n\nNote: For E2E test suites, use @automation-cypress instead.\n\nExamples:\n- User says 'automatiseer dit browserproces met Playwright MCP' → invoke this agent\n- User asks 'hoe gebruik ik de MCP browser tool?' → invoke this agent"
 ---
 
 # Playwright MCP Agent — VorstersNV

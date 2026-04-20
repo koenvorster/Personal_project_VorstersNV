@@ -1,0 +1,55 @@
+# Capability: database-exploration
+# PostgreSQL database bevragen in gewone taal
+
+id: database-exploration
+name: "Database Verkenning"
+version: "1.0"
+
+audience:
+  - developer
+
+category: analyse
+risk: medium  # Kan queries uitvoeren op live DB
+
+description: >
+  Bevraaagt de VorstersNV PostgreSQL database in gewone taal. Genereert SQL queries,
+  analyseert Alembic migration history, en helpt bij SQLAlchemy async debugging.
+  3 modi: schema-reader (altijd), SQL-generator (veilig), directe query (na bevestiging).
+
+inputs:
+  - naam: "Vraag in gewone taal"
+    voorbeeld: "Toon mij alle openstaande bestellingen ouder dan 24 uur"
+    verplicht: true
+  - naam: "Omgeving"
+    opties: [lokaal, staging, productie]
+    verplicht: false
+    default: lokaal
+  - naam: "Modus"
+    opties: [schema-only, sql-genereren, directe-query]
+    verplicht: false
+    default: sql-genereren
+
+outputs:
+  - "SQL query"
+  - "SQLAlchemy equivalent"
+  - "Resultaat (indien directe modus)"
+  - "Schema uitleg"
+
+veiligheidsregels:
+  - "Altijd LIMIT 50 op SELECT queries"
+  - "Privacy-filter op email, naam, adres"
+  - "Nooit DELETE/UPDATE zonder dubbele bevestiging"
+  - "Nooit credentials tonen in output"
+
+execution:
+  primary: claude
+  agent: db-explorer
+  model: sonnet
+  permissionMode: auto
+
+sources:
+  - type: skill
+    ref: .claude/skills/database-explorer/SKILL.md
+
+related_capabilities:
+  - gdpr-compliance

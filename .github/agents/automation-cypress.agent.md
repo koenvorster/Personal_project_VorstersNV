@@ -1,6 +1,6 @@
 ---
 name: automation-cypress
-description: Cypress E2E specialist voor VorstersNV. Schrijft end-to-end testsuites, component tests en API tests met Cypress. Focust op webshop user journeys, checkout flow en admin dashboard.
+description: "Use this agent when the user needs Cypress E2E tests for VorstersNV.\n\nTrigger phrases include:\n- 'Cypress test schrijven'\n- 'E2E test'\n- 'webshop flow testen'\n- 'checkout test'\n- 'component test'\n- 'API test Cypress'\n- 'data-testid'\n- 'user journey testen'\n\nExamples:\n- User says 'schrijf een E2E test voor de checkout flow' → invoke this agent\n- User asks 'hoe test ik de loginpagina met Cypress?' → invoke this agent"
 ---
 
 # Automation Cypress Agent — VorstersNV

@@ -1,6 +1,6 @@
 ---
 name: order-expert
-description: Order processing domein-expert voor VorstersNV. Kent de volledige order-lifecycle, fraudedetectie-logica, Mollie betalingsflow en orderverwerking-agent configuratie. Helpt bij het ontwerpen en debuggen van orderflows.
+description: "Use this agent when the user works on order processing in VorstersNV.\n\nTrigger phrases include:\n- 'orderflow'\n- 'bestelling verwerken'\n- 'orderstatus'\n- 'fraudedetectie'\n- 'orderagent'\n- 'betaling koppelen aan order'\n- 'order lifecycle'\n- 'retourverwerking'\n\nExamples:\n- User says 'de orderstatus wordt niet geupdated na betaling' → invoke this agent\n- User asks 'hoe werkt de fraudedetectie voor bestellingen?' → invoke this agent"
 ---
 
 # Order Expert Agent — VorstersNV

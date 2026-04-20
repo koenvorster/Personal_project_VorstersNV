@@ -1,6 +1,6 @@
 ---
 name: test-orchestrator
-description: Senior QA/Test Orchestrator voor VorstersNV. Vertaalt specs naar complete teststrategieën met risicoanalyse, BDD-testcases, Cypress E2E-skeletons en Playwright MCP-taken. Orkestreert alle test-subagents.
+description: "Use this agent when the user needs a complete test strategy for VorstersNV.\n\nTrigger phrases include:\n- 'teststrategie opstellen'\n- 'testplan schrijven'\n- 'BDD testcases'\n- 'welke tests nodig'\n- 'QA aanpak'\n- 'testdekking verbeteren'\n- 'risico-gebaseerd testen'\n\nExamples:\n- User says 'maak een teststrategie voor de checkout flow' → invoke this agent\n- User asks 'welke tests moeten we schrijven voor deze feature?' → invoke this agent"
 ---
 
 # Test Orchestrator Agent — VorstersNV

@@ -1,0 +1,50 @@
+# Capability: ci-debugging
+# GitHub Actions pipeline fouten analyseren en oplossen
+
+id: ci-debugging
+name: "CI/CD Debugging"
+version: "1.0"
+
+audience:
+  - developer
+
+category: operationeel
+risk: low  # Read-only analyse
+
+description: >
+  Analyseert falende GitHub Actions workflows voor VorstersNV: pytest failures,
+  TypeScript build errors, ruff linting, mypy type errors, en Docker build issues.
+  Vergelijkt CI omgeving met lokale omgeving om oorzaak te vinden.
+
+inputs:
+  - naam: "Falende workflow of foutmelding"
+    voorbeeld: "python-ci job faalt, mypy type error in api/routers/orders.py"
+    verplicht: true
+  - naam: "Workflow naam"
+    opties: [python-ci, frontend-ci, yaml-validate, docker-build]
+    verplicht: false
+
+outputs:
+  - "Root cause analyse"
+  - "Concrete fix"
+  - "Preventieve maatregel"
+
+ci_jobs:
+  python-ci:
+    stappen: ["pip install", "ruff check", "mypy", "pytest"]
+    veelvoorkomend: ["import errors", "type annotation fouten", "fixture problemen"]
+  frontend-ci:
+    stappen: ["npm ci", "tsc --noEmit", "eslint", "next build"]
+    veelvoorkomend: ["TypeScript strict errors", "missing types", "build optimization"]
+  yaml-validate:
+    stappen: ["yamllint agents/"]
+    veelvoorkomend: ["indentation fouten", "ongeldige YAML syntax in agent bestanden"]
+
+execution:
+  primary: claude
+  agent: ci-debugger
+  model: haiku
+  permissionMode: plan
+
+related_capabilities:
+  - code-review

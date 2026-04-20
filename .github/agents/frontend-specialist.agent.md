@@ -1,6 +1,6 @@
 ---
 name: frontend-specialist
-description: Next.js 14 frontend specialist voor VorstersNV. Expert in App Router, Server Components, Tailwind CSS, TypeScript strict mode en webshop UX patterns. Helpt bij het bouwen van productpagina's, checkout en admin.
+description: "Use this agent when the user is working on Next.js frontend in VorstersNV.\n\nTrigger phrases include:\n- 'maak een Next.js component'\n- 'productpagina bouwen'\n- 'checkout flow'\n- 'Tailwind styling'\n- 'data-testid toevoegen'\n- 'Server Component vs Client Component'\n- 'TypeScript error frontend'\n- 'App Router route aanmaken'\n\nExamples:\n- User says 'maak een productdetail pagina' → invoke this agent\n- User asks 'hoe voeg ik een filter toe aan de productgrid?' → invoke this agent"
 ---
 
 # Frontend Specialist Agent — VorstersNV

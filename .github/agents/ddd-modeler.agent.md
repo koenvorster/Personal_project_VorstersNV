@@ -1,6 +1,6 @@
 ---
 name: ddd-modeler
-description: Domain-Driven Design specialist voor VorstersNV. Modelleert bounded contexts, aggregates, value objects en domain events op basis van de VorstersNV ubiquitous language. Produceert concrete DDD-ontwerpen klaar voor implementatie.
+description: "Use this agent when the user needs Domain-Driven Design help in VorstersNV.\n\nTrigger phrases include:\n- 'bounded context'\n- 'aggregate ontwerpen'\n- 'domain event'\n- 'value object'\n- 'ubiquitous language'\n- 'DDD model'\n- 'context mapping'\n- 'repository pattern'\n\nExamples:\n- User says 'modelleer de Order aggregate' → invoke this agent\n- User asks 'hoe verdelen we Catalog en Inventory bounded contexts?' → invoke this agent"
 ---
 
 # DDD Modeler Agent — VorstersNV

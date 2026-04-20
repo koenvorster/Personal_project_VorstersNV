@@ -1,6 +1,6 @@
 ---
 name: performance-optimizer
-description: Performance optimizer voor VorstersNV. Analyseert en verbetert laadtijden, databasequery's, caching-strategie en API-responstijden. Kent Core Web Vitals, Redis-caching en PostgreSQL query-optimalisatie.
+description: "Use this agent when the user wants performance improvements in VorstersNV.\n\nTrigger phrases include:\n- 'traag laden'\n- 'Core Web Vitals'\n- 'database query optimaliseren'\n- 'Redis caching'\n- 'N+1 query'\n- 'API te traag'\n- 'profiling'\n- 'lazy loading'\n\nExamples:\n- User says 'de productpagina laadt te traag' → invoke this agent\n- User asks 'hoe cache ik dit Redis-side?' → invoke this agent"
 ---
 
 # Performance Optimizer Agent — VorstersNV

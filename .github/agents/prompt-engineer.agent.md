@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: AI prompt engineering specialist voor VorstersNV. Optimaliseert system prompts en preprompts voor de runtime Ollama agents. Analyseert feedback-scores, schrijft betere prompts en beheert de prompt-iteratiecyclus.
+description: "Use this agent when the user needs to improve Ollama agent prompts in VorstersNV.\n\nTrigger phrases include:\n- 'agent prompt verbeteren'\n- 'system prompt schrijven'\n- 'Ollama agent optimaliseren'\n- 'prompt iteratie'\n- 'agent gedrag aanpassen'\n- 'preprompt verfijnen'\n- 'agent kwaliteit verbeteren'\n\nExamples:\n- User says 'de klantenservice agent geeft slechte antwoorden' → invoke this agent\n- User asks 'hoe verbeter ik de product_beschrijving_agent?' → invoke this agent"
 ---
 
 # Prompt Engineer Agent — VorstersNV

@@ -1,0 +1,57 @@
+# Capability: ollama-agent-design
+# Ollama YAML agents ontwerpen en verbeteren
+
+id: ollama-agent-design
+name: "Ollama Agent Ontwerp"
+version: "1.0"
+
+audience:
+  - developer
+
+category: ai
+risk: medium  # Schrijft agent YAML bestanden
+
+description: >
+  Ontwerpt en verbetert de Ollama YAML agents in VorstersNV. Schrijft system prompts,
+  configureert input/output schemas, kiest het juiste model (llama3/mistral/codellama),
+  en test agents via agent_runner.py.
+
+inputs:
+  - naam: "Agent naam of use case"
+    voorbeeld: "retour_verwerking, nieuw agent voor reviews"
+    verplicht: true
+  - naam: "Agent type"
+    opties: [specialist, orchestrator, validator]
+    verplicht: false
+    default: specialist
+  - naam: "Gewenste capabilities"
+    voorbeeld: "order_analyseren, klant_informeren, fraude_detecteren"
+    verplicht: false
+
+outputs:
+  - "Agent YAML bestand (agents/)"
+  - "System prompt (prompts/system/)"
+  - "Preprompt YAML (prompts/preprompt/)"
+  - "Testcase voor agent_runner.py"
+
+agent_design_principles:
+  - "Single responsibility — één agent, één taak"
+  - "Temperature 0.2-0.4 voor deterministische output"
+  - "JSON Schema voor input/output validatie"
+  - "Evaluatie-metrics altijd definiëren"
+  - "llama3 voor Nederlandstalige domeinkennis"
+  - "codellama voor code-gerelateerde taken"
+  - "mistral voor snelle, lichte taken"
+
+execution:
+  primary: claude
+  agent: ollama-agent-designer
+  model: sonnet
+  permissionMode: auto
+
+sources:
+  - type: skill
+    ref: .claude/skills/ollama-agents/SKILL.md
+
+related_capabilities:
+  - feature-development

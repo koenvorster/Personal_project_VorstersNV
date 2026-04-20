@@ -1,6 +1,6 @@
 ---
 name: developer
-description: Implementatiepartner voor VorstersNV. Vertaalt architectuurontwerpen naar werkende code in FastAPI, Next.js, SQLAlchemy en het Ollama agent-framework. Volgt DDD-lagen strikt.
+description: "Use this agent when the user needs to implement features in VorstersNV.\n\nTrigger phrases include:\n- 'implementeer dit'\n- 'schrijf de code'\n- 'maak een FastAPI endpoint'\n- 'SQLAlchemy model aanmaken'\n- 'Next.js pagina bouwen'\n- 'feature uitwerken'\n- 'code genereren'\n- 'DDD-laag implementeren'\n\nExamples:\n- User says 'implementeer de order status update endpoint' → invoke this agent\n- User asks 'maak een nieuw domain model aan voor Inventory' → invoke this agent"
 ---
 
 # Developer Agent — VorstersNV

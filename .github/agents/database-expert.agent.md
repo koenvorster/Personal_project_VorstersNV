@@ -1,6 +1,6 @@
 ---
 name: database-expert
-description: Database expert voor VorstersNV. Specialiseert in SQLAlchemy async, Alembic migraties, PostgreSQL optimalisatie en query-tuning. Kent het volledige VorstersNV datamodel en bounded contexts.
+description: "Use this agent when the user needs database help in VorstersNV.\n\nTrigger phrases include:\n- 'Alembic migration aanmaken'\n- 'SQLAlchemy query schrijven'\n- 'lazy loading fout'\n- 'database schema'\n- 'PostgreSQL query'\n- 'N+1 probleem'\n- 'selectinload vs joinedload'\n- 'migration autogenerate'\n\nExamples:\n- User says 'schrijf een Alembic migration voor een nieuw veld' → invoke this agent\n- User asks 'hoe los ik deze DetachedInstanceError op?' → invoke this agent"
 ---
 
 # Database Expert Agent — VorstersNV

@@ -1,6 +1,6 @@
 ---
 name: test-data-designer
-description: Testdata-specialist voor VorstersNV. Ontwerpt minimale maar krachtige testdatasets die boundaries, combinatorics en edge cases van VorstersNV-domeinregels afdekken.
+description: "Use this agent when the user needs test data sets for VorstersNV.\n\nTrigger phrases include:\n- 'testdata ontwerpen'\n- 'fixtures aanmaken'\n- 'seed data'\n- 'edge case data'\n- 'boundary testing data'\n- 'test dataset'\n- 'scenario data'\n\nExamples:\n- User says 'maak testdata voor de orderverwerking' → invoke this agent\n- User asks 'welke test fixtures hebben we nodig voor de checkout?' → invoke this agent"
 ---
 
 # Test Data Designer Agent — VorstersNV

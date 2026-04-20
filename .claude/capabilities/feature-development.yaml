@@ -1,0 +1,47 @@
+# Capability: feature-development
+# Complete feature bouwen van DB tot frontend
+
+id: feature-development
+name: "End-to-End Feature Implementatie"
+version: "1.0"
+
+audience:
+  - developer
+
+category: technisch
+risk: high  # Schrijft naar codebase
+
+description: >
+  Implementeert complete features van database tot frontend voor VorstersNV.
+  Volgt DDD-lagen strict: domain → application → infrastructure → router → frontend.
+  Inclusief Alembic migratie, FastAPI endpoint, Next.js component, en pytest tests.
+
+inputs:
+  - naam: "Feature beschrijving"
+    voorbeeld: "Voeg review systeem toe voor producten"
+    verplicht: true
+  - naam: "Bounded context"
+    opties: [Catalog, Orders, Inventory, Customer, Payments, Notifications]
+    verplicht: false
+  - naam: "API endpoint pad"
+    voorbeeld: "/api/products/{id}/reviews"
+    verplicht: false
+
+outputs:
+  - "Alembic migration"
+  - "SQLAlchemy model + repository"
+  - "Pydantic v2 schemas"
+  - "FastAPI router endpoint"
+  - "Next.js component"
+  - "pytest integratietests"
+
+execution:
+  primary: claude
+  agent: feature-worker
+  model: sonnet
+  permissionMode: auto
+  isolation: worktree
+
+related_capabilities:
+  - code-review
+  - test-generation

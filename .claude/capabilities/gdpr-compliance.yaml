@@ -1,0 +1,48 @@
+# Capability: gdpr-compliance
+# GDPR/AVG compliance scan voor VorstersNV
+
+id: gdpr-compliance
+name: "GDPR Compliance Scan"
+version: "1.0"
+
+audience:
+  - developer
+  - owner  # Koen Vorsters als verwerkingsverantwoordelijke
+
+category: compliance
+risk: low  # Read-only analyse
+
+description: >
+  Scant VorstersNV codebase op GDPR/AVG risico's: PII in logs, ontbrekend recht op
+  vergetelheid, cookie consent gaps, Mollie PSD2 compliance, en bewaartermijnen.
+  Produceert risico-overzicht en verwerkingsregister updates.
+
+inputs:
+  - naam: "Scope"
+    opties: [volledig, klantdata, betalingen, agent-logs, cookies, verwerkingsregister]
+    verplicht: false
+    default: volledig
+  - naam: "Specifiek bestand of module"
+    voorbeeld: "api/routers/betalingen.py"
+    verplicht: false
+
+outputs:
+  - "Risico-overzicht (hoog/midden/laag)"
+  - "Concrete code-locaties"
+  - "Aanbevolen fixes"
+  - "Verwerkingsregister update"
+  - "Bewaartermijnen checklist"
+
+execution:
+  primary: claude
+  agent: gdpr-advisor
+  model: sonnet
+  permissionMode: plan
+
+sources:
+  - type: skill
+    ref: .claude/skills/gdpr-privacy/SKILL.md
+
+related_capabilities:
+  - code-review
+  - database-exploration

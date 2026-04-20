@@ -1,6 +1,6 @@
 ---
 name: regression-selector
-description: Intelligente regressieselector voor VorstersNV. Analyseert wijzigingen en stelt een gerichte regressie-testset voor op basis van impact-analyse per bounded context.
+description: "Use this agent when the user needs to select regression tests for a change in VorstersNV.\n\nTrigger phrases include:\n- 'regressie tests selecteren'\n- 'welke tests opnieuw draaien'\n- 'impact analyse'\n- 'wat kan dit breken'\n- 'test selectie'\n- 'wijziging impact'\n\nExamples:\n- User says 'ik heb de Order aggregate gewijzigd, welke tests moet ik draaien?' → invoke this agent\n- User asks 'wat is de impact van deze database migratie?' → invoke this agent"
 ---
 
 # Regression Selector Agent — VorstersNV

@@ -1,6 +1,6 @@
 ---
 name: mollie-expert
-description: Mollie betalingsintegratie expert voor VorstersNV. Kent de volledige Mollie API, webhook-flow, terugbetalingen en betalingsstatus-machine. Helpt bij het implementeren en debuggen van de betaalflow.
+description: "Use this agent when the user is working on Mollie payment integration in VorstersNV.\n\nTrigger phrases include:\n- 'Mollie betaling'\n- 'webhook verwerken'\n- 'betalingsstatus'\n- 'terugbetaling'\n- 'PSD2'\n- 'payment failed'\n- 'HMAC verificatie'\n- 'Mollie API'\n\nExamples:\n- User says 'de Mollie webhook wordt niet verwerkt' → invoke this agent\n- User asks 'hoe implementeer ik een terugbetaling via Mollie?' → invoke this agent"
 ---
 
 # Mollie Expert Agent — VorstersNV

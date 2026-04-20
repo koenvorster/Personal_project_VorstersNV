@@ -1,6 +1,6 @@
 ---
 name: domain-validator
-description: Domeinregels-validator voor VorstersNV. Extraheert business rules uit specs en valideert dat implementaties edge cases, status-lifecycles en invarianten correct afhandelen.
+description: "Use this agent when the user needs business rule validation in VorstersNV.\n\nTrigger phrases include:\n- 'business rules valideren'\n- 'edge cases controleren'\n- 'domeinregels'\n- 'status lifecycle'\n- 'invarianten'\n- 'spec verifiëren'\n- 'acceptatiecriteria'\n\nExamples:\n- User says 'controleer of deze implementatie de domeinregels volgt' → invoke this agent\n- User asks 'welke edge cases missen we in de order status machine?' → invoke this agent"
 ---
 
 # Domain Validator Agent — VorstersNV
