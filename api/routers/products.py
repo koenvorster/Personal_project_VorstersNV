@@ -9,6 +9,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from api.auth.jwt import TokenData, require_admin
 from db.database import get_db
 from db.models import Category, Product
 
@@ -122,7 +123,12 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{product_id}", response_model=ProductResponse, summary="Product bijwerken")
-async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db)):
+async def update_product(
+    product_id: int,
+    body: ProductUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: TokenData = Depends(require_admin),
+):
     """Werk een bestaand product bij (admin)."""
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
     if not updates:

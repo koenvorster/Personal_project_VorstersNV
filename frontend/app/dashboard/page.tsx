@@ -36,6 +36,13 @@ interface ServiceCheck {
   icon: typeof Server
 }
 
+interface LogEntry {
+  tijd: string
+  level: string
+  bericht: string
+  bron: string
+}
+
 const defaultServices: ServiceCheck[] = [
   { naam: 'FastAPI Backend', poort: 8000, status: 'offline', latency: '—', icon: Server },
   { naam: 'PostgreSQL', poort: 5432, status: 'offline', latency: '—', icon: Database },
@@ -50,15 +57,6 @@ const aiAgents = [
   { naam: 'Product Beschrijving', model: 'llama3', status: 'actief', runs: 156, uptime: '97.8%' },
   { naam: 'SEO Agent', model: 'mistral', status: 'standby', runs: 89, uptime: '100%' },
   { naam: 'Order Verwerking', model: 'llama3', status: 'actief', runs: 478, uptime: '99.5%' },
-]
-
-const recentLogs = [
-  { tijd: '14:32:01', level: 'INFO', bericht: 'Webhook ontvangen: order.created', bron: 'webhook-engine' },
-  { tijd: '14:31:45', level: 'INFO', bericht: 'Agent run voltooid: klantenservice (324ms)', bron: 'ollama' },
-  { tijd: '14:30:12', level: 'WARN', bericht: 'Redis cache miss ratio > 15%', bron: 'cache' },
-  { tijd: '14:29:58', level: 'INFO', bericht: 'Database migration check: up-to-date', bron: 'alembic' },
-  { tijd: '14:28:33', level: 'ERROR', bericht: 'Ollama LLM: connection refused op poort 11434', bron: 'ollama' },
-  { tijd: '14:27:01', level: 'INFO', bericht: 'Health check: alle services OK (5/6)', bron: 'monitor' },
 ]
 
 const techStack = [
@@ -81,6 +79,7 @@ export default function DashboardPage() {
   const [lastCheck, setLastCheck] = useState<string | null>(null)
   const [agentAnalytics, setAgentAnalytics] = useState<AgentAnalytics[]>([])
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
+  const [recentLogs, setRecentLogs] = useState<LogEntry[]>([])
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -89,6 +88,13 @@ export default function DashboardPage() {
         const data = await res.json()
         setServices(data.services)
         setLastCheck(new Date(data.timestamp).toLocaleTimeString('nl-BE'))
+        if (data.startedAt) {
+          const diff = Date.now() - new Date(data.startedAt).getTime()
+          const d = Math.floor(diff / 86400000)
+          const h = Math.floor((diff % 86400000) / 3600000)
+          const m = Math.floor((diff % 3600000) / 60000)
+          setUptime(`${d}d ${h}h ${m}m`)
+        }
       }
     } catch {
       // Keep current state on fetch failure
@@ -109,32 +115,30 @@ export default function DashboardPage() {
     }
   }, [])
 
+  const fetchLogs = useCallback(async () => {
+    try {
+      const res = await fetch('/api/logs?limiet=6')
+      if (res.ok) {
+        const data: LogEntry[] = await res.json()
+        if (data.length > 0) setRecentLogs(data)
+      }
+    } catch {
+      // Keep current state
+    }
+  }, [])
+
   useEffect(() => {
     fetchHealth()
     fetchAgentAnalytics()
-    const interval = setInterval(fetchHealth, 30000)
+    fetchLogs()
+    const interval = setInterval(() => { fetchHealth(); fetchLogs() }, 30000)
     return () => clearInterval(interval)
-  }, [fetchHealth, fetchAgentAnalytics])
-
-  useEffect(() => {
-    // Simulate uptime counter
-    const start = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000 - 7 * 60 * 60 * 1000 - 23 * 60 * 1000)
-    const update = () => {
-      const diff = Date.now() - start.getTime()
-      const d = Math.floor(diff / 86400000)
-      const h = Math.floor((diff % 86400000) / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      setUptime(`${d}d ${h}h ${m}m`)
-    }
-    update()
-    const interval = setInterval(update, 60000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [fetchHealth, fetchAgentAnalytics, fetchLogs])
 
   const handleRefresh = () => {
     setRefreshing(true)
     setAnalyticsLoading(true)
-    Promise.all([fetchHealth(), fetchAgentAnalytics()])
+    Promise.all([fetchHealth(), fetchAgentAnalytics(), fetchLogs()])
       .finally(() => setTimeout(() => setRefreshing(false), 500))
   }
 
@@ -323,13 +327,18 @@ export default function DashboardPage() {
               Recente Logs
             </h2>
             <div className="space-y-2 font-mono text-xs">
-              {recentLogs.map((log, i) => (
-                <div key={i} className="flex gap-2 sm:gap-3 items-start">
-                  <span className="text-slate-600 shrink-0">{log.tijd}</span>
-                  <span className={`shrink-0 font-semibold w-11 ${levelColors[log.level]}`}>{log.level}</span>
-                  <span className="text-slate-300 break-all">{log.bericht}</span>
-                </div>
-              ))}
+              {recentLogs.length === 0 ? (
+                <p className="text-slate-500 text-center py-4">Wachten op applicatielogs…</p>
+              ) : (
+                recentLogs.map((log, i) => (
+                  <div key={i} className="flex gap-2 sm:gap-3 items-start">
+                    <span className="text-slate-600 shrink-0">{log.tijd}</span>
+                    <span className={`shrink-0 font-semibold w-11 ${levelColors[log.level as keyof typeof levelColors] ?? 'text-slate-400'}`}>{log.level}</span>
+                    <span className="text-slate-400 shrink-0 hidden sm:inline">[{log.bron}]</span>
+                    <span className="text-slate-300 break-all">{log.bericht}</span>
+                  </div>
+                ))
+              )}
             </div>
           </GlassCard>
         </AnimatedSection>

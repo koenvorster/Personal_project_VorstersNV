@@ -5,6 +5,7 @@ Rollen worden gelezen uit de Keycloak realm_access claim.
 
 Guest checkout: gebruik `get_optional_user` voor routes die beide ondersteunen.
 """
+import asyncio
 import time
 from typing import Annotated
 
@@ -29,14 +30,23 @@ JWKS_TTL_SECONDS = 3600  # Herlaad JWKS sleutels na 1 uur (key rotation)
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
-# JWKS cache met TTL: tuple (data, timestamp) of None
+# JWKS cache met TTL en asyncio.Lock tegen race conditions bij gelijktijdige requests
 _jwks_cache: tuple[dict, float] | None = None
+_jwks_lock = asyncio.Lock()
 
 
 async def _get_jwks() -> dict:
     global _jwks_cache
     now = time.monotonic()
-    if _jwks_cache is None or (now - _jwks_cache[1]) > JWKS_TTL_SECONDS:
+    # Fast path: cache geldig — geen lock nodig
+    if _jwks_cache is not None and (now - _jwks_cache[1]) <= JWKS_TTL_SECONDS:
+        return _jwks_cache[0]
+    # Slow path: vernieuwen — één request tegelijk
+    async with _jwks_lock:
+        # Double-check na lock: misschien al ververst door een andere coroutine
+        now = time.monotonic()
+        if _jwks_cache is not None and (now - _jwks_cache[1]) <= JWKS_TTL_SECONDS:
+            return _jwks_cache[0]
         async with httpx.AsyncClient() as client:
             resp = await client.get(JWKS_URL, timeout=5)
             resp.raise_for_status()

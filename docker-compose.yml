@@ -1,5 +1,5 @@
 services:
-  # Database (PostgreSQL)
+  # ── Database (PostgreSQL) ─────────────────────────────────────────────────
   database:
     image: postgres:16-alpine
     container_name: vorstersNV-db
@@ -18,12 +18,81 @@ services:
       timeout: 5s
       retries: 5
 
-  # Spring Boot API
-  api:
+  # ── Redis Cache ───────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: vorstersNV-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── FastAPI Backend (PRIMAIRE API — :8000) ────────────────────────────────
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: vorstersNV-fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_URL=postgresql+asyncpg://vorstersNV:${DB_PASSWORD:-dev-password-change-me}@database:5432/vorstersNV
+      - REDIS_URL=redis://redis:6379/0
+      - KEYCLOAK_URL=${KEYCLOAK_URL:-http://keycloak:8080}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-vorstersNV}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-vorstersNV-api}
+      - KEYCLOAK_VERIFY_AUD=${KEYCLOAK_VERIFY_AUD:-false}
+      - MOLLIE_API_KEY=${MOLLIE_API_KEY:-}
+      - MOLLIE_WEBHOOK_SECRET=${MOLLIE_WEBHOOK_SECRET:-}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - CORS_ORIGINS=["http://localhost:3000","https://vorstersNV.be"]
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── Next.js Frontend ──────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    container_name: vorstersNV-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - FASTAPI_URL=http://fastapi:8000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-local-dev-secret-change-me}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - KEYCLOAK_ID=${KEYCLOAK_ID:-vorstersNV-frontend}
+      - KEYCLOAK_SECRET=${KEYCLOAK_SECRET:-}
+      - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER:-http://keycloak:8080/realms/vorstersNV}
+    depends_on:
+      fastapi:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Spring Boot (LEGACY — niet de primaire API) ───────────────────────────
+  # Enkel actief als je expliciet het java profiel start.
+  # Normaal gebruik: docker compose --profile java up
+  api-java:
+    profiles: ["java"]
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: vorstersNV-api
+    container_name: vorstersNV-api-java
     ports:
       - "8080:8080"
     environment:
@@ -33,29 +102,7 @@ services:
       database:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # Next.js Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=http://localhost:8080
-    container_name: vorstersNV-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-local-dev-secret}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-    depends_on:
-      api:
-        condition: service_healthy
-    restart: unless-stopped
 
 volumes:
   postgres_data:
+

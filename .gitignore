@@ -5,6 +5,8 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 logs/
+!frontend/app/api/logs/
+!frontend/app/api/logs/**
 *.log
 dist/
 build/

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import auth as auth_router
-from api.routers import agents, betalingen, dashboard, inventory, notifications, orders, products
+from api.routers import agents, betalingen, dashboard, inventory, logs, notifications, orders, products
 
 app = FastAPI(
     title="VorstersNV API",
@@ -55,6 +55,7 @@ app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"]
 app.include_router(betalingen.router, prefix="/api", tags=["Bestellingen & Betalingen"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaties"])
 app.include_router(agents.router, prefix="/api/agents", tags=["AI Agents & Analytics"])
+app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
 
 
 @app.get("/", tags=["Algemeen"], summary="API Root")
@@ -69,8 +70,27 @@ async def root():
     }
 
 
+_app_start_time: float = 0.0
+
+
+@app.on_event("startup")
+async def _record_start_time():
+    import time
+    from api.routers.logs import setup_log_buffer
+    global _app_start_time
+    _app_start_time = time.time()
+    setup_log_buffer()
+
+
 @app.get("/health", tags=["Algemeen"], summary="Health check")
 async def health():
-    """Controleer of de API draait."""
+    """Controleer of de API draait. Geeft ook server start-tijd terug voor uptime-berekening."""
+    import time
     from datetime import datetime, timezone
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    now = time.time()
+    return {
+        "status": "ok",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "started_at": datetime.fromtimestamp(_app_start_time, tz=timezone.utc).isoformat() if _app_start_time else None,
+        "uptime_seconds": int(now - _app_start_time) if _app_start_time else None,
+    }

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000'
+
 interface ServiceCheck {
   naam: string
   poort: number
@@ -45,24 +47,43 @@ async function checkPort(host: string, port: number, timeoutMs = 2000): Promise<
   }
 }
 
-export async function GET() {
-  const results: ServiceCheck[] = await Promise.all(
-    SERVICES.map(async (service) => {
-      const { ok, latency } = await checkPort(service.host, service.poort)
-      return {
-        naam: service.naam,
-        poort: service.poort,
-        host: service.host,
-        status: ok ? ('online' as const) : ('offline' as const),
-        latency: ok ? `${latency}ms` : '—',
-      }
+async function fetchFastapiUptime(): Promise<string | null> {
+  try {
+    const res = await fetch(`${FASTAPI_URL}/health`, {
+      signal: AbortSignal.timeout(3000),
+      next: { revalidate: 0 },
     })
-  )
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.started_at ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function GET() {
+  const [serviceResults, startedAt] = await Promise.all([
+    Promise.all(
+      SERVICES.map(async (service) => {
+        const { ok, latency } = await checkPort(service.host, service.poort)
+        return {
+          naam: service.naam,
+          poort: service.poort,
+          host: service.host,
+          status: ok ? ('online' as const) : ('offline' as const),
+          latency: ok ? `${latency}ms` : '—',
+        } satisfies ServiceCheck
+      })
+    ),
+    fetchFastapiUptime(),
+  ])
 
   return NextResponse.json({
-    services: results,
+    services: serviceResults,
     timestamp: new Date().toISOString(),
-    onlineCount: results.filter((s) => s.status === 'online').length,
-    totalCount: results.length,
+    startedAt,
+    onlineCount: serviceResults.filter((s) => s.status === 'online').length,
+    totalCount: serviceResults.length,
   })
 }
+
