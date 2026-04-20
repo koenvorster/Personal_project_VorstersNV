@@ -8,9 +8,9 @@ Provides guidance to Claude Code when working in this repository.
 
 | Layer | Tech | Path |
 |-------|------|------|
-| Frontend | Next.js 14, App Router, TypeScript, Tailwind CSS | `frontend/` |
-| Backend API | FastAPI (Python 3.12), SQLAlchemy async, Alembic | `api/` |
-| Backend Java | Spring Boot 3.3.5 (Java 21) | `backend/` |
+| Frontend | Next.js 16.2, App Router, TypeScript, Tailwind CSS | `frontend/` |
+| Backend API | FastAPI (Python 3.12), SQLAlchemy async, Alembic | `api/` ← **ACTIEVE backend** |
+| Backend Java | Spring Boot 3.3.5 (Java 21) — legacy/vestigieel | `backend/` |
 | Local AI | Ollama — llama3, mistral | `ollama/` |
 | AI Agents | YAML + `agent_runner.py` | `agents/` |
 | Database | PostgreSQL 16 + Redis 7 | `docker-compose.yml` |
@@ -62,6 +62,15 @@ python agent_runner.py --agent developer_agent --spec "..."  # run a YAML agent
 | **Payments** | Payment, Refund | `api/routers/betalingen.py` |
 | **Notifications** | Notification | `api/routers/notifications.py` |
 | **Dashboard** | Metrics | `api/routers/dashboard.py` |
+
+## Architecture Decision: FastAPI is the primary backend
+
+> **CRITICAL**: FastAPI (`api/`) is the single source of truth for backend logic.
+> - Frontend calls `:8000` (FastAPI) — not `:8080` (Spring Boot)
+> - All tests target FastAPI endpoints
+> - All Ollama agents use FastAPI tool endpoints
+> - `backend/` (Spring Boot) is vestigieel — do NOT add new features there
+> - TODO: archiveer `backend/` naar `_archive/spring-boot-backend/` (zie backlog vn-imp-1-dual-api)
 
 ## Code Conventions (Python / FastAPI)
 

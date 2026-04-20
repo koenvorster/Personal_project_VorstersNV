@@ -5,12 +5,13 @@
 **Full-stack AI-powered webshop & business platform — gebouwd door Koen Vorsters**
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-latest-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs)](https://nextjs.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![Ollama](https://img.shields.io/badge/Ollama-AI%20Local-black?logo=ollama)](https://ollama.ai)
-[![Tests](https://img.shields.io/badge/Tests-42%20passing-brightgreen?logo=pytest)](tests/)
+[![Ollama](https://img.shields.io/badge/Ollama-25%20agents-black?logo=ollama)](agents/)
+[![Tests](https://img.shields.io/badge/Tests-28%20passing-brightgreen?logo=pytest)](tests/)
 [![License](https://img.shields.io/badge/License-Privé-red)](LICENSE)
 
 </div>
@@ -41,10 +42,11 @@ VorstersNV is een volledig zelfgebouwd bedrijfsplatform voor een KMO-webshop. He
 |---------|-------------|
 | 🌐 **Portfolio & website** | Persoonlijke portfolio met projecten, blog en over-mij |
 | 📊 **Live dashboard** | Real-time monitoring van alle services, AI-agents en logs |
-| 🤖 **AI-agents** | 8 lokale AI-agents voor klantenservice, SEO, productbeschrijvingen en orderverwerking |
-| 🛍️ **Webshop backend** | FastAPI REST API met producten, orders, voorraad en Mollie betalingen |
+| 🤖 **AI-agents** | 25 lokale Ollama YAML-agents voor klantenservice, SEO, productbeschrijvingen, orderverwerking en smart home |
+| 🛍️ **Webshop backend** | FastAPI REST API (Python) + Spring Boot API (Java) met producten, orders, voorraad en Mollie betalingen |
 | 🔐 **SSO Authenticatie** | Keycloak single sign-on met JWT tokens |
 | 📬 **Webhooks** | Real-time order- en betaalverwerking via HMAC-beveiligde webhooks |
+| 🏠 **Smart Home** | MCP server + Home Assistant integratie via Ollama LLM |
 
 ---
 
@@ -177,54 +179,60 @@ VorstersNV is een volledig zelfgebouwd bedrijfsplatform voor een KMO-webshop. He
 
 ```mermaid
 graph TB
-    subgraph Frontend["🌐 Frontend — Next.js 16"]
+    subgraph Frontend["🌐 Frontend — Next.js 16.2 (App Router)"]
         UI[Portfolio / Webshop UI]
         DASH[Live Dashboard]
         LOGIN[Login — NextAuth + Keycloak]
     end
 
-    subgraph Backend["⚙️ Backend — FastAPI"]
-        API[REST API :8000]
+    subgraph PythonBackend["⚙️ Python Backend — FastAPI :8000"]
+        API[REST API]
         WH[Webhook Engine :9000]
     end
 
-    subgraph AI["🤖 AI Laag — Ollama"]
+    subgraph JavaBackend["☕ Java Backend — Spring Boot :8080"]
+        JAPI[REST API + Actuator]
+    end
+
+    subgraph AI["🤖 AI Laag — Ollama (25 agents)"]
         ORCH[Agent Orchestrator]
         KS[klantenservice_agent]
         OV[order_verwerking_agent]
         PB[product_beschrijving_agent]
         SEO[seo_agent]
-        FD[fraude_detectie_agent]
-        RV[retour_verwerking_agent]
-        ET[email_template_agent]
-        VA[voorraad_advies_agent]
+        MCP[mcp-server Smart Home]
     end
 
     subgraph Infra["🗄️ Infrastructuur — Docker Compose"]
-        PG[(PostgreSQL 16)]
+        PG[(PostgreSQL 16 :5432)]
+        PG2[(Analytics DB :5433)]
         RD[(Redis 7)]
         KC[Keycloak SSO]
-        OL[Ollama LLM]
+        OL[Ollama LLM :11434]
+        HA[Home Assistant :8123]
     end
 
     subgraph External["🔗 Externe Services"]
         MOLLIE[Mollie Betalingen]
-        GH[GitHub]
+        GCP[Google Cloud Run]
     end
 
     UI --> API
+    UI --> JAPI
     DASH --> API
     LOGIN --> KC
     API --> PG
     API --> RD
     API --> ORCH
+    JAPI --> PG
     WH --> ORCH
     ORCH --> KS & OV & PB & SEO
-    OV --> FD & ET & VA
-    KS --> RV & ET & FD
-    OL --> KS & OV & PB & SEO & FD & RV & ET & VA
+    OL --> KS & OV & PB & SEO
+    MCP --> HA
+    MCP --> OL
     API --> MOLLIE
-    WH --> |"HMAC-beveiligd"| MOLLIE
+    JAPI --> GCP
+    API --> GCP
 ```
 
 ---
@@ -264,26 +272,41 @@ sequenceDiagram
 
 | Laag | Technologie | Doel |
 |------|-------------|------|
-| **Frontend** | Next.js 16, React 19, TypeScript | UI & portfolio |
+| **Frontend** | Next.js 16.2, React 19, TypeScript strict | UI & portfolio |
 | **Styling** | Tailwind CSS v4, Framer Motion | Animaties & glassmorphism design |
 | **Auth (FE)** | NextAuth.js + Keycloak | SSO login |
-| **Backend** | FastAPI, Python 3.12, async | REST API |
-| **Database** | PostgreSQL 16, SQLAlchemy, Alembic | Data & migraties |
+| **Python API** | FastAPI 0.115, Python 3.12, async SQLAlchemy | REST API (hoofdbackend) |
+| **Java API** | Spring Boot 3.3.5, Java 21, Maven | Alternatieve backend (productie-deploy) |
+| **Database** | PostgreSQL 16 (:5432 operationeel, :5433 analytics), SQLAlchemy, Alembic | Data & migraties |
+| **Analytics** | Ster-schema: sales_facts + agent_performance_facts | Business intelligence |
 | **Cache** | Redis 7 | Performance caching |
 | **Auth (BE)** | Keycloak + JWT | Toegangscontrole |
 | **Betalingen** | Mollie | iDEAL, creditcard, Bancontact |
-| **AI/LLM** | Ollama, LLaMA 3, Mistral | Lokale AI inference |
-| **Containers** | Docker Compose | Lokale & productie-omgeving |
-| **CI/CD** | GitHub Actions | Tests & linting |
-| **Code kwaliteit** | Ruff, mypy, pytest | Linting & type checks |
+| **AI/LLM** | Ollama, LLaMA 3, Mistral (25 agents) | Lokale AI inference |
+| **Smart Home** | MCP server + Home Assistant | IoT & agent integratie |
+| **Containers** | Docker Compose | Lokale & cloud-omgeving |
+| **CI/CD** | GitHub Actions (4 jobs) → Google Cloud Run | Tests & deployment |
+| **Code kwaliteit** | Ruff, mypy, pytest, ESLint, TypeScript strict | Linting & type checks |
 
 ---
 
 ## 🤖 AI-agents
 
-Het platform bevat **8 AI-agents** die volledig lokaal draaien via Ollama.
+Het platform bevat **25 Ollama YAML-agents** (volledig lokaal) + een AI-development ecosysteem in `.claude/`.
 
-### Parent agents
+### Overzicht per categorie
+
+| Categorie | Agents | Aantal |
+|-----------|--------|--------|
+| **Webshop** | klantenservice, order_verwerking, fraude_detectie, retour_verwerking, email_template, voorraad_advies | 6 |
+| **Content** | product_beschrijving, seo_agent, content_moderatie, email_template | 4 |
+| **AI/Dev** | developer_agent, architect_agent, clean_code_reviewer, ddd_modeling, domain_validation | 5 |
+| **Testing** | test_design, test_orchestrator, regression_selector, test_data_designer, automation_agent | 5 |
+| **Smart Home** | betaling_status_agent, checkout_begeleiding, loyaliteit_agent, playwright_mcp, security_permissions, voorraad_advies | 5 |
+
+> 📋 Volledig overzicht: zie [`agents/README.md`](agents/README.md)
+
+### Parent agents (webshop kern)
 
 | Agent | Model | Temperatuur | Rol |
 |-------|-------|-------------|-----|
@@ -346,9 +369,9 @@ stats = iterator.analyse_feedback()
 
 ## ⚙️ Hoe het werkt
 
-### 1. Frontend — Next.js App Router
+### 1. Frontend — Next.js 16.2 App Router
 
-De frontend gebruikt Next.js 16 met App Router. Server Components voor statische pagina's, Client Components waar animaties of state nodig zijn.
+De frontend gebruikt **Next.js 16.2** met App Router. Server Components voor statische pagina's, Client Components waar animaties of state nodig zijn.
 
 ```
 frontend/app/
@@ -357,6 +380,8 @@ frontend/app/
 ├── over-mij/             → CV, skills, tijdlijn
 ├── blog/                 → Blog artikelen
 ├── dashboard/            → Live system monitoring
+├── shop/                 → Webshop product listing
+├── winkelwagen/          → Winkelwagen & checkout
 └── login/                → Keycloak SSO login
 ```
 
@@ -370,9 +395,16 @@ frontend/app/
 
 ---
 
-### 2. Backend — FastAPI
+### 2. Backend — FastAPI (Python) + Spring Boot (Java)
 
-De API heeft 6 routers, Swagger UI op `/docs` en CORS voor de Next.js frontend.
+Het platform heeft **twee backends**:
+
+| Backend | Tech | Poort | Gebruik |
+|---------|------|-------|---------|
+| **FastAPI** | Python 3.12, async SQLAlchemy | `:8000` | Hoofd-API (lokale dev, AI-integratie) |
+| **Spring Boot** | Java 21, Maven | `:8080` | Alternatieve backend (Cloud Run deployment) |
+
+FastAPI heeft 8 routers, Swagger UI op `/docs` en CORS voor de Next.js frontend.
 
 ```
 api/routers/
@@ -558,39 +590,56 @@ Na het starten van de backend:
 
 ```
 Personal_project_VorstersNV/
-├── agents/                  # YAML-configuraties per AI-agent (8 agents)
-│   ├── klantenservice_agent.yml
+├── agents/                  # 25 Ollama YAML-agents
+│   ├── README.md            # Agent index met triggers en modellen
+│   ├── klantenservice_agent_v2.yml
 │   ├── order_verwerking_agent.yml
 │   ├── product_beschrijving_agent.yml
 │   ├── seo_agent.yml
-│   ├── fraude_detectie_agent.yml   # Sub-agent
-│   ├── retour_verwerking_agent.yml # Sub-agent
-│   ├── email_template_agent.yml    # Sub-agent
-│   └── voorraad_advies_agent.yml   # Sub-agent
+│   ├── fraude_detectie_agent.yml
+│   ├── retour_verwerking_agent.yml
+│   ├── email_template_agent.yml
+│   ├── voorraad_advies_agent.yml
+│   └── ... (17 meer agents)
 ├── ollama/                  # Lokale AI-integratie
 │   ├── client.py            # HTTP-client voor Ollama
 │   ├── agent_runner.py      # Laadt YAML + voert agents uit
 │   ├── orchestrator.py      # Multi-agent workflows
 │   └── prompt_iterator.py   # Prompt-versies + feedback
-├── api/                     # FastAPI backend
+├── api/                     # FastAPI backend (Python :8000)
 │   ├── main.py              # App + CORS + Swagger
-│   └── routers/             # products, orders, inventory, auth, betalingen
+│   └── routers/             # products, orders, inventory, auth, betalingen, agents, notifications
+├── backend/                 # Spring Boot backend (Java :8080)
+│   ├── src/                 # Java source code
+│   └── pom.xml              # Maven dependencies
+├── mcp-server/              # MCP server voor Smart Home
+│   ├── main.py              # FastAPI MCP endpoints
+│   └── agents/              # Smart Home agent configs
 ├── webhooks/                # Webhook handlers
 │   ├── app.py               # HMAC-verificatie + routing
 │   └── handlers/            # order, payment, inventory handlers
-├── db/                      # Database laag
-│   ├── models/              # SQLAlchemy ORM modellen
-│   └── migrations/          # Alembic migratie bestanden
-├── frontend/                # Next.js 16 webshop & portfolio
-│   ├── app/                 # App Router pages
-│   └── components/          # Herbruikbare UI componenten
+├── frontend/                # Next.js 16.2 webshop & portfolio
+│   ├── app/                 # App Router pages (shop, blog, dashboard...)
+│   ├── components/          # Herbruikbare UI componenten
+│   └── AGENTS.md            # Frontend agent conventions
+├── .claude/                 # Claude Code AI ecosystem
+│   ├── agents/              # 10 Claude agents (developer, reviewer, GDPR, DB...)
+│   ├── skills/              # 7 skills (fastapi-ddd, nextjs, testing, gdpr, alembic...)
+│   ├── capabilities/        # 7 geregistreerde capabilities
+│   ├── scripts/             # validate-agents.mjs, check-env.mjs
+│   └── README.md            # Volledig agent index
+├── .github/
+│   ├── agents/              # 21 GitHub Copilot agents
+│   ├── workflows/           # CI (python, yaml, frontend, java) + deploy GCP
+│   └── prompts/             # 7 herbruikbare Copilot prompts
 ├── prompts/                 # AI-prompt bestanden
 │   ├── system/              # System prompts per agent
 │   └── prepromt/            # Pre-prompts + iteratie-logs
-├── tests/                   # Pytest test suite (42 tests)
-├── scripts/                 # Hulpscripts (setup, test, mode)
-├── docker-compose.yml       # Alle services in één commando
-└── pyproject.toml           # Ruff + mypy + pytest configuratie
+├── tests/                   # Pytest test suite (28 tests)
+├── documentatie/            # Projectdocumentatie
+├── docker-compose.yml       # PostgreSQL + Spring Boot + Next.js
+├── pyproject.toml           # Ruff + mypy + pytest configuratie
+└── CLAUDE.md                # Claude Code instructies voor dit project
 ```
 
 ---
@@ -608,7 +657,7 @@ pytest tests/ --cov=. --cov-report=html
 pytest tests/test_agents.py -v
 ```
 
-**Huidige testdekking:** 42 tests — webhooks, agent runner, prompt iteratie, YAML-validatie.
+**Huidige testdekking:** 28 tests — API (products, betalingen), webhooks, agent runner, YAML-validatie.
 
 ---
 
