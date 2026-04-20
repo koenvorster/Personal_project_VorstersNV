@@ -62,7 +62,7 @@ curl -X POST http://localhost:11434/api/generate \
 
 Controleer de huidige prompts:
 - `prompts/system/<agent>.txt` — te lang? te vaag? tegenstrijdige instructies?
-- `prompts/prepromt/<agent>_v1.txt` — voorbeelden relevant? context duidelijk?
+- `prompts/preprompt/<agent>_v1.txt` — voorbeelden relevant? context duidelijk?
 
 Veelvoorkomende prompt-problemen:
 | Symptoom | Waarschijnlijke oorzaak | Fix |

@@ -11,7 +11,7 @@ parent_agents:
   - klantenservice_agent
 
 system_prompt_ref: "prompts/system/fraude_detectie_v2.txt"
-preprompt_ref: "prompts/prepromt/fraude_detectie_v2.txt"
+preprompt_ref: "prompts/preprompt/fraude_detectie_v2.txt"
 
 capabilities:
   - risicoscore_berekenen
@@ -79,4 +79,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/fraude_detectie"
 
-iteration_log: "prompts/prepromt/fraude_detectie_iterations.yml"
+iteration_log: "prompts/preprompt/fraude_detectie_iterations.yml"

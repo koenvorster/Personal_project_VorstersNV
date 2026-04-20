@@ -9,7 +9,7 @@ max_tokens: 4096
 top_p: 0.9
 
 system_prompt_ref: prompts/system/developer_agent_system.txt
-preprompt_ref: prompts/prepromt/developer_agent_v1.yml
+preprompt_ref: prompts/preprompt/developer_agent_v1.yml
 
 capabilities:
   # Implementation

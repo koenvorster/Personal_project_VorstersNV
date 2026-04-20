@@ -8,7 +8,7 @@ max_tokens: 768
 language: nl
 
 system_prompt_ref: "prompts/system/betaling_status.txt"
-preprompt_ref: "prompts/prepromt/betaling_status_v1.yml"
+preprompt_ref: "prompts/preprompt/betaling_status_v1.yml"
 
 capabilities:
   - betalingsfout_diagnosticeren
@@ -120,4 +120,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/betaling_status"
 
-iteration_log: "prompts/prepromt/betaling_status_iterations.yml"
+iteration_log: "prompts/preprompt/betaling_status_iterations.yml"

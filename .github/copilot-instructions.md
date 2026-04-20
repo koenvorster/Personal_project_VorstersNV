@@ -38,7 +38,7 @@ Personal_project_VorstersNV/
 ├── frontend/                 # Next.js 14 webshop (App Router, TypeScript)
 ├── prompts/
 │   ├── system/               # System prompts per agent (.txt)
-│   ├── prepromt/             # Preprompts per versie + iteratie-logs (.yml)
+│   ├── preprompt/             # Preprompts per versie + iteratie-logs (.yml)
 │   └── promptbooks/          # Uitgebreide prompt-documentatie (.md)
 ├── scripts/                  # Hulpscripts: set_mode.py, setup_ollama.py, test_agent.py
 ├── tests/                    # Pytest tests
@@ -151,7 +151,7 @@ Herbruikbare prompt-templates in `.github/prompts/`. Gebruik via `#file:.github/
 Elke runtime-agent is gedefinieerd als een YAML-bestand in `agents/` en heeft:
 - `model`: het Ollama-model (llama3 of mistral)
 - `system_prompt_ref`: pad naar de system prompt
-- `prepromt_ref`: pad naar de preprompt (versie-gebaseerd)
+- `preprompt_ref`: pad naar de preprompt (versie-gebaseerd)
 - `capabilities`: lijst van wat de agent kan
 - `evaluation`: metrics + feedback_loop flag
 
@@ -173,8 +173,8 @@ Elke runtime-agent is gedefinieerd als een YAML-bestand in `agents/` en heeft:
 
 ### Prompt Iteratie
 - System prompts: `prompts/system/<agent>.txt`
-- Preprompts per versie: `prompts/prepromt/<agent>_v1.txt`
-- Iteratielogs: `prompts/prepromt/<agent>_iterations.yml`
+- Preprompts per versie: `prompts/preprompt/<agent>_v1.txt`
+- Iteratielogs: `prompts/preprompt/<agent>_iterations.yml`
 - Feedback opslaan via `ollama/prompt_iterator.py`
 
 ---
@@ -256,6 +256,6 @@ Huidige mode staat in `plan/mode.yml`.
 
 - Alle webhook payloads worden gevalideerd met HMAC-SHA256
 - Agent-aanroepen worden gelogd in `logs/<agent_naam>/`
-- Prompt-versies worden bijgehouden in `prompts/prepromt/*_iterations.yml`
+- Prompt-versies worden bijgehouden in `prompts/preprompt/*_iterations.yml`
 - Database modellen komen in `db/models/`, migraties in `db/migrations/`
 - Frontend API calls gaan altijd via `/api/` prefix (Next.js rewrites naar FastAPI)

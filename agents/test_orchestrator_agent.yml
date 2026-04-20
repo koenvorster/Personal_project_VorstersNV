@@ -13,7 +13,7 @@ top_p: 0.9
 system_prompt_ref: prompts/system/test_orchestrator_system.txt
 
 # Pre-prompt with role context
-preprompt_ref: prompts/prepromt/test_orchestrator_v1.yml
+preprompt_ref: prompts/preprompt/test_orchestrator_v1.yml
 
 # Core Capabilities
 capabilities:

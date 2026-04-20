@@ -31,7 +31,7 @@ jobs:
         run: ruff check .
 
       - name: Type-controle (mypy)
-        run: mypy ollama/ webhooks/ --ignore-missing-imports
+        run: mypy api/ ollama/ webhooks/ --ignore-missing-imports
 
       - name: Tests uitvoeren met coverage
         run: |
@@ -40,7 +40,8 @@ jobs:
             --cov=ollama \
             --cov=webhooks \
             --cov-report=xml \
-            --cov-report=term-missing
+            --cov-report=term-missing \
+            --cov-fail-under=60
         env:
           DB_URL: "sqlite+aiosqlite:///:memory:"
           KEYCLOAK_SERVER_URL: "http://localhost:8080"
@@ -107,7 +108,7 @@ jobs:
           python - <<'EOF'
           import yaml, glob, sys
           errors = []
-          patterns = ["prompts/prepromt/*.yml", "plan/*.yml"]
+          patterns = ["prompts/preprompt/*.yml", "plan/*.yml"]
           for pattern in patterns:
               for f in glob.glob(pattern):
                   try:
@@ -130,7 +131,7 @@ jobs:
           errors = []
           for f in glob.glob("agents/*.yml"):
               data = yaml.safe_load(open(f, encoding="utf-8").read())
-              for key in ("system_prompt_ref", "preprompt_ref", "prepromt_ref"):
+              for key in ("system_prompt_ref", "preprompt_ref"):
                   ref = data.get(key, "")
                   if ref and not os.path.exists(ref):
                       errors.append(f"Agent {data['name']}: {key}='{ref}' bestaat niet")
@@ -202,4 +203,23 @@ jobs:
           name: java-test-results
           path: backend/target/surefire-reports/
           retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # JOB 5: CI Gate – vereist alle jobs
+  # ─────────────────────────────────────────────
+  ci-gate:
+    name: ✅ CI Gate
+    runs-on: ubuntu-latest
+    needs: [python-ci, validate-yaml, frontend-ci, java-ci]
+    if: always()
+    steps:
+      - name: Controleer of alle jobs geslaagd zijn
+        run: |
+          results='${{ toJson(needs) }}'
+          echo "Job resultaten: $results"
+          if echo "$results" | grep -q '"result":"failure"'; then
+            echo "❌ Eén of meer CI-jobs zijn mislukt"
+            exit 1
+          fi
+          echo "✅ Alle CI-jobs zijn geslaagd"
 

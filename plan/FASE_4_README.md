@@ -106,7 +106,7 @@ Personal_project_VorstersNV/
 │       │   ├── home_automation_system.txt
 │       │   ├── energy_management_system.txt
 │       │   └── security_system.txt
-│       └── prepromt/
+│       └── preprompt/
 │           ├── home_automation_v1.yml
 │           └── energy_management_v1.yml
 │

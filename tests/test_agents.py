@@ -71,15 +71,15 @@ class TestAgentConfigs:
                     f"Agent {f.name}: system_prompt_ref '{ref}' bestaat niet"
                 )
 
-    def test_agent_prepromts_exist(self):
-        """Elke agent met een prepromt_ref moet het bestand hebben."""
+    def test_agent_preprompts_exist(self):
+        """Elke agent met een preprompt_ref moet het bestand hebben."""
         for f in AGENTS_DIR.glob("*.yml"):
             data = yaml.safe_load(f.read_text(encoding="utf-8"))
-            ref = data.get("prepromt_ref", "")
+            ref = data.get("preprompt_ref", "")
             if ref:
                 path = REPO_ROOT / ref
                 assert path.exists(), (
-                    f"Agent {f.name}: prepromt_ref '{ref}' bestaat niet"
+                    f"Agent {f.name}: preprompt_ref '{ref}' bestaat niet"
                 )
 
 
@@ -92,15 +92,15 @@ class TestPromptFiles:
             content = f.read_text(encoding="utf-8").strip()
             assert content, f"System prompt is leeg: {f.name}"
 
-    def test_prepromt_files_not_empty(self):
+    def test_preprompt_files_not_empty(self):
         """Pre-prompt bestanden mogen niet leeg zijn."""
-        for f in (PROMPTS_DIR / "prepromt").glob("*.txt"):
+        for f in (PROMPTS_DIR / "preprompt").glob("*.txt"):
             content = f.read_text(encoding="utf-8").strip()
             assert content, f"Pre-prompt is leeg: {f.name}"
 
     def test_iteration_files_are_valid_yaml(self):
         """Iteratie-logbestanden moeten geldig YAML zijn."""
-        for f in (PROMPTS_DIR / "prepromt").glob("*_iterations.yml"):
+        for f in (PROMPTS_DIR / "preprompt").glob("*_iterations.yml"):
             data = yaml.safe_load(f.read_text(encoding="utf-8"))
             assert data is not None, f"Leeg iteratie-bestand: {f.name}"
             assert "iterations" in data, f"Iteratie-bestand mist 'iterations' sleutel: {f.name}"

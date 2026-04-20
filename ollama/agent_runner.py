@@ -45,9 +45,9 @@ class Agent:
         self.temperature = config.get("temperature", 0.7)
         self.max_tokens = config.get("max_tokens", 1024)
         self.system_prompt = self._load_text(config.get("system_prompt_ref", ""))
-        # Support both spellings: preprompt_ref (correct) and prepromt_ref (legacy typo)
-        prepromt_ref = config.get("preprompt_ref") or config.get("prepromt_ref", "")
-        self.prepromt = self._load_text(prepromt_ref)
+        # Support both spellings: preprompt_ref (correct) and preprompt_ref (legacy typo)
+        preprompt_ref = config.get("preprompt_ref") or config.get("preprompt_ref", "")
+        self.preprompt = self._load_text(preprompt_ref)
         self._config = config
 
     def _load_text(self, ref: str) -> str:
@@ -81,13 +81,13 @@ class Agent:
             client = get_client()
 
         # Vul pre-prompt variabelen in als context beschikbaar is
-        prepromt = self.prepromt
-        if context and prepromt:
+        preprompt = self.preprompt
+        if context and preprompt:
             for key, value in context.items():
-                prepromt = prepromt.replace(f"{{{key}}}", str(value))
+                preprompt = preprompt.replace(f"{{{key}}}", str(value))
 
         # Bouw de volledige prompt
-        full_prompt = prepromt + "\n\n" + user_input if prepromt else user_input
+        full_prompt = preprompt + "\n\n" + user_input if preprompt else user_input
 
         logger.info("Agent '%s' wordt uitgevoerd (model: %s)", self.name, self.model)
 

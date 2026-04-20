@@ -1,0 +1,38 @@
+agent: fraude_detectie_agent
+last_updated: "2026-07-01"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-10"
+    change: "Initiële versie — vaste risicosignalen"
+    metrics:
+      false_positive_rate: null
+      false_negative_rate: null
+      gemiddelde_score: null
+    notes: "Basis versie. Subjectieve scoring, geen gewichten, geen GDPR."
+    status: vervangen
+    system_prompt: "prompts/system/fraude_detectie.txt"
+    preprompt: "prompts/preprompt/fraude_detectie_v1.txt"
+
+  - version: "2.0"
+    date: "2026-07-01"
+    change: "Gewogen scoremodel, GDPR, IP-type, wegwerp-email, pure JSON output"
+    improvements:
+      - Gewogen risicoscoremodel (tabel met expliciete gewichten per signaal)
+      - GDPR-compliant motivatie (geen naam/email/IP in output)
+      - IP-type detectie (VPN/Tor als signaal)
+      - Wegwerp-emaildomein als signaal
+      - Identiek geannuleerde order als sterk signaal (+30)
+      - Pure JSON output enforcement
+    metrics:
+      false_positive_rate: null
+      false_negative_rate: null
+      gemiddelde_score: null
+    notes: "v2 klaar. Meet false positives om drempelwaarden te kalibreren."
+    status: actief
+    system_prompt: "prompts/system/fraude_detectie_v2.txt"
+    preprompt: "prompts/preprompt/fraude_detectie_v2.txt"
+    next_improvements:
+      - ML-gebaseerde scoring als alternatief voor regels
+      - Terugkoppeling van bevestigde fraude voor model-verbetering
+      - Integratie met externe fraude-databases

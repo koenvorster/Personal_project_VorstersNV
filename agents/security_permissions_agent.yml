@@ -9,7 +9,7 @@ max_tokens: 3072
 top_p: 0.8
 
 system_prompt_ref: prompts/system/security_permissions_system.txt
-preprompt_ref: prompts/prepromt/security_permissions_v1.yml
+preprompt_ref: prompts/preprompt/security_permissions_v1.yml
 
 capabilities:
   - validate_rbac_rules

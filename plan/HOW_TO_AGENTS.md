@@ -87,7 +87,7 @@ model: llama3  # of: mistral, codellama, neural-chat
 
 # Verwijzingen naar prompt-bestanden
 system_prompt_ref: ./prompts/system/my_agent_system.txt
-prepromt_ref: ./prompts/prepromt/my_agent_v1.yml
+preprompt_ref: ./prompts/preprompt/my_agent_v1.yml
 
 # Temperatuur (0.0 = deterministisch, 1.0 = creatief)
 temperature: 0.7
@@ -155,7 +155,7 @@ version: 1.1
 
 model: llama3
 system_prompt_ref: ./prompts/system/order_processing_system.txt
-prepromt_ref: ./prompts/prepromt/order_processing_v1.1.yml
+preprompt_ref: ./prompts/preprompt/order_processing_v1.1.yml
 
 temperature: 0.3  # Laag = consistenter, betrouwbaarder
 
@@ -278,7 +278,7 @@ Remember: Your decisions directly impact customer satisfaction and business reve
 
 ### Pre-Prompt (Context & Voorbeelden)
 
-**prompts/prepromt/order_processing_v1.1.yml:**
+**prompts/preprompt/order_processing_v1.1.yml:**
 
 ```yaml
 version: 1.1
@@ -425,7 +425,7 @@ class AgentRunner:
     def build_full_prompt(
         self,
         system_prompt: str,
-        prepromt: Dict[str, Any],
+        preprompt: Dict[str, Any],
         user_input: str
     ) -> str:
         """Combineer system + pre + user prompts"""
@@ -434,14 +434,14 @@ class AgentRunner:
 {system_prompt}
 
 === CONTEXT ===
-Company: {prepromt.get('context', {}).get('company', 'VorstersNV')}
-Model: {prepromt.get('model', 'unknown')}
+Company: {preprompt.get('context', {}).get('company', 'VorstersNV')}
+Model: {preprompt.get('model', 'unknown')}
 
 === GUIDELINES ===
-{chr(10).join('- ' + g for g in prepromt.get('guidelines', []))}
+{chr(10).join('- ' + g for g in preprompt.get('guidelines', []))}
 
 === EXAMPLES ===
-{self._format_examples(prepromt.get('examples', []))}
+{self._format_examples(preprompt.get('examples', []))}
 
 === YOUR TASK ===
 {user_input}
@@ -482,13 +482,13 @@ Please respond in the specified output format.
             
             # 2. Laad prompts
             system_prompt = self.load_prompt(config['system_prompt_ref'])
-            prepromt_path = config.get('prepromt_ref', '')
+            preprompt_path = config.get('preprompt_ref', '')
             
-            with open(self.prompts_dir / prepromt_path.lstrip("./"), 'r') as f:
-                prepromt_data = yaml.safe_load(f)
+            with open(self.prompts_dir / preprompt_path.lstrip("./"), 'r') as f:
+                preprompt_data = yaml.safe_load(f)
             
             # 3. Bouw volledige prompt
-            full_prompt = self.build_full_prompt(system_prompt, prepromt_data, user_input)
+            full_prompt = self.build_full_prompt(system_prompt, preprompt_data, user_input)
             
             # 4. Roep Ollama aan
             logger.info(f"Calling model: {config['model']}")
@@ -681,7 +681,7 @@ class AgentFeedback:
         }
         
         # Save to iterations log
-        iterations_file = Path(f"prompts/prepromt/{self.agent_name}_iterations.yml")
+        iterations_file = Path(f"prompts/preprompt/{self.agent_name}_iterations.yml")
         
         with open(iterations_file, 'a') as f:
             yaml.dump({"feedback": feedback_data}, f)

@@ -68,7 +68,7 @@ jobs:
                   results["warnings"].append(f"{name}: mist aanbevolen velden {missing_rec}")
 
               # Prompt-bestand aanwezig?
-              for key in ("system_prompt_ref", "preprompt_ref", "prepromt_ref"):
+              for key in ("system_prompt_ref", "preprompt_ref"):
                   ref = data.get(key, "")
                   if ref and not os.path.exists(ref):
                       results["warnings"].append(f"{name}: {key}='{ref}' niet gevonden op schijf")
@@ -95,9 +95,9 @@ jobs:
           python - <<'EOF'
           import glob, os
           system_prompts = glob.glob("prompts/system/*.txt")
-          preprompts = glob.glob("prompts/prepromt/*.yml")
+          preprompts = glob.glob("prompts/preprompt/*.yml")
           promptbooks = glob.glob("prompts/promptbooks/*.md")
-          iter_logs = glob.glob("prompts/prepromt/*_iterations.yml")
+          iter_logs = glob.glob("prompts/preprompt/*_iterations.yml")
 
           print(f"📚 Prompt-overzicht:")
           print(f"  System prompts:      {len(system_prompts)}")
@@ -117,7 +117,7 @@ jobs:
         run: |
           python - <<'EOF'
           import yaml, glob, os
-          for f in sorted(glob.glob("prompts/prepromt/*_iterations.yml")):
+          for f in sorted(glob.glob("prompts/preprompt/*_iterations.yml")):
               try:
                   data = yaml.safe_load(open(f, encoding="utf-8").read()) or {}
                   interactions = data.get("interactions", [])
@@ -140,7 +140,7 @@ jobs:
           echo ""
           echo "Agents in agents/:          $(ls agents/*.yml 2>/dev/null | wc -l)"
           echo "System prompts:             $(ls prompts/system/*.txt 2>/dev/null | wc -l)"
-          echo "Preprompts:                 $(ls prompts/prepromt/*.yml 2>/dev/null | wc -l)"
+          echo "Preprompts:                 $(ls prompts/preprompt/*.yml 2>/dev/null | wc -l)"
           echo "Tests in tests/:            $(find tests/ -name 'test_*.py' | wc -l)"
           echo ""
           echo "✅ Rapport voltooid!"

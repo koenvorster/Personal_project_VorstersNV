@@ -634,7 +634,7 @@ Personal_project_VorstersNV/
 │   └── prompts/             # 7 herbruikbare Copilot prompts
 ├── prompts/                 # AI-prompt bestanden
 │   ├── system/              # System prompts per agent
-│   └── prepromt/            # Pre-prompts + iteratie-logs
+│   └── preprompt/            # Pre-prompts + iteratie-logs
 ├── tests/                   # Pytest test suite (28 tests)
 ├── documentatie/            # Projectdocumentatie
 ├── docker-compose.yml       # PostgreSQL + Spring Boot + Next.js

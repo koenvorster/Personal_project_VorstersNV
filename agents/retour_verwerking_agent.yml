@@ -11,7 +11,7 @@ parent_agents:
   - order_verwerking_agent
 
 system_prompt_ref: "prompts/system/retour_verwerking_v2.txt"
-preprompt_ref: "prompts/prepromt/retour_verwerking_v2.txt"
+preprompt_ref: "prompts/preprompt/retour_verwerking_v2.txt"
 
 capabilities:
   - valideer_retouraanvraag
@@ -88,4 +88,4 @@ evaluation:
   feedback_loop: false
   log_dir: "logs/retour_verwerking"
 
-iteration_log: "prompts/prepromt/retour_verwerking_iterations.yml"
+iteration_log: "prompts/preprompt/retour_verwerking_iterations.yml"

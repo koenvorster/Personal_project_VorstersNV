@@ -24,7 +24,7 @@ model: <model>
 temperature: <temp>
 max_tokens: 1024
 system_prompt_ref: prompts/system/<naam>.txt
-prepromt_ref: prompts/prepromt/<naam>_v1.txt
+preprompt_ref: prompts/preprompt/<naam>_v1.txt
 capabilities:
   - <capability 1>
   - <capability 2>
@@ -43,13 +43,13 @@ sub_agents: []
 - Taal (Nederlands, formeel/informeel)
 - Maximale lengte richtlijn
 
-### 3. Preprompt v1 (`prompts/prepromt/<naam>_v1.txt`)
+### 3. Preprompt v1 (`prompts/preprompt/<naam>_v1.txt`)
 - Context over VorstersNV
 - Domein-specifieke instructies
 - 2-3 few-shot voorbeelden
 - Specifieke constraints voor deze agent
 
-### 4. Iteratielog (`prompts/prepromt/<naam>_iterations.yml`)
+### 4. Iteratielog (`prompts/preprompt/<naam>_iterations.yml`)
 ```yaml
 agent: <naam>
 versies:

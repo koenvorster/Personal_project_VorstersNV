@@ -9,7 +9,7 @@ max_tokens: 4096
 top_p: 0.85
 
 system_prompt_ref: prompts/system/clean_code_reviewer_system.txt
-preprompt_ref: prompts/prepromt/clean_code_reviewer_v1.yml
+preprompt_ref: prompts/preprompt/clean_code_reviewer_v1.yml
 
 capabilities:
   - review_single_responsibility

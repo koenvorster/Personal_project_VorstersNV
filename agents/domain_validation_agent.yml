@@ -9,7 +9,7 @@ max_tokens: 3072
 top_p: 0.8
 
 system_prompt_ref: prompts/system/domain_validation_system.txt
-preprompt_ref: prompts/prepromt/domain_validation_v1.yml
+preprompt_ref: prompts/preprompt/domain_validation_v1.yml
 
 capabilities:
   - extract_business_rules

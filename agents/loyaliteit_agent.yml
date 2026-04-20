@@ -9,7 +9,7 @@ max_tokens: 1024
 language: nl
 
 system_prompt_ref: "prompts/system/loyaliteit.txt"
-preprompt_ref: "prompts/prepromt/loyaliteit_v1.txt"
+preprompt_ref: "prompts/preprompt/loyaliteit_v1.txt"
 
 capabilities:
   - punten_status_uitleggen
@@ -93,4 +93,4 @@ evaluation:
   feedback_loop: false
   log_dir: "logs/loyaliteit"
 
-iteration_log: "prompts/prepromt/loyaliteit_iterations.yml"
+iteration_log: "prompts/preprompt/loyaliteit_iterations.yml"

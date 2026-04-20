@@ -1,0 +1,43 @@
+agent: product_beschrijving_agent
+last_updated: "2026-04-03"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-03"
+    author: "copilot-agent"
+    change: "Initiële versie"
+    metrics:
+      seo_score_gemiddeld: null
+      conversie_verbetering: null
+      handmatige_aanpassingen_percentage: null
+    notes: "Basis pre-prompt. Test met verschillende productcategorieën."
+    status: vervangen
+    system_prompt: "prompts/system/product_beschrijving.txt"
+    preprompt: "prompts/preprompt/product_beschrijving_v1.txt"
+
+  - version: "2.0"
+    date: "2026-07-01"
+    author: "copilot-agent"
+    change: "Verbeterd — BTW, verboden woorden, chain-of-thought, few-shot"
+    improvements:
+      - BTW-vermelding verplicht
+      - Belgische marktspecifiek (garantie 2j, retour 30d)
+      - Chain-of-thought doelgroepanalyse en zoekwoordstrategie
+      - Few-shot voorbeeld goed vs fout
+      - Zelfevaluatie checklist
+      - JSON output afgedwongen
+    metrics:
+      seo_score_gemiddeld: null
+      conversie_verbetering: null
+      handmatige_aanpassingen_percentage: null
+    notes: "v2 klaar voor A/B test vs v1. Meet SEO-scores en handmatige aanpassingen."
+    status: actief
+    system_prompt: "prompts/system/product_beschrijving_v2.txt"
+    preprompt: "prompts/preprompt/product_beschrijving_v2.txt"
+
+# Iteratie-strategie voor product-beschrijvingen:
+# 1. Test per productcategorie afzonderlijk
+# 2. Vergelijk SEO-scores voor en na
+# 3. Track of teksten handmatig worden aangepast (hoog % = slechte kwaliteit)
+# 4. A/B-test verschillende tone-of-voice stijlen
+# 5. Optimaliseer voor conversie, niet alleen SEO

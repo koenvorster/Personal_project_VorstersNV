@@ -8,7 +8,7 @@ max_tokens: 1024
 language: nl
 
 system_prompt_ref: "prompts/system/checkout_begeleiding.txt"
-preprompt_ref: "prompts/prepromt/checkout_begeleiding_v1.yml"
+preprompt_ref: "prompts/preprompt/checkout_begeleiding_v1.yml"
 
 capabilities:
   - adres_validatie_fout_uitleggen
@@ -108,4 +108,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/checkout_begeleiding"
 
-iteration_log: "prompts/prepromt/checkout_begeleiding_iterations.yml"
+iteration_log: "prompts/preprompt/checkout_begeleiding_iterations.yml"

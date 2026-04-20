@@ -12,7 +12,7 @@ max_tokens: 4096
 top_p: 0.9
 
 system_prompt_ref: prompts/system/architect_agent_system.txt
-preprompt_ref: prompts/prepromt/architect_agent_v1.yml
+preprompt_ref: prompts/preprompt/architect_agent_v1.yml
 
 capabilities:
   # Architecture

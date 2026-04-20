@@ -99,16 +99,16 @@ model: llama3 | mistral
 temperature: 0.1 – 0.7   # laag = deterministisch, hoog = creatief
 max_tokens: 2048 – 8192
 system_prompt_ref: prompts/system/<naam>_system.txt
-preprompt_ref: prompts/prepromt/<naam>_v1.yml   # ⚠️ typo is intentioneel (load-bearing)
+preprompt_ref: prompts/preprompt/<naam>_v1.yml   # ⚠️ typo is intentioneel (load-bearing)
 capabilities:
   - capability_naam
 sub_agents:            # optioneel — gedelegeerde sub-agents
   - sub_agent_naam
 ```
 
-> ⚠️ **Bekende typo**: `prepromt_ref` (mist de tweede 'p'). Dit is een load-bearing typo die in
-> 25 YAML-bestanden, `agent_runner.py`, CI-scripts en de `prompts/prepromt/` directory bestaat.
-> Het herstellen vereist een gecoördineerde rename van alle bestanden tegelijk. Zie `vn-p3-prepromt-typo` in het backlog.
+> ⚠️ **Bekende typo**: `preprompt_ref` (mist de tweede 'p'). Dit is een load-bearing typo die in
+> 25 YAML-bestanden, `agent_runner.py`, CI-scripts en de `prompts/preprompt/` directory bestaat.
+> Het herstellen vereist een gecoördineerde rename van alle bestanden tegelijk. Zie `vn-p3-preprompt-typo` in het backlog.
 
 ---
 
@@ -141,5 +141,5 @@ Elke agent heeft bijbehorende prompt-bestanden:
 ```
 prompts/
 ├── system/       # Systeemprompts (rol, toon, beperkingen)
-└── prepromt/     # Context/instructie prompts per agent (YAML format)
+└── preprompt/     # Context/instructie prompts per agent (YAML format)
 ```

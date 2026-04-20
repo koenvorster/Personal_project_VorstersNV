@@ -12,7 +12,7 @@ max_tokens: 4096
 top_p: 0.85
 
 system_prompt_ref: prompts/system/automation_system.txt
-preprompt_ref: prompts/prepromt/automation_v1.yml
+preprompt_ref: prompts/preprompt/automation_v1.yml
 
 # ────────────────────────────────────────────────────────────────
 # Scope: Cypress = E2E testen  |  Playwright MCP = automaties

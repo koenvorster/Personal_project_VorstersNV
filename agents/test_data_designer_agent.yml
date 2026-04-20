@@ -9,7 +9,7 @@ max_tokens: 3072
 top_p: 0.8
 
 system_prompt_ref: prompts/system/test_data_designer_system.txt
-preprompt_ref: prompts/prepromt/test_data_designer_v1.yml
+preprompt_ref: prompts/preprompt/test_data_designer_v1.yml
 
 capabilities:
   - design_boundary_datasets

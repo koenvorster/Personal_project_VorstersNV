@@ -26,7 +26,7 @@ class PromptIterator:
 
     def __init__(self, agent_name: str):
         self.agent_name = agent_name
-        self.iterations_file = PROMPTS_DIR / "prepromt" / f"{agent_name}_iterations.yml"
+        self.iterations_file = PROMPTS_DIR / "preprompt" / f"{agent_name}_iterations.yml"
         self.log_dir = LOGS_DIR / agent_name
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -158,7 +158,7 @@ class PromptIterator:
 
     def create_new_version(
         self,
-        new_prepromt: str,
+        new_preprompt: str,
         change_description: str,
         author: str = "handmatig",
     ) -> str:
@@ -166,7 +166,7 @@ class PromptIterator:
         Maak een nieuwe prompt-versie aan.
 
         Args:
-            new_prepromt: De nieuwe pre-prompt tekst
+            new_preprompt: De nieuwe pre-prompt tekst
             change_description: Beschrijving van de wijziging
             author: Wie de wijziging heeft gemaakt
 
@@ -178,8 +178,8 @@ class PromptIterator:
         new_version = f"{major}.{int(minor) + 1}"
 
         # Sla nieuwe pre-prompt op
-        prepromt_file = PROMPTS_DIR / "prepromt" / f"{self.agent_name}_v{new_version.replace('.', '_')}.txt"
-        prepromt_file.write_text(new_prepromt, encoding="utf-8")
+        preprompt_file = PROMPTS_DIR / "preprompt" / f"{self.agent_name}_v{new_version.replace('.', '_')}.txt"
+        preprompt_file.write_text(new_preprompt, encoding="utf-8")
 
         # Update iterations log
         if self.iterations_file.exists():
@@ -198,7 +198,7 @@ class PromptIterator:
             "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "author": author,
             "change": change_description,
-            "prepromt_file": str(prepromt_file.relative_to(PROMPTS_DIR.parent)),
+            "preprompt_file": str(preprompt_file.relative_to(PROMPTS_DIR.parent)),
             "status": "actief",
         })
 

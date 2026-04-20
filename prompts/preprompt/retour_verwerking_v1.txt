@@ -1,0 +1,32 @@
+version: "1"
+agent: retour_verwerking_agent
+created: "2026-04-10"
+description: "Eerste versie van de retour-verwerking pre-prompt"
+
+preprompt: |
+  Verwerk de volgende retouraanvraag voor VorstersNV.
+
+  Retouraanvraag:
+  - Retour-ID: {retour_id}
+  - Order-ID: {order_id}
+  - Aanvraagdatum: {aanvraagdatum}
+  - Reden: {retour_reden}
+
+  Klantgegevens:
+  - Naam: {klant_naam}
+  - E-mail: {klant_email}
+
+  Product(en):
+  {producten}
+
+  Orderdatum: {orderdatum}
+  Ontvangstdatum klant: {ontvangstdatum}
+
+  Acties:
+  1. Beoordeel of de retour geldig is op basis van het retourbeleid
+  2. Bepaal de verwerkingsactie (terugbetaling / ruil / afwijzen)
+  3. Genereer retourbevestiging voor de klant
+  4. Geef instructies voor retourverzending
+  5. Geef aan welke systemen bijgewerkt moeten worden (voorraad, betaling)
+
+evaluation_notes: "Basis versie – retourbeleid hardcoded in system prompt"

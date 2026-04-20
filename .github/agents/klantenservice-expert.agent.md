@@ -11,8 +11,8 @@ Je bent de klantenservice domein-expert van VorstersNV. Je kent de klantenservic
 ## Klantenservice Agent Configuratie
 - **Runtime agent**: `agents/klantenservice_agent_v2.yml` (llama3, temp 0.4)
 - **System prompt**: `prompts/system/klantenservice.txt`
-- **Preprompt v1**: `prompts/prepromt/klantenservice_v1.txt`
-- **Iteratielog**: `prompts/prepromt/klantenservice_iterations.yml`
+- **Preprompt v1**: `prompts/preprompt/klantenservice_v1.txt`
+- **Iteratielog**: `prompts/preprompt/klantenservice_iterations.yml`
 - **Sub-agents**: retour_verwerking_agent, email_template_agent, fraude_detectie_agent
 
 ## Afhandelingsflows

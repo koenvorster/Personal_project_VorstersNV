@@ -8,7 +8,7 @@ max_tokens: 1500
 language: nl
 
 system_prompt_ref: "prompts/system/seo_v2.txt"
-preprompt_ref: "prompts/prepromt/seo_v2.txt"
+preprompt_ref: "prompts/preprompt/seo_v2.txt"
 
 capabilities:
   - analyseer_keywords
@@ -66,4 +66,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/seo"
 
-iteration_log: "prompts/prepromt/seo_iterations.yml"
+iteration_log: "prompts/preprompt/seo_iterations.yml"

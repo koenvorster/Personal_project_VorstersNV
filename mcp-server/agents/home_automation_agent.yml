@@ -4,7 +4,7 @@ version: 1.0
 
 model: llama3
 system_prompt_ref: ./prompts/system/home_automation_system.txt
-prepromt_ref: ./prompts/prepromt/home_automation_v1.yml
+preprompt_ref: ./prompts/preprompt/home_automation_v1.yml
 
 temperature: 0.5
 max_tokens: 1024

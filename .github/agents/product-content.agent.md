@@ -11,8 +11,8 @@ Je bent de product content-specialist van VorstersNV. Je verbetert de output van
 ## Product Beschrijving Agent Configuratie
 - **Runtime agent**: `agents/product_beschrijving_agent.yml` (llama3, temp 0.7)
 - **System prompt**: `prompts/system/product_beschrijving.txt`
-- **Preprompt v1**: `prompts/prepromt/product_beschrijving_v1.txt`
-- **Iteratielog**: `prompts/prepromt/product_beschrijving_iterations.yml`
+- **Preprompt v1**: `prompts/preprompt/product_beschrijving_v1.txt`
+- **Iteratielog**: `prompts/preprompt/product_beschrijving_iterations.yml`
 - **Promptboek**: `prompts/promptbooks/product_beschrijving_promptboek.md`
 
 ## VorstersNV Productbeschrijving Structuur
@@ -46,7 +46,7 @@ Elke productbeschrijving bevat:
 Bij lage scores op beschrijvingen:
 1. **Analyseer** de lage-score logs in `logs/product_beschrijving_agent/`
 2. **Identificeer** patroon: te generiek? Te technisch? Ontbreekt USP?
-3. **Pas aan** in `prompts/prepromt/product_beschrijving_v2.txt`
+3. **Pas aan** in `prompts/preprompt/product_beschrijving_v2.txt`
 4. **Test** met 3 referentieproducten
 5. **Vergelijk** output quality score v1 vs v2
 

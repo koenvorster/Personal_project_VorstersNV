@@ -66,7 +66,7 @@ class FeedbackRequest(BaseModel):
 
 
 class NieuweVersieRequest(BaseModel):
-    prepromt: str = Field(min_length=10, description="De nieuwe pre-prompt tekst")
+    preprompt: str = Field(min_length=10, description="De nieuwe pre-prompt tekst")
     beschrijving: str = Field(min_length=5, description="Wat is er veranderd?")
     auteur: str = Field(default="admin", description="Wie de versie heeft aangemaakt")
 
@@ -180,7 +180,7 @@ async def maak_nieuwe_versie(
 
     iterator = PromptIterator(agent_naam)
     nieuwe_versie = iterator.create_new_version(
-        new_prepromt=request.prepromt,
+        new_preprompt=request.preprompt,
         change_description=request.beschrijving,
         author=request.auteur,
     )

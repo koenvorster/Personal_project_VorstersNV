@@ -4,7 +4,7 @@ version: 1.0
 
 model: mistral
 system_prompt_ref: ./prompts/system/energy_management_system.txt
-prepromt_ref: ./prompts/prepromt/energy_management_v1.yml
+preprompt_ref: ./prompts/preprompt/energy_management_v1.yml
 
 temperature: 0.6
 max_tokens: 1024

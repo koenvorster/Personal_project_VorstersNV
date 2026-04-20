@@ -10,7 +10,7 @@ parent_agents:
   - order_verwerking_agent
 
 system_prompt_ref: "prompts/system/voorraad_advies_v2.txt"
-preprompt_ref: "prompts/prepromt/voorraad_advies_v2.txt"
+preprompt_ref: "prompts/preprompt/voorraad_advies_v2.txt"
 
 capabilities:
   - analyseer_voorraadniveaus
@@ -81,4 +81,4 @@ evaluation:
   feedback_loop: false
   log_dir: "logs/voorraad_advies"
 
-iteration_log: "prompts/prepromt/voorraad_advies_iterations.yml"
+iteration_log: "prompts/preprompt/voorraad_advies_iterations.yml"

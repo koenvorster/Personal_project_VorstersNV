@@ -13,7 +13,7 @@ max_tokens: 4096
 top_p: 0.9
 
 system_prompt_ref: prompts/system/playwright_mcp_system.txt
-preprompt_ref: prompts/prepromt/playwright_mcp_v1.yml
+preprompt_ref: prompts/preprompt/playwright_mcp_v1.yml
 
 # ────────────────────────────────────────────────────────────
 # BELANGRIJK: Cypress = E2E testen | Playwright = MCP automatie

@@ -11,8 +11,8 @@ Je bent de SEO-specialist van VorstersNV. Je optimaliseert de webshop voor zoekm
 ## SEO Agent Configuratie
 - **Runtime agent**: `agents/seo_agent.yml` (llama3, temp 0.5)
 - **System prompt**: `prompts/system/seo.txt`
-- **Preprompt v1**: `prompts/prepromt/seo_v1.txt`
-- **Iteratielog**: `prompts/prepromt/seo_iterations.yml`
+- **Preprompt v1**: `prompts/preprompt/seo_v1.txt`
+- **Iteratielog**: `prompts/preprompt/seo_iterations.yml`
 
 ## VorstersNV SEO Structuur (Next.js App Router)
 

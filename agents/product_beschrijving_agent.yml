@@ -8,7 +8,7 @@ max_tokens: 2048
 language: nl
 
 system_prompt_ref: "prompts/system/product_beschrijving_v2.txt"
-preprompt_ref: "prompts/prepromt/product_beschrijving_v2.txt"
+preprompt_ref: "prompts/preprompt/product_beschrijving_v2.txt"
 
 capabilities:
   - genereer_productbeschrijving
@@ -65,4 +65,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/product_beschrijving"
 
-iteration_log: "prompts/prepromt/product_beschrijving_iterations.yml"
+iteration_log: "prompts/preprompt/product_beschrijving_iterations.yml"

@@ -4,7 +4,7 @@ version: 1.0
 
 model: llama3
 system_prompt_ref: ./prompts/system/security_system.txt
-prepromt_ref: ./prompts/prepromt/security_v1.yml
+preprompt_ref: ./prompts/preprompt/security_v1.yml
 
 temperature: 0.3
 max_tokens: 512

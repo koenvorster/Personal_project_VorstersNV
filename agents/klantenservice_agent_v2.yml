@@ -9,7 +9,7 @@ max_tokens: 2048
 top_p: 0.9
 
 system_prompt_ref: prompts/system/klantenservice_v2.txt
-preprompt_ref: prompts/prepromt/klantenservice_v2.txt
+preprompt_ref: prompts/preprompt/klantenservice_v2.txt
 
 capabilities:
   - beantwoord_vragen
@@ -99,4 +99,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/klantenservice"
 
-iteration_log: "prompts/prepromt/klantenservice_iterations.yml"
+iteration_log: "prompts/preprompt/klantenservice_iterations.yml"

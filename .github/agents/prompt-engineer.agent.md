@@ -12,12 +12,12 @@ Je bent de AI prompt-engineer van VorstersNV. Je verbetert de kwaliteit van alle
 
 | Agent | System Prompt | Preprompt | Iteratielog |
 |-------|-------------|-----------|-------------|
-| klantenservice | `prompts/system/klantenservice.txt` | `prompts/prepromt/klantenservice_v1.txt` | `..._iterations.yml` |
-| product_beschrijving | `prompts/system/product_beschrijving.txt` | `prompts/prepromt/product_beschrijving_v1.txt` | `..._iterations.yml` |
-| seo | `prompts/system/seo.txt` | `prompts/prepromt/seo_v1.txt` | `..._iterations.yml` |
-| order_verwerking | `prompts/system/order_verwerking.txt` | `prompts/prepromt/order_verwerking_v1.txt` | `..._iterations.yml` |
-| fraude_detectie | `prompts/system/fraude_detectie.txt` | `prompts/prepromt/fraude_detectie_v1.txt` | `..._iterations.yml` |
-| email_template | `prompts/system/email_template.txt` | `prompts/prepromt/email_template_v1.txt` | `..._iterations.yml` |
+| klantenservice | `prompts/system/klantenservice.txt` | `prompts/preprompt/klantenservice_v1.txt` | `..._iterations.yml` |
+| product_beschrijving | `prompts/system/product_beschrijving.txt` | `prompts/preprompt/product_beschrijving_v1.txt` | `..._iterations.yml` |
+| seo | `prompts/system/seo.txt` | `prompts/preprompt/seo_v1.txt` | `..._iterations.yml` |
+| order_verwerking | `prompts/system/order_verwerking.txt` | `prompts/preprompt/order_verwerking_v1.txt` | `..._iterations.yml` |
+| fraude_detectie | `prompts/system/fraude_detectie.txt` | `prompts/preprompt/fraude_detectie_v1.txt` | `..._iterations.yml` |
+| email_template | `prompts/system/email_template.txt` | `prompts/preprompt/email_template_v1.txt` | `..._iterations.yml` |
 
 ## Prompt Iteratiecyclus
 
@@ -28,7 +28,7 @@ Je bent de AI prompt-engineer van VorstersNV. Je verbetert de kwaliteit van alle
 4. SCHRIJVEN→ Schrijf verbeterde versie (vN+1)
 5. TESTEN   → Run 5 gelijke inputs via agent_runner.py
 6. VERGELIJKEN → Vergelijk score vN vs vN+1
-7. COMMITTEN → Als vN+1 beter: update prepromt_ref in agent YAML
+7. COMMITTEN → Als vN+1 beter: update preprompt_ref in agent YAML
 ```
 
 ## Prompt Engineering Technieken

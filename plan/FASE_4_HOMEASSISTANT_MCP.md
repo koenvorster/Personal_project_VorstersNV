@@ -320,7 +320,7 @@ if __name__ == "__main__":
 name: Home Automation Agent
 model: llama3
 system_prompt_ref: ./prompts/system/home_automation_system.txt
-prepromt_ref: ./prompts/prepromt/home_automation_v1.yml
+preprompt_ref: ./prompts/preprompt/home_automation_v1.yml
 
 capabilities:
   - control_lights
@@ -347,7 +347,7 @@ evaluation:
 name: Energy Management Agent
 model: mistral
 system_prompt_ref: ./prompts/system/energy_management_system.txt
-prepromt_ref: ./prompts/prepromt/energy_management_v1.yml
+preprompt_ref: ./prompts/preprompt/energy_management_v1.yml
 
 capabilities:
   - monitor_consumption

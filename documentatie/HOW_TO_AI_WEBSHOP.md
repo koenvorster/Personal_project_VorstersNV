@@ -169,7 +169,7 @@ model: llama3
 temperature: 0.3
 max_tokens: 800
 system_prompt_ref: prompts/system/klantenservice.txt
-prepromt_ref: prompts/prepromt/klantenservice_v3.yml
+preprompt_ref: prompts/preprompt/klantenservice_v3.yml
 capabilities:
   - klantvragen_beantwoorden
   - retour_verwerken

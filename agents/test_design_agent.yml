@@ -9,7 +9,7 @@ max_tokens: 4096
 top_p: 0.85
 
 system_prompt_ref: prompts/system/test_design_system.txt
-preprompt_ref: prompts/prepromt/test_design_v1.yml
+preprompt_ref: prompts/preprompt/test_design_v1.yml
 
 capabilities:
   - write_bdd_scenarios

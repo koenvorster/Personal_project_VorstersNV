@@ -12,7 +12,7 @@ on:
         description: "Beschrijving van de prompt-wijziging"
         required: true
         type: string
-      nieuwe_prepromt:
+      nieuwe_preprompt:
         description: "Nieuwe pre-prompt tekst (of bestandspad)"
         required: false
         type: string

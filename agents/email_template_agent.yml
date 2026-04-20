@@ -14,7 +14,7 @@ parent_agents:
   - betaling_status_agent
 
 system_prompt_ref: "prompts/system/email_template_v2.txt"
-preprompt_ref: "prompts/prepromt/email_template_v2.txt"
+preprompt_ref: "prompts/preprompt/email_template_v2.txt"
 
 capabilities:
   - schrijf_orderbevestiging
@@ -82,4 +82,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/email_template"
 
-iteration_log: "prompts/prepromt/email_template_iterations.yml"
+iteration_log: "prompts/preprompt/email_template_iterations.yml"

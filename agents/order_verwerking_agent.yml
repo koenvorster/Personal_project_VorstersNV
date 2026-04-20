@@ -8,7 +8,7 @@ max_tokens: 512
 language: nl
 
 system_prompt_ref: "prompts/system/order_verwerking_v2.txt"
-preprompt_ref: "prompts/prepromt/order_verwerking_v2.txt"
+preprompt_ref: "prompts/preprompt/order_verwerking_v2.txt"
 
 sub_agents:
   - name: fraude_detectie_agent
@@ -59,4 +59,4 @@ evaluation:
   feedback_loop: true
   log_dir: "logs/order_verwerking"
 
-iteration_log: "prompts/prepromt/order_verwerking_iterations.yml"
+iteration_log: "prompts/preprompt/order_verwerking_iterations.yml"

@@ -116,7 +116,7 @@ class TestAgent:
             "name": "test_agent",
             "model": "llama3",
             "description": "Test",
-            "prepromt_ref": "prompts/prepromt/klantenservice_v1.txt",
+            "preprompt_ref": "prompts/preprompt/klantenservice_v1.txt",
         }
         agent = Agent(config)
 
@@ -254,7 +254,7 @@ class TestPromptIterator:
             original = _pi.PROMPTS_DIR
             _pi.PROMPTS_DIR = Path(tmp)
             try:
-                (Path(tmp) / "prepromt").mkdir()
+                (Path(tmp) / "preprompt").mkdir()
                 new_ver = iterator.create_new_version("Nieuwe prompt tekst", "Testwijziging")
                 assert new_ver == "1.1"
                 # Iterations bestand bijgewerkt

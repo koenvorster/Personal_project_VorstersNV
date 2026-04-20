@@ -1,0 +1,64 @@
+agent: email_template_agent
+last_updated: "2026-07-01"
+
+iterations:
+  - version: "1.0"
+    date: "2026-04-03"
+    change: "Initiële versie — basis e-mail templates"
+    metrics:
+      open_rate: null
+      click_rate: null
+      uitschrijfrate: null
+    notes: "Basis versie. Geen karakterlimiet-enforcement, geen GDPR footer logica."
+    status: vervangen
+    system_prompt: "prompts/system/email_template.txt"
+    preprompt: "prompts/preprompt/email_template_v1.txt"
+
+  - version: "2.0"
+    date: "2026-07-01"
+    change: "Karakterlimiet-enforcement, GDPR footer, few-shot, anti-spam"
+    improvements:
+      - Onderwerpregel hard cap 50 tekens (was 60)
+      - Preheader hard cap 90 tekens
+      - Hoofdtekst limiet 120 woorden
+      - GDPR footer logica (null voor transactioneel, verplicht voor marketing)
+      - Anti-spam woordenlijst uitgebreid
+      - Few-shot voorbeeld goed vs fout onderwerpregel
+      - Aanspreking-varianten (formeel/informeel)
+      - Pure JSON output enforcement
+    metrics:
+      open_rate: null
+      click_rate: null
+      uitschrijfrate: null
+    notes: "v2 klaar. A/B test formele vs informele aanspreking bij eerste orders."
+    status: actief
+    system_prompt: "prompts/system/email_template_v2.txt"
+    preprompt: "prompts/preprompt/email_template_v2.txt"
+    next_improvements:
+      - A/B test emoji in onderwerpregel (open rate impact)
+      - Gepersonaliseerde productaanbevelingen in e-mail
+      - HTML template integratie
+
+  - version: "2.1"
+    date: "2026-07-14"
+    change: "Factuurmelding (BTW-correct), betaling_mislukt template, terugbetalingsbevestiging BTW-uitsplitsing"
+    improvements:
+      - Factuurmelding template toegevoegd met BTW-uitsplitsing (excl/BTW21%/incl)
+      - BTW-nummer placeholder VorstersNV (BE0XXX.XXX.XXX) in factuurmelding
+      - B2B betalingsinstructies (IBAN + referentie) in factuurmelding
+      - betaling_mislukt e-mailtype toegevoegd (link naar herbetalingspoging)
+      - terugbetalingsbevestiging uitgebreid met expliciete BTW-uitsplitsing
+      - Parent agents uitgebreid: checkout_begeleiding_agent + betaling_status_agent
+      - Nieuw capability: schrijf_betaling_mislukt_notificatie
+    metrics:
+      open_rate: null
+      click_rate: null
+      uitschrijfrate: null
+    notes: "v2.1 klaar voor checkout-fase (b2/b3). Factuurmelding vereist BTW-nummer in productie te configureren."
+    status: actief
+    system_prompt: "prompts/system/email_template_v2.txt"
+    preprompt: "prompts/preprompt/email_template_v2.txt"
+    next_improvements:
+      - Echte BTW-nummer invullen na KBO-registratie productie
+      - HTML/mjml template integratie
+      - Dynamische productafbeeldingen in orderbevestiging
