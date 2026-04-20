@@ -1,0 +1,177 @@
+======================================================================
+  VorstersNV — Overzicht omgevingsvariabelen (.env)
+======================================================================
+Kopieer .env.example naar .env en vul alle waarden in.
+Commit NOOIT je .env bestand — het staat in .gitignore.
+
+----------------------------------------------------------------------
+  SECTIE 1 — DATABASE (PostgreSQL)
+----------------------------------------------------------------------
+
+DB_PASSWORD=
+  Wachtwoord voor de PostgreSQL database.
+  Gebruikt door: docker-compose.yml (POSTGRES_PASSWORD), Spring Boot API
+  Voorbeeld:     DB_PASSWORD=MijnSterkWachtwoord2024!
+  Standaard in docker-compose als leeg: dev-password-change-me
+
+DATABASE_URL=
+  Volledige async connectiestring voor SQLAlchemy (FastAPI).
+  Formaat:   postgresql+asyncpg://<user>:<wachtwoord>@<host>:<poort>/<db>
+  Lokaal:    DATABASE_URL=postgresql+asyncpg://vorstersNV:MijnWachtwoord@localhost:5432/vorstersNV
+  Docker:    host = "database" (servicenaam in docker-compose)
+
+----------------------------------------------------------------------
+  SECTIE 2 — FRONTEND (Next.js + NextAuth)
+----------------------------------------------------------------------
+
+NEXTAUTH_SECRET=
+  Willekeurige geheime string voor NextAuth sessie-encryptie.
+  Genereer via:  openssl rand -base64 32
+               OF: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  Voorbeeld:     NEXTAUTH_SECRET=a3f8e2b1c9d4...
+
+NEXTAUTH_URL=
+  Publieke URL van de Next.js frontend.
+  Lokaal:        NEXTAUTH_URL=http://localhost:3000
+  Productie:     NEXTAUTH_URL=https://vorstersNV.be
+
+API_URL=
+  URL van de FastAPI backend, bereikbaar vanuit de Next.js server-side code.
+  Lokaal:        API_URL=http://localhost:8000
+  Docker intern: API_URL=http://api:8000
+
+NEXT_PUBLIC_API_URL=
+  Publieke API URL, bereikbaar vanuit de browser (client-side).
+  Lokaal:        NEXT_PUBLIC_API_URL=http://localhost:8000
+  Let op: alles met NEXT_PUBLIC_ is zichtbaar in de browser-bundle!
+
+----------------------------------------------------------------------
+  SECTIE 3 — MOLLIE BETALINGEN
+----------------------------------------------------------------------
+
+MOLLIE_API_KEY=
+  Mollie API sleutel voor betalingsverwerking.
+  Test sleutel:  begint met "test_"  → veilig voor ontwikkeling
+  Live sleutel:  begint met "live_"  → ALLEEN in productie gebruiken
+  Ophalen via:   https://my.mollie.com/dashboard/developers/api-keys
+  Voorbeeld:     MOLLIE_API_KEY=test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+MOLLIE_WEBHOOK_URL=
+  URL die Mollie aanroept na een betaling (moet publiek bereikbaar zijn).
+  Lokaal testen: gebruik ngrok: MOLLIE_WEBHOOK_URL=https://xxxx.ngrok.io/api/mollie-webhook
+  Productie:     MOLLIE_WEBHOOK_URL=https://vorstersNV.be/api/mollie-webhook
+
+----------------------------------------------------------------------
+  SECTIE 4 — REDIS (cache & sessies)
+----------------------------------------------------------------------
+
+REDIS_URL=
+  Connectiestring voor Redis.
+  Lokaal:  REDIS_URL=redis://localhost:6379
+  Docker:  REDIS_URL=redis://redis:6379
+  Met auth: REDIS_URL=redis://:wachtwoord@localhost:6379
+
+----------------------------------------------------------------------
+  SECTIE 5 — KEYCLOAK (authenticatie)
+----------------------------------------------------------------------
+
+KEYCLOAK_URL=
+  Basis-URL van de Keycloak instantie.
+  Lokaal:  KEYCLOAK_URL=http://localhost:8080
+  Docker:  KEYCLOAK_URL=http://keycloak:8080
+
+KEYCLOAK_REALM=
+  Naam van de Keycloak realm.
+  Standaard: KEYCLOAK_REALM=vorstersNV
+
+KEYCLOAK_CLIENT_ID=
+  Client ID geregistreerd in Keycloak.
+  Voorbeeld: KEYCLOAK_CLIENT_ID=vorstersNV-api
+
+KEYCLOAK_CLIENT_SECRET=
+  Client secret uit Keycloak (Credentials tab van de client).
+  Ophalen via: Keycloak Admin Console → Clients → vorstersNV-api → Credentials
+
+----------------------------------------------------------------------
+  SECTIE 6 — OLLAMA (lokale AI)
+----------------------------------------------------------------------
+
+OLLAMA_BASE_URL=
+  URL van de Ollama service.
+  Lokaal:  OLLAMA_BASE_URL=http://localhost:11434
+  Docker:  OLLAMA_BASE_URL=http://ollama:11434
+  Gestart via: ollama serve
+
+OLLAMA_DEFAULT_MODEL=
+  Standaard model dat agents gebruiken als geen model opgegeven is.
+  Opties:  llama3, mistral, codellama
+  Voorbeeld: OLLAMA_DEFAULT_MODEL=llama3
+  Model downloaden: ollama pull llama3
+
+----------------------------------------------------------------------
+  SECTIE 7 — GITHUB (optioneel, voor MCP)
+----------------------------------------------------------------------
+
+GITHUB_TOKEN=
+  Personal Access Token voor de GitHub MCP server (optioneel).
+  Aanmaken via: https://github.com/settings/tokens
+  Benodigde rechten: repo, read:org (afhankelijk van gebruik)
+  Voorbeeld: GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+
+----------------------------------------------------------------------
+  VOLLEDIG .env VOORBEELD (kopieer en pas aan)
+----------------------------------------------------------------------
+
+# Database
+DB_PASSWORD=MijnSterkWachtwoord2024!
+DATABASE_URL=postgresql+asyncpg://vorstersNV:MijnSterkWachtwoord2024!@localhost:5432/vorstersNV
+
+# Frontend
+NEXTAUTH_SECRET=vervang-door-64-random-tekens
+NEXTAUTH_URL=http://localhost:3000
+API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# Mollie
+MOLLIE_API_KEY=test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MOLLIE_WEBHOOK_URL=https://xxxx.ngrok.io/api/mollie-webhook
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# Keycloak
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=vorstersNV
+KEYCLOAK_CLIENT_ID=vorstersNV-api
+KEYCLOAK_CLIENT_SECRET=vervang-door-keycloak-secret
+
+# Ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_DEFAULT_MODEL=llama3
+
+# GitHub MCP (optioneel)
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+
+----------------------------------------------------------------------
+  SNEL STARTEN (lokale ontwikkeling)
+----------------------------------------------------------------------
+
+1. cp .env.example .env
+2. Pas DB_PASSWORD, NEXTAUTH_SECRET en MOLLIE_API_KEY aan
+3. Start lokale services: docker compose up -d
+4. Start Ollama:          ollama serve && ollama pull llama3
+5. Valideer je .env:      node .claude/scripts/check-env.mjs
+6. Start FastAPI:         uvicorn api.main:app --reload
+7. Start frontend:        cd frontend && npm run dev
+
+----------------------------------------------------------------------
+  VEILIGHEID
+----------------------------------------------------------------------
+
+- .env staat in .gitignore — nooit committen!
+- Gebruik NOOIT live_ Mollie keys in lokale ontwikkeling
+- NEXTAUTH_SECRET moet uniek zijn per omgeving (dev ≠ prod)
+- Roteer secrets regelmatig (zeker na een lek)
+- Productie-secrets beheer je via GitHub Secrets of een vault
+
+======================================================================
