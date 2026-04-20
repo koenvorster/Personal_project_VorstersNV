@@ -3,7 +3,6 @@ VorstersNV Betalingen Router — DB-backed implementatie.
 Bestelling aanmaken persisteert in PostgreSQL via Order/Customer/OrderItem modellen.
 Betaal-URL is mock totdat b3 (Mollie-integratie) live gaat.
 """
-import os
 import uuid
 from decimal import Decimal
 from typing import Annotated
@@ -15,13 +14,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api.auth.jwt import TokenData, get_optional_user
+from api.config import settings
 from db.database import get_db
 from db.models import Customer, Order, OrderItem, OrderStatus, Product
 
 router = APIRouter()
 
 BTW_PERCENTAGE = Decimal("0.21")
-BASE_URL = os.environ.get("BASE_URL", "http://localhost:3000")
+BASE_URL = settings.base_url
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────

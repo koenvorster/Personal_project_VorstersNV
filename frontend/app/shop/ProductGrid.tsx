@@ -163,6 +163,7 @@ export default function ProductGrid() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
           <input
+            data-testid="search-input"
             type="search"
             value={zoek}
             onChange={e => setZoek(e.target.value)}
@@ -171,6 +172,7 @@ export default function ProductGrid() {
           />
           {zoek && (
             <button
+              data-testid="search-clear"
               onClick={() => setZoek('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
             >
@@ -183,6 +185,7 @@ export default function ProductGrid() {
         {categories.length > 0 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
+              data-testid="category-filter-all"
               onClick={() => setActiveCat(null)}
               className={`shrink-0 text-xs px-3 py-2 rounded-xl transition-all ${
                 activeCat === null
@@ -194,6 +197,7 @@ export default function ProductGrid() {
             </button>
             {categories.map(cat => (
               <button
+                data-testid={`category-filter-${cat.slug}`}
                 key={cat.id}
                 onClick={() => setActiveCat(activeCat === cat.slug ? null : cat.slug)}
                 className={`shrink-0 text-xs px-3 py-2 rounded-xl transition-all ${
@@ -218,6 +222,7 @@ export default function ProductGrid() {
           <p className="text-white/50 text-lg">Geen producten gevonden</p>
           {(zoek || activeCat) && (
             <button
+              data-testid="filters-wissen"
               onClick={() => { setZoek(''); setActiveCat(null) }}
               className="mt-4 text-sm text-purple-400 hover:text-purple-300 transition-colors"
             >

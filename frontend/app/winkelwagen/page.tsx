@@ -70,15 +70,17 @@ export default function WinkelwagenPage() {
                 {/* Quantity */}
                 <div className="flex items-center bg-white/5 border border-white/10 rounded-xl overflow-hidden">
                   <button
+                    data-testid={`quantity-minus-${item.product_id}`}
                     onClick={() => updateAantal(item.product_id, item.aantal - 1)}
                     className="px-2 py-1.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="px-3 py-1.5 text-white text-sm font-medium min-w-[2rem] text-center">
+                  <span data-testid={`quantity-${item.product_id}`} className="px-3 py-1.5 text-white text-sm font-medium min-w-[2rem] text-center">
                     {item.aantal}
                   </span>
                   <button
+                    data-testid={`quantity-plus-${item.product_id}`}
                     onClick={() => updateAantal(item.product_id, item.aantal + 1)}
                     className="px-2 py-1.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
                   >
@@ -93,6 +95,7 @@ export default function WinkelwagenPage() {
 
                 {/* Delete */}
                 <button
+                  data-testid={`remove-item-${item.product_id}`}
                   onClick={() => removeItem(item.product_id)}
                   className="text-white/30 hover:text-red-400 transition-colors"
                 >
@@ -128,6 +131,7 @@ export default function WinkelwagenPage() {
             </div>
 
             <Link
+              data-testid="checkout-link"
               href="/afrekenen"
               className="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-6 py-3 rounded-xl font-medium transition-all"
             >

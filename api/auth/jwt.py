@@ -5,7 +5,6 @@ Rollen worden gelezen uit de Keycloak realm_access claim.
 
 Guest checkout: gebruik `get_optional_user` voor routes die beide ondersteunen.
 """
-import os
 import time
 from typing import Annotated
 
@@ -15,13 +14,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwk, jwt
 from pydantic import BaseModel
 
+from api.config import settings
 from db.models.user import UserRole
 
-KEYCLOAK_URL = os.environ.get("KEYCLOAK_URL", "http://localhost:8080")
-KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "vorstersNV")
-KEYCLOAK_CLIENT_ID = os.environ.get("KEYCLOAK_CLIENT_ID", "vorstersNV-api")
-# In productie: zet KEYCLOAK_VERIFY_AUD=true (verplicht audience-check)
-_VERIFY_AUD = os.environ.get("KEYCLOAK_VERIFY_AUD", "false").lower() == "true"
+KEYCLOAK_URL = settings.keycloak_url
+KEYCLOAK_REALM = settings.keycloak_realm
+KEYCLOAK_CLIENT_ID = settings.keycloak_client_id
+_VERIFY_AUD = settings.keycloak_verify_aud
 
 JWKS_URL = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/certs"
 ISSUER = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}"

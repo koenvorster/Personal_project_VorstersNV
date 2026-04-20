@@ -46,7 +46,7 @@ export default function AfrekenPage() {
   const subtotaal = totaal()
   const verzendkosten = subtotaal >= 50 ? 0 : VERZENDKOSTEN
   const btwBedrag = subtotaal * BTW
-  const eindtotaal = subtotaal + verzendkosten
+  const eindtotaal = subtotaal + btwBedrag + verzendkosten
 
   const [form, setForm] = useState<FormData>(defaultForm)
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({})
@@ -145,17 +145,17 @@ export default function AfrekenPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Volledige naam *</label>
-                    <input name="naam" value={form.naam} onChange={handleChange} placeholder="Jan Janssen" className={inputClass} />
+                    <input data-testid="field-naam" name="naam" value={form.naam} onChange={handleChange} placeholder="Jan Janssen" className={inputClass} />
                     {errors.naam && <p className={errorClass}>{errors.naam}</p>}
                   </div>
                   <div>
                     <label className={labelClass}>E-mailadres *</label>
-                    <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="jan@voorbeeld.nl" className={inputClass} />
+                    <input data-testid="field-email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="jan@voorbeeld.nl" className={inputClass} />
                     {errors.email && <p className={errorClass}>{errors.email}</p>}
                   </div>
                   <div>
                     <label className={labelClass}>Telefoon</label>
-                    <input name="telefoon" type="tel" value={form.telefoon} onChange={handleChange} placeholder="+32 470 00 00 00" className={inputClass} />
+                    <input data-testid="field-telefoon" name="telefoon" type="tel" value={form.telefoon} onChange={handleChange} placeholder="+32 470 00 00 00" className={inputClass} />
                   </div>
                 </div>
               </div>
@@ -165,17 +165,17 @@ export default function AfrekenPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Straat + huisnummer *</label>
-                    <input name="straat" value={form.straat} onChange={handleChange} placeholder="Hoofdstraat 1" className={inputClass} />
+                    <input data-testid="field-straat" name="straat" value={form.straat} onChange={handleChange} placeholder="Hoofdstraat 1" className={inputClass} />
                     {errors.straat && <p className={errorClass}>{errors.straat}</p>}
                   </div>
                   <div>
                     <label className={labelClass}>Postcode *</label>
-                    <input name="postcode" value={form.postcode} onChange={handleChange} placeholder="2000" className={inputClass} />
+                    <input data-testid="field-postcode" name="postcode" value={form.postcode} onChange={handleChange} placeholder="2000" className={inputClass} />
                     {errors.postcode && <p className={errorClass}>{errors.postcode}</p>}
                   </div>
                   <div>
                     <label className={labelClass}>Stad *</label>
-                    <input name="stad" value={form.stad} onChange={handleChange} placeholder="Antwerpen" className={inputClass} />
+                    <input data-testid="field-stad" name="stad" value={form.stad} onChange={handleChange} placeholder="Antwerpen" className={inputClass} />
                     {errors.stad && <p className={errorClass}>{errors.stad}</p>}
                   </div>
                 </div>
@@ -184,6 +184,7 @@ export default function AfrekenPage() {
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
                 <h2 className="text-white font-semibold mb-5">Betaalmethode</h2>
                 <select
+                  data-testid="select-betaalmethode"
                   name="betaalmethode"
                   value={form.betaalmethode}
                   onChange={handleChange}
@@ -229,7 +230,7 @@ export default function AfrekenPage() {
                   <div className="flex justify-between font-bold text-white text-base pt-2 border-t border-white/10">
                     <span>Totaal</span>
                     <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                      {formatPrijs(eindtotaal + btwBedrag)}
+                      {formatPrijs(eindtotaal)}
                     </span>
                   </div>
                 </div>
@@ -241,6 +242,7 @@ export default function AfrekenPage() {
                 )}
 
                 <button
+                  data-testid="submit-bestelling"
                   type="submit"
                   disabled={loading || items.length === 0}
                   className="mt-5 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-all"
