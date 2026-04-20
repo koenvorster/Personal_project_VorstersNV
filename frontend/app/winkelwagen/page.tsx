@@ -17,7 +17,7 @@ export default function WinkelwagenPage() {
   const subtotaal = useCartStore((s) => s.totaal())
   const verzendkosten = subtotaal >= 50 ? 0 : VERZENDKOSTEN
   const btw = subtotaal * BTW
-  const totaal = subtotaal + verzendkosten
+  const totaal = subtotaal + btw + verzendkosten
 
   if (items.length === 0) {
     return (
