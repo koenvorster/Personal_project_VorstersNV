@@ -36,3 +36,6 @@ mypy==1.14.0
 
 # Alembic sync driver (voor migraties - asyncpg is voor runtime)
 psycopg2-binary==2.9.10
+
+# Test database (in-memory SQLite voor unit tests)
+aiosqlite==0.20.0
