@@ -11,6 +11,7 @@ from .models import (
     OrderStatus,
     ToneOfVoice,
 )
+from .leads import Lead
 
 __all__ = [
     "Base",
@@ -23,4 +24,5 @@ __all__ = [
     "AgentLog",
     "OrderStatus",
     "ToneOfVoice",
+    "Lead",
 ]

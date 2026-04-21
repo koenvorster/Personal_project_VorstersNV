@@ -27,14 +27,14 @@ export default function ContactPage() {
     e.preventDefault()
     setStatus('loading')
     try {
-      const res = await fetch('http://localhost:8081/api/leads', {
+      const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data?.message || `HTTP ${res.status}`)
+        throw new Error(data?.detail || data?.message || `HTTP ${res.status}`)
       }
       setStatus('success')
     } catch (err) {

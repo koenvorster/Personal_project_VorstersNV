@@ -2,7 +2,9 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Brain, Code2, Wifi, CheckCircle2, Mail, ArrowRight } from 'lucide-react'
+import {
+  Code2, Brain, Wifi, CheckCircle2, Mail, ArrowRight, Search
+} from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import GradientButton from '@/components/ui/GradientButton'
 import Link from 'next/link'
@@ -66,6 +68,20 @@ const diensten = [
       'Prototyping & MVPs',
     ],
   },
+  {
+    icon: Search,
+    titel: 'Legacy Code Analyse',
+    ondertitel: 'Maak uw ongedocumenteerde systemen begrijpelijk',
+    gradient: 'from-amber-600 to-orange-800',
+    prijs: 'Vanaf €500',
+    features: [
+      'Java, Python, C#, PHP, VBA',
+      'Business logic extraheren',
+      'Leesbare documentatie voor niet-technici',
+      'AI-assisted analyse van grote codebases',
+      'Modernisatieadvies & roadmap',
+    ],
+  },
 ]
 
 const stappen = [
@@ -103,7 +119,7 @@ export default function DienstenPage() {
 
       {/* Service Cards */}
       <section className="mb-16 sm:mb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-8">
           {diensten.map((dienst, i) => (
             <AnimatedSection key={dienst.titel} delay={i * 0.15}>
               <GlassCard hover className="overflow-hidden h-full flex flex-col">
