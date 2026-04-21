@@ -24,7 +24,7 @@ De webshop is lager geprioriteerd — consultancy tools zijn het actieve ontwikk
 ```
 Personal_project_VorstersNV/
 ├── .github/
-│   ├── agents/               # 15 Copilot development agents (.agent.md)
+│   ├── agents/               # 29 Copilot development agents (.agent.md)
 │   └── copilot-instructions.md
 ├── agents/                   # Runtime Ollama agent YAML-definities (21 bestanden)
 ├── ollama/                   # Ollama Python module
@@ -262,6 +262,40 @@ Huidige mode staat in `plan/mode.yml`.
 
 ---
 
+## MCP Servers (Copilot CLI)
+
+Configuratie in `mcp-config.json`. Actieve servers:
+
+| Server | Gebruik |
+|--------|---------|
+| `ollama` | Lokale AI-modellen aanroepen via `agent_runner.py` |
+| `github` | Issues, PRs, code zoeken (vereist `GITHUB_TOKEN`) |
+| `playwright` | Browser automatisering, E2E tests, web scraping |
+| `filesystem` | Lokale bestanden lezen/schrijven |
+| `postgres` | Direct PostgreSQL queries (vereist `DB_URL`) |
+| `fetch` | Externe URLs ophalen, API's aanroepen |
+| `memory` | Feiten onthouden over sessies heen |
+| **Atlassian** | **Ingebouwd in Copilot CLI** — Jira + Confluence zonder extra config |
+
+### Atlassian MCP
+De Atlassian integratie (Jira + Confluence) is beschikbaar via de ingebouwde Copilot CLI tools.
+Geen extra setup nodig als je bent ingelogd via `gh auth login`.
+
+Voor standalone gebruik (buiten Copilot CLI):
+```bash
+uvx mcp-atlassian --confluence-url https://jouw-site.atlassian.net
+# Vereist: CONFLUENCE_API_TOKEN en JIRA_API_TOKEN environment variables
+```
+
+### Ollama op Remote Desktop Server
+```bash
+# .env op laptop — Ollama draait op gaming desktop
+OLLAMA_HOST=http://192.168.1.XXX:11434
+OLLAMA_DEFAULT_MODEL=llama3:70b
+```
+
+---
+
 ## Belangrijke Conventies
 
 - Alle webhook payloads worden gevalideerd met HMAC-SHA256
@@ -269,3 +303,4 @@ Huidige mode staat in `plan/mode.yml`.
 - Prompt-versies worden bijgehouden in `prompts/preprompt/*_iterations.yml`
 - Database modellen komen in `db/models/`, migraties in `db/migrations/`
 - Frontend API calls gaan altijd via `/api/` prefix (Next.js rewrites naar FastAPI)
+- MCP server config staat in `mcp-config.json` — kopieer naar `~/.copilot/mcp.json` voor globaal gebruik

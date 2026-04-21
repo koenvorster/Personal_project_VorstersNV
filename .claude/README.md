@@ -97,7 +97,7 @@ Canonieke bronnen voor tech stack en domain model:
 
 ## Claude Agents (`.claude/agents/`)
 
-> **46 agents** — volledig fleet, beschikbaar voor Claude-only gebruikers.
+> **49 agents** — volledig fleet, beschikbaar voor Claude-only gebruikers.
 
 ### Architectuur & DDD
 | Agent | Model | Doel | permissionMode |
@@ -165,6 +165,9 @@ Canonieke bronnen voor tech stack en domain model:
 | `technical-writer` | claude-sonnet-4-5 | API docs, ADRs, runbooks, onboarding guides | allow |
 | `data-engineer` | claude-sonnet-4-5 | Data pipelines, analytics queries, dashboards | allow |
 | `ux-reviewer` | claude-sonnet-4-5 | UX flows, usability, friction points | default |
+| `jira-planner` | claude-sonnet-4-5 | Jira issues, sprint planning, story points via Atlassian MCP | allow |
+| `confluence-writer` | claude-sonnet-4-5 | ADRs, runbooks, Confluence pagina's schrijven via Atlassian MCP | allow |
+| `ollama-manager` | claude-sonnet-4-5 | Ollama model beheer, debugging, server configuratie | allow |
 
 ### Freelance IT/AI Consultancy
 | Agent | Model | Doel | permissionMode |

@@ -1,33 +1,76 @@
 {
+  "_comment": "MCP servers voor Copilot CLI. Kopieer dit bestand naar ~/.copilot/mcp.json voor globale configuratie of gebruik per-project via copilot-setup-steps.yml.",
   "mcpServers": {
+
     "ollama": {
+      "_comment": "Lokale Ollama instantie — draait op localhost of remote desktop-server",
       "command": "npx",
       "args": ["-y", "ollama-mcp-server"],
       "env": {
-        "OLLAMA_HOST": "http://localhost:11434"
+        "OLLAMA_HOST": "${OLLAMA_HOST:-http://localhost:11434}",
+        "OLLAMA_DEFAULT_MODEL": "${OLLAMA_DEFAULT_MODEL:-llama3}"
       }
     },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {}
-    },
+
     "github": {
+      "_comment": "GitHub API — code zoeken, issues, PRs, workflows. Vereist GITHUB_TOKEN.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     },
-    "filesystem": {
+
+    "playwright": {
+      "_comment": "Browser automatisering — E2E tests, web scraping, screenshots.",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:\\Users\\kvo\\IdeaProjects\\VorstersNV"],
+      "args": ["@playwright/mcp@latest"],
       "env": {}
     },
+
+    "filesystem": {
+      "_comment": "Lokaal bestandssysteem toegang. Pas het pad aan naar jouw project.",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\kvo\\IdeaProjects\\VorstersNV"
+      ],
+      "env": {}
+    },
+
+    "postgres": {
+      "_comment": "PostgreSQL directe toegang — schema inspecteren, queries uitvoeren, debugging. Vereist DB_URL.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "${DB_URL:-postgresql://vorstersNV:dev-password-change-me@localhost:5432/vorstersNV}"
+      }
+    },
+
+    "fetch": {
+      "_comment": "HTTP fetch — externe API's aanroepen, webpagina's ophalen, documentation lezen.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "env": {}
+    },
+
     "memory": {
+      "_comment": "Persistente geheugen — feiten onthouden over de sessie heen.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {}
+    }
+  },
+
+  "_atlassian_setup": {
+    "_comment": "Atlassian (Jira + Confluence) is beschikbaar via de ingebouwde Copilot CLI integratie. Geen aparte MCP config nodig als je ingelogd bent via 'gh auth login --web'. Alternatief: gebruik de community mcp-atlassian server hieronder.",
+    "_manual_setup": "uvx mcp-atlassian --confluence-url https://jouw-site.atlassian.net --jira-url https://jouw-site.atlassian.net",
+    "_env_vars": {
+      "CONFLUENCE_USERNAME": "jouw-email@bedrijf.be",
+      "CONFLUENCE_API_TOKEN": "zie https://id.atlassian.com/manage-profile/security/api-tokens",
+      "JIRA_USERNAME": "jouw-email@bedrijf.be",
+      "JIRA_API_TOKEN": "zelfde token als confluence"
     }
   }
 }
