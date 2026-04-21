@@ -1,0 +1,143 @@
+name: java_chunk_analyse_agent
+version: "1.0"
+type: standalone_agent
+description: "Agent die via de java_extractor chunk-index grote Java-repositories analyseert.
+  Doorzoekt index.json, laadt relevante chunks en genereert gestructureerde technische analyse.
+  Ideaal voor legacy Java-projecten zoals LPB rekenmotor, Spring Boot monorepo's."
+model: llama3
+temperature: 0.1
+max_tokens: 2048
+language: nl
+
+system_prompt_ref: "prompts/system/java_chunk_analyse_v1.txt"
+preprompt_ref: "prompts/preprompt/java_chunk_analyse_v1.yml"
+
+capabilities:
+  - chunk_index_doorzoeken
+  - architectuur_reconstrueren
+  - business_rules_extraheren
+  - design_patterns_identificeren
+  - technische_schuld_rapporteren
+  - klasse_relaties_visualiseren
+
+input_schema:
+  type: object
+  required: [chunks_dir, vraag]
+  properties:
+    chunks_dir:
+      type: string
+      description: "Pad naar de output-map van java_extractor.py (bevat index.json en *.chunks.json)"
+      example: "scripts/output/lpb_rekenmotor_chunks"
+    vraag:
+      type: string
+      description: "Wat wil je weten over de codebase? Bijv. 'Hoe wordt BV berekend?'"
+    klassen_filter:
+      type: array
+      items: {type: string}
+      description: "Optioneel: analyseer enkel deze klassen (class_name uit index)"
+      example: ["BerekenBvGewoon", "AbstractBerekenBv", "BvTools"]
+    max_chunks:
+      type: integer
+      default: 10
+      description: "Maximum aantal chunks te laden (token-budget bewaking)"
+    analyse_type:
+      type: string
+      enum: [architectuur, business_rules, volledig, klasse_detail]
+      default: volledig
+    doelgroep:
+      type: string
+      enum: [it_team, business_analist, directie, nieuwe_developer]
+      default: it_team
+
+output_schema:
+  type: object
+  properties:
+    samenvatting:
+      type: string
+      description: "Executive summary van de analyse"
+    architectuur:
+      type: object
+      properties:
+        patroon: {type: string}
+        hoofdcomponenten: {type: array}
+        uitvoeringsvolgorde: {type: array}
+        diagram_ascii: {type: string}
+    business_rules:
+      type: array
+      items:
+        type: object
+        properties:
+          id: {type: string}
+          omschrijving: {type: string}
+          klasse: {type: string}
+          constante_waarde: {type: string}
+          wet_referentie: {type: string}
+    technische_schuld:
+      type: array
+      items:
+        type: object
+        properties:
+          categorie: {type: string, enum: [deprecated, god_class, coupling, andere]}
+          klasse: {type: string}
+          omschrijving: {type: string}
+          prioriteit: {type: string, enum: [hoog, middel, laag]}
+    aanbevelingen:
+      type: array
+      items:
+        type: object
+        properties:
+          titel: {type: string}
+          beschrijving: {type: string}
+          impact: {type: string, enum: [hoog, middel, laag]}
+          inspanning: {type: string, enum: [klein, middel, groot]}
+    geladen_chunks:
+      type: array
+      description: "Welke chunks effectief zijn geanalyseerd"
+
+tools:
+  - name: lees_chunk_index
+    description: "Laad index.json uit de chunks-map en geef overzicht van beschikbare klassen"
+    endpoint: "/api/analyse/chunk-index"
+    parameters:
+      chunks_dir: {type: string}
+
+  - name: laad_chunk
+    description: "Laad een specifiek .chunks.json bestand en geef de code-inhoud terug"
+    endpoint: "/api/analyse/laad-chunk"
+    parameters:
+      chunk_file: {type: string}
+      chunk_index: {type: integer, default: 0}
+
+  - name: zoek_klasse_in_index
+    description: "Zoek een klasse op naam in de index en geef het bijbehorende chunk-bestand"
+    endpoint: "/api/analyse/zoek-klasse"
+    parameters:
+      class_name: {type: string}
+      chunks_dir: {type: string}
+
+  - name: sla_analyse_op
+    description: "Sla de gegenereerde analyse op als tekstbestand in documentatie/"
+    endpoint: "/api/analyse/opslaan"
+    parameters:
+      bestandsnaam: {type: string}
+      inhoud: {type: string}
+
+strategy:
+  stap_1: "Laad index.json → overzicht van alle klassen en hun token-grootte"
+  stap_2: "Bepaal top-10 meest relevante klassen op basis van de vraag"
+  stap_3: "Laad chunks van grootste/meest centrale klassen eerst"
+  stap_4: "Reconstrueer architectuur uit imports en klassenamen"
+  stap_5: "Extraheer business rules (datum-constanten, percentages, grenzen)"
+  stap_6: "Identificeer code-smells (God classes, deprecated code, Joda-Time)"
+  stap_7: "Genereer gestructureerde output"
+  token_budget: "Laad maximaal max_chunks chunks — prioriteer op tokens DESC"
+
+evaluation:
+  metrics:
+    - volledigheid_score
+    - business_relevantie_score
+    - architectuur_correctheid_score
+  feedback_loop: true
+  log_dir: "logs/java_chunk_analyse"
+
+iteration_log: "prompts/preprompt/java_chunk_analyse_iterations.yml"

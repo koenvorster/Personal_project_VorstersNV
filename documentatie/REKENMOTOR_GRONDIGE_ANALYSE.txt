@@ -1,0 +1,679 @@
+================================================================================
+GRONDIGE ANALYSE: LPB REKENMOTOR
+================================================================================
+Gegenereerd door: VorstersNV AI Fleet (java_extractor.py + broncode-analyse)
+Broncode:   spring/lima/lima-server/src/main/java/be/schaubroeck/lpb/rkm/rekenmotor/
+Chunks:     283 chunks uit 496 Java-bestanden (598.934 geschatte tokens geanalyseerd)
+Datum:      2026-04-21
+
+================================================================================
+INHOUDSOPGAVE
+================================================================================
+  1.  Architectuuroverzicht
+  2.  Chain of Responsibility — volledige uitvoeringsvolgorde
+  3.  Subpakketten en hun verantwoordelijkheid
+  4.  Kernklassen per fase
+      4.1  Pre-fase: Controles & Gegevens verzamelen
+      4.2  Fase Bruto: Loon berekening
+      4.3  Fase RSZ: Sociale bijdragen
+      4.4  Fase Belastbaar: Belastbare basis
+      4.5  Fase Bedrijfsvoorheffing (BV): 14 BV-types
+      4.6  Fase Netto: Nettoloon & Inhoudingen
+      4.7  Post-fase: Sommaties & Post-controles
+  5.  Achterstal-verwerking
+  6.  APO (Aanvullend Pensioen Overheidssector)
+  7.  Sleutelpatronen & Design
+  8.  Geïdentificeerde technische schuld
+  9.  Interessante bevindingen voor hergebruik
+
+================================================================================
+1. ARCHITECTUUROVERZICHT
+================================================================================
+
+De LPB Rekenmotor is opgebouwd als een CHAIN OF RESPONSIBILITY patroon.
+Elke berekeningsstap is een zelfstandig RekenCommand-object dat via een ketting
+aan elkaar gelinkt is. Een centrale RekenContext (een typed key-value store)
+wordt doorheen de hele ketting doorgegeven.
+
+Hoofdcomponenten:
+  ┌─────────────────────────────────────────────────────────┐
+  │  StandaardRekenmotorService / StandaardRekenmotorWebService │
+  │  (entry points — Spring-beans)                          │
+  └──────────────────────┬──────────────────────────────────┘
+                         │ bouwt ketting via
+  ┌──────────────────────▼──────────────────────────────────┐
+  │  RekenChainFactoryImp                                   │
+  │  implementeert RekenChainFactory                        │
+  │  → maakt alle RekenCommand-instanties + linkt ze        │
+  └──────────────────────┬──────────────────────────────────┘
+                         │ executes
+  ┌──────────────────────▼──────────────────────────────────┐
+  │  RekenContext  (typed key-value store)                  │
+  │  Keys: RekenBrutoKey / RekenBvKey / RekenRszKey /       │
+  │        RekenBbKey / RekenNettoKey / ContextKey ...      │
+  └─────────────────────────────────────────────────────────┘
+
+RekenContext-hiërarchie:
+  mainContext (persoonsniveau)
+  └── opdrachtContext (per Opdracht / tewerkstelling)
+      └── LoonElement (per looncode)
+
+Basispatroon van elke RekenCommand:
+  - execute(RekenContext ctx) → retourneert CONTINUE_PROCESSING of STOP
+  - AbstractRekenCommand biedt gemeenschappelijke hulpmethoden
+  - AbstractBerekenBv biedt de BV-berekeningsbasis
+
+================================================================================
+2. CHAIN OF RESPONSIBILITY — VOLLEDIGE UITVOERINGSVOLGORDE
+================================================================================
+
+De ketting is opgebouwd in RekenChainFactoryImp. Volgorde van uitvoering:
+
+  [HOOFD-KETTING: RekenMainChain]
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Stap 0   VerzamelGegevens                                       │
+  │          Haalt persoon, opdrachten en kwartaaldata op           │
+  │                                                                 │
+  │ Stap 1   PreRekenControles                                      │
+  │          Valideert hoedanigheid, datum-ranges, DMFA/DMFAPPL     │
+  │          type-checks, vastbenoemden, FT12, schoolverlaters      │
+  │                                                                 │
+  │ Stap 2   ZetAfwijkendRegimeVrijwilligeBrandweer                 │
+  │ Stap 3   ZetAfwijkendRegimeVoorMonitoren                        │
+  │ Stap 4   ZetAfwijkendRegimeVoorUkagFF18                         │
+  │          Zetten speciale regime-vlaggen vóór de berekening      │
+  │                                                                 │
+  │ Stap 5   [BrutoChain]                                           │
+  │            └─ BerekenBrutoLoon                                  │
+  │               - berekenVergoedingen (BerekenVergoedingen)       │
+  │               - berekenSupplementen (BerekenSupplementen)       │
+  │               - flexiJobs.doeControles + vormVakantieGeld       │
+  │               - BRUTO_MAANDLOON_KEY = som van LoonElementen     │
+  │                                                                 │
+  │ Stap 6   [RszChain]                                             │
+  │            ├─ BerekenSocialeBijdragenDmfa     (DMFA)            │
+  │            ├─ BerekenSocialeBijdragenDmfappl  (DMFAPPL)         │
+  │            │   incl. werkbonus, herstructurering                │
+  │            ├─ BerekenSocialeBijdragenRszppo   (RSZPPO)          │
+  │            ├─ BerekenPens2Antwerpen            (Pijler 2)        │
+  │            ├─ BerekenWerkbonus                                  │
+  │            ├─ BerekenWerkbonusGepensioneerd                     │
+  │            └─ PostControleRsz                                   │
+  │                                                                 │
+  │ Stap 7   [BijzondereBijdrageChain]                              │
+  │            └─ BerekenBijzondereBijdrage                         │
+  │               (bijzondere sociale zekerheidsbijdrage)           │
+  │                                                                 │
+  │ Stap 8   [BelastbaarChain]                                      │
+  │            ├─ BerekenRuwBelastbaar                              │
+  │            ├─ BerekenTotaalBelastbaar                           │
+  │            ├─ BerekenBelastbaarVrijwilligeBrandweer             │
+  │            ├─ ControlesBelastbaarVrijwilligeBrandweer           │
+  │            └─ ControleRegulBelastbaar                           │
+  │                                                                 │
+  │ Stap 9   [TheoretischJaarWeddeChain]                            │
+  │            ├─ BerekenTheoretischJaarWedde                       │
+  │            └─ CheckSchoolVerlater                               │
+  │                                                                 │
+  │ Stap 10  [BedrijfsvoorheffingChain]  — 14 BV-commands          │
+  │            ├─ BerekenBvGewoon          (gewone bezoldiging)     │
+  │            ├─ BerekenBvExceptioneel    (exceptionele vergoeding)│
+  │            ├─ BerekenBvVakantiegeld    (vakantiegeld)           │
+  │            ├─ BerekenBvVervangingsInkomen  (ziekte, stage...)   │
+  │            ├─ BerekenBvFietsVergoeding                          │
+  │            ├─ BerekenBvUittredingMandataris                     │
+  │            ├─ BerekenBvOpzegVergoedingen                        │
+  │            ├─ BerekenBvToevalligeVergoedingen                   │
+  │            ├─ BerekenBvTijdelijkeWerkloosheid                   │
+  │            ├─ BerekenBvWinstPremie                              │
+  │            └─ BerekenBvVrijwilligeBrandweer                     │
+  │                                                                 │
+  │ Stap 11  [NettoEnInhoudingenChain]                              │
+  │            ├─ BerekenNettoLoon                                  │
+  │            │   netto = bruto - RSZ - bijz.bijdrage - BV         │
+  │            │   + toeslagen - inhoudingen                        │
+  │            ├─ BerekenInhoudingen                                │
+  │            ├─ BerekenWerkuitkeringInhoudingen                   │
+  │            ├─ BerekenBeslagOpLoon                               │
+  │            └─ FixManueleTussenkomstBeslagOpLoon                 │
+  │                                                                 │
+  │ Stap 12  [TailChain]                                            │
+  │            ├─ Sommaties                                         │
+  │            │   Sommeert alle bedragen per opdracht + per persoon│
+  │            └─ PostRekenControles                                │
+  │               Valideert eindresultaten (negatieve bedragen ...)  │
+  └─────────────────────────────────────────────────────────────────┘
+
+  [APARTE KETENS]
+  ├─ RekenAchterstalChain     — herberekening voor achterstalperioden
+  ├─ AchterstalPreOmschakelingChain
+  ├─ VoorschotChain           — voorschotberekening
+  ├─ TheoretischBrutoEnBelastbaarChain  — jaarloonberekening voor BV
+  └─ ApoInputChain + ApoNettoEnInhoudingenChain
+                             — Aanvullend Pensioen Overheidssector
+
+================================================================================
+3. SUBPAKKETTEN EN HUN VERANTWOORDELIJKHEID
+================================================================================
+
+rekenmotor/                  Root — abstracte basisklassen + hoofd-commands
+rekenmotor/apo/              APO-verwerking (aanvullend pensioen overheidssector)
+rekenmotor/bijzinderebijdrage/ Bijzondere sociale zekerheidsbijdrage
+rekenmotor/bruto/            Bruto-berekening (vergoedingen, supplementen)
+rekenmotor/bv/               Bedrijfsvoorheffing hulpklassen
+                              - BvTools           (barema-lookups)
+                              - JaarBedragBvGewoon (jaarloon → BV)
+                              - BvVoluntariaat    (vrijwillige brandweer BV)
+                              - VerminderingBvPersonenTenLaste
+rekenmotor/cache/            Gecachede services voor RSZ-constanten en plafonds
+                              - CachedRszConstantService
+                              - CachedRszPlafondPercentageService
+                              - CachedDmfapplBasisBijdrageService
+rekenmotor/check/            Controle-klassen (vlak voor/na berekening)
+rekenmotor/datamanager/      PersoonsDataManager — historiek, kwartaaldata
+rekenmotor/factory/          RekenChainFactoryImp — bouwt de volledige ketting
+rekenmotor/feestdagen/       Berekening feestdagvergoeding
+rekenmotor/main/             RekenMainChain — orchestratie
+rekenmotor/manueletussenkomst/ Manuele tussenkomsten (bijv. beslag op loon)
+rekenmotor/mapkeys/          Sleutel-enums voor de RekenContext map
+                              - RekenBrutoKey, RekenBvKey, RekenRszKey,
+                                RekenBbKey, RekenNettoKey, ContextKey,
+                                MoneyKey, RekenChainKey, RekenInfoKey, ...
+rekenmotor/planningsuren/    Planningsuren-verwerking voor specifieke hoedanigheden
+rekenmotor/results/          RekenResultaten + beheer (RekenResultatenBeheer)
+rekenmotor/rsz/              Alle RSZ-types (DMFA, DMFAPPL, RSZPPO) + werkbonus
+rekenmotor/service/          NlpGlobalService, GewaarborgdLoonService
+rekenmotor/util/             Hulpklassen
+                              - RekenTools    (Money-som, regime-checks, ...)
+                              - BvTools       (fiscale tabel lookups)
+                              - ConstantManager
+                              - RegulManager  (regulaties/correcties)
+                              - LogTools
+                              - BedragVerdeler(Factory)
+rekenmotor/validators/       Validator-klassen voor input-controle
+rekenmotor/voorbereiding/    Gegevensverzameling vóór de chain
+
+================================================================================
+4. KERNKLASSEN PER FASE
+================================================================================
+
+──────────────────────────────────────────────────
+4.1  PRE-FASE: CONTROLES & GEGEVENS VERZAMELEN
+──────────────────────────────────────────────────
+
+VerzamelGegevens
+  - Haalt Persoon, Opdrachten en kwartaaldata op uit PersoonsDataManager
+  - Vult de mainContext met PERSOON_KEY, PERSOONSDATA_MANAGER_KEY
+
+PreRekenControles extends AbstractRekenCommand
+  Constanten:
+    SCALE = 2
+    VERBODEN_TYPE_BIJDRAGE_PENS_2_DMFA     = [0..10]
+    VERBODEN_TYPE_BIJDRAGE_PENS_2_DMFAPPL  = [20..29]
+    START_CONTROLE_VASTBENOEMDEN_IN_DIENST = 2013-07-01
+    START_ALTIJD_98X_VRWBRW                = 2018-01-01
+    EINDE_GEBRUIK_HOEDANIGHEID_42          = 2014-12-31
+    EINDE_GEBRUIK_HOEDANIGHEID_51          = 2017-12-31
+    START_CONTROLE_FT_12                   = 2017-07-01
+    VANAF_2023                             = 2023-01-01
+    NIEUWE_HOEDANIGHEDEN_D100 (2015+):
+      DIENST_100_2015_MET_CUMUL_VRIJWILLIGE_BRANDWEER
+      DIENST_100_2015_ZONDER_CUMUL_VRIJWILLIGE_BRANDWEER
+    HOEDANIGHEID_PLANNINGSUREN:
+      VASTBENOEMDEN, TIJDELIJKEN_EN_CONTRACTUELEN,
+      STUDENTEN, MONITOREN
+  Controles:
+    - Hoedanigheid-validatie (deprecated hoedanigheid 42, 51)
+    - Pijler 2-bijdrage type check (DMFA vs DMFAPPL ranges)
+    - Vastbenoemden in-dienst datum (vanaf 2013-07-01)
+    - Vrijwillige brandweer altijd 98x regime (vanaf 2018-01-01)
+    - FT12 controle (vanaf 2017-07-01)
+    - Planningsuren-hoedanigheid
+
+──────────────────────────────────────────────────
+4.2  FASE BRUTO
+──────────────────────────────────────────────────
+
+BerekenBrutoLoon
+  Input:   RekenContext met Persoon.getOpdrachten()
+  Output:  BRUTO_MAANDLOON_KEY, BASIS_SOCIALE_INHOUDINGEN_KEY (per opdracht)
+  Aanroept:
+    berekenVergoedingen.bereken(context, opdracht)  → BerekenVergoedingen
+    berekenSupplementen.bereken(context, opdracht)  → BerekenSupplementen
+    flexiJobs.doeControles(...)
+    flexiJobs.vormVakantieGeld(...)
+  Formule:
+    brutoMaandLoon = Σ loonElementen.getPropertyMoney(BRUTO_MAANDLOON_KEY)
+    afgerond op 2 decimalen
+
+BerekenVergoedingen
+  Verwerkt alle loon-elementen van type vergoeding per opdracht
+  Zet BRUTO_MAANDLOON_KEY per LoonElement
+
+BerekenSupplementen
+  Verwerkt supplementen bovenop het basisloon
+
+BerekenVergoedingFeestDag
+  Berekent feestdagvergoeding als apart loon-element
+
+BerekenBrutoTheoretischJaarLoon
+  Berekent het theoretisch jaarloon (voor BV-barema bepaling)
+  Gebruikt door BedrijfsvoorheffingChain als basis
+
+──────────────────────────────────────────────────
+4.3  FASE RSZ: SOCIALE BIJDRAGEN
+──────────────────────────────────────────────────
+
+Drie parallelle RSZ-systemen (één per aangifte-type):
+
+A) DMFA (overheid, regulier)
+   BerekenSocialeBijdragenDmfa
+   BasisRszVerdelerDmfa
+   - verdeelt RSZ-basis over opdrachten
+
+B) DMFAPPL (lokale besturen / politie)
+   BerekenSocialeBijdragenDmfappl  ← hoofdklasse
+   BasisRszVerdelerDmfappl
+   DmfapplBijdragePercentages      ← percentages per bijdrage-type
+   GewoonLoonDmfappl               ← gewoon loon berekening
+   IsPool2TerDmfappl               ← bepaalt pijler 2 toewijzing
+   SocialeBijdragenDmfapplVrijwilligeBrandweer
+   BerekenVerminderingHerstructureringDmfappl
+   WerkbonusKomtInAanmerkingDmfappl
+   PensioenPijler2BonusAncienniteitDmfappl
+   PensioenPijler2BonusBijdrageDmfappl
+   BerekenWerkbonusDmfapplHelper
+
+C) RSZPPO (provincies)
+   BerekenSocialeBijdragenRszppo
+   GewoonLoonRszppo
+   RszppoBijdragePercentages
+
+Gemeenschappelijk:
+   AbstractBerekenSocialeBijdragen
+     execute():
+       1. berekenSocialeBijdragenHoedanigheid(opdracht, opdrachtContext)
+       2. berekenSocialeBijdrageVoertuig(...)
+       3. controleerRegulBasisRszNegatief(...)
+       → vakbondspremie indien KST_VAKBONDSPREMIE_REKENEN = J
+       → vrijwillige brandweer kwartaalgrens-controle indien van toepassing
+
+   BerekenTerugbetalingSocialeBijdragen
+     Verwerkt terugbetaling van te veel betaalde RSZ
+
+   BerekenBijzondereBijdrage
+     Bijzondere bijdrage sociale zekerheid
+     Output: BIJZONDERE_BIJDRAGE_KEY, BASIS_BIJZONDERE_BIJDRAGE_KEY
+
+   PostControleRsz
+     Controleert RSZ-resultaten na berekening
+     Valideert kwartaalgrens vrijwillige brandweer (DMFAPPL + old)
+
+   Gecachede hulpservices (besparen DB-queries):
+     CachedRszConstantService        → RSZ-constanten per datum
+     CachedRszConstantOldService     → legacy constanten
+     CachedRszPlafondPercentageService → plafond-percentages
+     CachedDmfapplBasisBijdrageService → DMFAPPL-basis bijdragen
+
+──────────────────────────────────────────────────
+4.4  FASE BELASTBAAR
+──────────────────────────────────────────────────
+
+BerekenRuwBelastbaar
+  Eerste berekening van het belastbaar inkomen
+  = Bruto - RSZ-bijdragen - bijzondere bijdrage + niet-belastbare elementen
+
+BerekenTotaalBelastbaar
+  Finaliseert het totaal belastbaar inkomen
+  Output: TOTAAL_BELASTBAAR_KEY (per opdracht + per persoon)
+
+BerekenBelastbaarVrijwilligeBrandweer
+  Speciale berekening voor de vrijwillige brandweer-looncomponent
+  (vrijgesteld tot bepaald plafond)
+
+ControlesBelastbaarVrijwilligeBrandweer
+  Post-controle op het belastbaar voor vrijwillige brandweer
+
+ControleRegulBelastbaar
+  Controleert regulatie-codes die invloed hebben op het belastbaar
+
+BerekenTheoretischJaarWedde
+  Jaarloon-berekening voor BV-barema
+  Afhankelijk van het actueel maandloon × 12 + indexaanpassing
+
+CheckSchoolVerlater
+  Past extra vrijstelling toe voor jonge werknemers (schoolverlaters)
+  Specifieke BV-vermindering in de eerste tewerkstelling
+
+──────────────────────────────────────────────────
+4.5  FASE BEDRIJFSVOORHEFFING — 14 BV-TYPES
+──────────────────────────────────────────────────
+
+Abstract fundament:
+  AbstractBerekenBv extends AbstractRekenCommand
+    Sleutelconstanten:
+      BASIS_BV_GRENS                        = 2001-01-01
+      GRENS_INFINITY                        = Money("99999.99")
+      VERANDERING_JAARBEDRAG_PENSIOEN_DATUM = 2010-01-01
+      EINDE_AFRONDEN_NAAR_BENEDEN           = 2023-01-01
+    Bevat:
+      - initFiscaleConstanten(LocalDate taxdatum)
+      - VerminderingBvPersonenTenLaste  (gezinstoestand-gebaseerde vermindering)
+      - JaarBedragBvGewoon              (jaarloon → BV-barema lookup)
+      - BvVoluntariaat (optioneel)       (brandweer-specifieke BV)
+      - setVoorWeddespiegel(boolean)     (simulatiemodus)
+
+  BvTools (util/bv/)
+    Fiscale tabel lookups:
+      - barema-opzoekingen per gezinstoestand (Fiskgezinstoestand)
+      - vermindering werkbonus (VERMINDERING_BEDRIJFSVOORHEFFING_WERKBONUS_KEY)
+      - Vlaamse vermindering (deprecated)
+
+14 concrete BV-commands en hun output-keys:
+  ┌──────────────────────────────────────────────────────────────────┐
+  │ Command                          │ Output key(s)                 │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvGewoon                  │ BEDRIJFSVOORHEFFING_GEWONE_   │
+  │                                  │  BEZOLDIGING_KEY              │
+  │                                  │ VERMINDERING_BV_WERKBONUS_KEY │
+  │                                  │ VERMINDERING_BV_WERKBONUS_B   │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvExceptioneel            │ BEDRIJFSVOORHEFFING_          │
+  │                                  │  EXCEPTIONEEL_KEY             │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvVakantiegeld            │ BEDRIJFSVOORHEFFING_          │
+  │                                  │  VAKANTIEGELD_KEY             │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvVervangingsInkomen      │ _ZIEKTE_KEY                   │
+  │                                  │ _PREMIE_KEY                   │
+  │                                  │ _TIJDELIJKE_ARBEIDS_          │
+  │                                  │   ONGESCHIKTHEID_KEY          │
+  │                                  │ _INSTAP_STAGE_KEY             │
+  │                                  │ _BESTAANS_VERZEKERING_KEY     │
+  │                                  │ + ACHTERSTAL variants         │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvFietsVergoeding         │ _FIETS_VERGOEDING_KEY         │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvUittredingMandataris    │ _UITTREDING_MANDATARIS_KEY    │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvOpzegVergoedingen       │ _OPZEG_VERGOEDING_KEY         │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvToevalligeVergoedingen  │ _TOEVALLIGE_VERGOEDINGEN_KEY  │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvTijdelijkeWerkloosheid  │ _TIJDELIJKE_WERKLOOSHEID_KEY  │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvWinstPremie             │ _WINST_PREMIE_KEY             │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvVrijwilligeBrandweer    │ _VRIJWILLIGE_BRANDWEER_KEY    │
+  │                                  │ + ACHTERSTAL variant          │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvUittredingMandataris    │ zie hierboven                 │
+  │    Achterstal                    │ ACHTERSTAL variant            │
+  ├──────────────────────────────────┼───────────────────────────────┤
+  │ BerekenBvAchterstal              │ verwerkt BV van achterstal-   │
+  │                                  │ perioden (alle BV-types)      │
+  └──────────────────────────────────┴───────────────────────────────┘
+
+BV-berekeningslogica (AbstractBerekenBv):
+  1. initFiscaleConstanten(taxdatum) → laad fiscale tabel voor het jaar
+  2. Bereken jaarbedrag: BerekenTheoretischJaarWedde of BerekenBrutoTheoretischJaarLoon
+  3. Zoek BV-percentage op in barema (fiscale tabel op basis van jaarloon)
+  4. Vermindering personen ten laste (VerminderingBvPersonenTenLaste)
+  5. Vermindering werkbonus (BvTools)
+  6. Afronden: naar beneden vóór 2023-01-01, standaard daarna
+  7. BvVoluntariaat (optioneel, vrijwillige brandweer-component)
+
+──────────────────────────────────────────────────
+4.6  FASE NETTO: NETTOLOON & INHOUDINGEN
+──────────────────────────────────────────────────
+
+BerekenNettoLoon
+  Formule per LoonElement:
+    netto = brutoMaandloon
+          + Σ ADDITIONS   (premies, vergoedingen niet-belastbaar, ...)
+          - Σ SUBTRACTIONS (RSZ-bijdragen, BV, bijzondere bijdrage, ...)
+    Uitzondering: AFTROK_EVUD_VWG (enkelvoudig vakantiegeld aftrok)
+                  → bruto telt NIET mee voor netto
+  Output: NETTO_KEY per LoonElement
+
+BerekenInhoudingen
+  Verwerkt alle inhoudingen (vakbondsbijdrage, alimentatie, ...)
+  Leest InhoudingTypes via LoonElement-eigenschappen
+
+BerekenWerkuitkeringInhoudingen
+  Specifiek voor werkloosheidsuitkeringen
+  Berekent inhoudingen op vervangingsinkomen
+
+BerekenBeslagOpLoon
+  Berekent beslag op loon (juridisch beslag)
+  Complexe regels: beschermd deel, gezinssamenstelling
+  Input: beslagbedrag via Opdracht.getOpdrachtAanvullendeGegevens()
+
+FixManueleTussenkomstBeslagOpLoon
+  Corrigeert het netto-loon indien er een manuele tussenkomst is
+  voor beslag op loon (RegulManager-kode check)
+
+──────────────────────────────────────────────────
+4.7  POST-FASE: SOMMATIES & CONTROLES
+──────────────────────────────────────────────────
+
+Sommaties
+  Per opdracht: sommeert bedragen, belastbaar, inhoudingen
+  Per persoon:  sommeert alle opdracht-totalen
+  Output: alle OPDRACHT_BEDRAG_KEYS + PERSOON_BEDRAG_KEYS ingevuld
+
+SommatiesAchterstal
+  Zelfde als Sommaties maar voor achterstalperioden
+
+PostRekenControles
+  Valideert eindresultaten:
+  - Negatief nettoloon
+  - Onlogische combinaties BV > belastbaar
+
+================================================================================
+5. ACHTERSTAL-VERWERKING
+================================================================================
+
+Achterstalberekening is een aparte ketting parallel aan de hoofd-ketting:
+
+  RekenAchterstalChain
+    └─ AchterstalPreOmschakelingChain
+       - Herberekent loon voor vroegere perioden
+       - Zet context-vlag ACHTERSTAL = true
+       - Voert dezelfde BV-berekeningen uit maar met histori
+         sche fiscale constanten (taxdatum van achterstalperiode)
+
+  BelastbaarAchterstalChain
+    └─ BerekenBelastbaarAchterstal
+       - Berekent belastbaar van de achterstal als éénmalige vergoeding
+       - Verwijst naar BerekenBelastbaarVrijwilligeBrandweer indien relevant
+
+  BedrijfsvoorheffingAchterstalChain
+    └─ BerekenBvAchterstal
+       - Herberekent BV op achterstal met correcte fiscale tabel
+       - Alle BV-types hebben een ACHTERSTAL-sleutel variant
+
+  OvernemenBijzondereBijdrageChain
+    └─ OvernemenBijzondereBijdrage
+       - Kopieert bijzondere bijdrage van achterstalperiode
+
+  ActiveerAchterstal
+    - Vlag-command dat de achterstal-status activeert in de ketting
+    - Wordt getriggerd als er achterstalperioden zijn
+
+================================================================================
+6. APO (AANVULLEND PENSIOEN OVERHEIDSSECTOR)
+================================================================================
+
+APO = pensioenopbouw buiten het RSZPPO-systeem
+Eigen subcyclus met aparte chain:
+
+  VerwerkApoInput
+    - Converteert APO-invoer naar RekenContext
+    - ApoGegevensConvertor: mapt APO-data naar Money-sleutels
+
+  ApoEarlyStopCheck
+    - Kort-circuiteert de ketting als APO niet van toepassing is
+
+  ApoInputChain
+    - Verwerkt APO-bijdragen (werkgever + werknemer)
+
+  ApoNettoEnInhoudingenChain
+    - Berekent netto-effect van APO op het loon
+    - VerwerkApoInputInhoudingen: APO-specifieke inhoudingen
+
+  Output-sleutel: NIET_BELASTBAAR_APO_KEY (in RekenBbKey)
+  Toepassing: overheids-mandatarissen met aanvullend pensioenplan
+
+================================================================================
+7. SLEUTELPATRONEN & DESIGN
+================================================================================
+
+7.1  TYPED KEY-VALUE STORE (RekenContext)
+  - RekenContext = HashMap<ContextKey, Object> met type-safe get/put
+  - Keys zijn enums die ContextKey implementeren
+  - MoneyKey is een sub-interface voor Money-waarden
+  - Hiërarchie: mainContext > opdrachtContext > LoonElement.property
+
+  Key-families:
+    RekenBrutoKey    → BRUTO_MAANDLOON_KEY, BASIS_SOCIALE_INHOUDINGEN_KEY
+    RekenRszKey      → RSZ-bijdragen, BIJZONDERE_BIJDRAGE_KEY
+    RekenBasisRszKey → basis voor RSZ-berekening
+    RekenBbKey       → belastbaar inkomen keys
+    RekenBvKey       → alle 14+ BV-keys + ACHTERSTAL variants
+    RekenNettoKey    → NETTO_KEY
+    RekenInfoKey     → informatieve waarden (niet-financieel)
+    RekenChainKey    → chain-interne objecten (managers, persoon, ...)
+    RekenPatronaalRszKey    → patronale RSZ
+    RekenPatronaalPriveRszKey → patronale RSZ privé-sector
+
+7.2  MONEY-TYPE
+  - Alle bedragen als Money (wrapper rond BigDecimal)
+  - Money.ZERO als default (null-safe)
+  - round(2) voor eindresultaten
+  - GRENS_INFINITY = Money("99999.99") als bovengrens in barema
+
+7.3  CACHING-PATROON
+  - Gecachede services (CachedRszConstantService, ...) besparen DB-queries
+  - Cache per RekenTijd (maand + jaar)
+  - AbstractCachedRegimeRszppoService als basis
+
+7.4  REGUL-PATROON
+  - RegulManager beheert "regulaties" (correcties/aanpassingen)
+  - Regulkode enum definieert de types
+  - Gebruikt voor: negatieve RSZ-basis, beslag, manuele tussenkomsten
+
+7.5  LOONELEMENT-PATROON
+  - Elk loon-type = een LoonElement
+  - LoonElement heeft AardKodeExtensie (looncode-groep)
+  - Groepering via LooncodeGroepKeyStrings (bijv. AFTROK_EVUD_VWG_KEY)
+  - LoonElementManager beheert collecties per opdracht en persoon
+
+================================================================================
+8. GEÏDENTIFICEERDE TECHNISCHE SCHULD
+================================================================================
+
+8.1  DEPRECATED CODE
+  - BerekenBvAchterstal → BerekenBvUittredingMandatarisAchterstal
+    Aparte achterstalklasse voor mandataris — signaal van code-duplicatie
+  - VLAAMSE_VERMINDERING_BEDRIJFSVOORHEFFING_KEY
+    Aangemerkt als BEREKEN_BV_DEPRECATED_BEDRAGEN in de factory
+    → Vlaamse BV-vermindering is afgeschaft maar key blijft
+  - ControleRszKwartaalGrensVrijwilligeBrandweerOld
+    "Old" suffix → er bestaat een nieuwe versie, oude nog niet verwijderd
+  - CachedRszConstantOldService
+    Idem, legacy service nog actief
+
+8.2  GOD CLASSES
+  - RekenChainFactoryImp: 7940 tokens, laadt 70+ commands
+    → SRP-schending: factory + wiring + constanten-definitie
+  - RekenTools: 7520 tokens
+    → Catch-all utility, moeilijk te testen en te onderhouden
+  - MaandTotaalUtil: 3 chunks (>23.000 tokens)
+    → Duidelijk te groot, meerdere verantwoordelijkheden
+
+8.3  JODA-TIME (LEGACY)
+  - LocalDate = org.joda.time.LocalDate (niet java.time)
+  - Heel de rekenmotor is op Joda-Time gebouwd
+  - Java 8 time was beschikbaar maar niet geadopteerd
+  - Migratie-risico bij Java-upgrade
+
+8.4  HARDCODED DATUM-CONSTANTEN
+  - Tientallen LocalDate-constanten als "business rules" in code
+  - Beter in database-constanten of configuratie
+  - Voorbeelden:
+      START_CONTROLE_VASTBENOEMDEN_IN_DIENST = 2013-07-01
+      START_ALTIJD_98X_VRWBRW                = 2018-01-01
+      EINDE_GEBRUIK_HOEDANIGHEID_42          = 2014-12-31
+
+8.5  COMPLEXITEIT VRIJWILLIGE BRANDWEER
+  - Vrijwillige brandweer heeft speciaal regime door het hele systeem
+  - ZetAfwijkendRegimeVrijwilligeBrandweer
+  - BerekenBvVrijwilligeBrandweer
+  - SocialeBijdragenDmfapplVrijwilligeBrandweer
+  - ControleRszKwartaalGrensVrijwilligeBrandweer(Dmfappl + Old)
+  - BvVoluntariaat
+  → Kruislingse concern verspreid over 8+ klassen
+
+================================================================================
+9. INTERESSANTE BEVINDINGEN VOOR HERGEBRUIK
+================================================================================
+
+9.1  UITBREIDBAARHEID
+  Het Chain of Responsibility-patroon maakt het eenvoudig om:
+  - Nieuwe loon-types toe te voegen als extra RekenCommand in de ketting
+  - Bestaande commands te skippen via STOP_PROCESSING
+  - Test-chains te bouwen met enkel de relevante commands
+
+9.2  SIMULATIEMODUS (WEDDESPIEGEL)
+  AbstractBerekenBv heeft setVoorWeddespiegel(boolean)
+  → De motor kan in simulatie-modus draaien voor loon-simulaties
+  → TheoretischBrutoEnBelastbaarChain is speciaal voor dit doel
+
+9.3  GECACHEDE SERVICES
+  Het caching-patroon (CachedXxxService) is herbruikbaar voor
+  alle services die per RekenTijd data ophalen uit de DB.
+
+9.4  MONEY-TYPE
+  Money als domein-primitieve voor alle financiële berekeningen
+  → Vermijdt floating-point fouten
+  → Heeft round(scale), add(), subtract(), compareTo()
+
+9.5  CONTEXT-KEY PATROON
+  Het typed key-value store patroon (RekenContext + ContextKey enums)
+  is een elegante oplossing voor het doorgeven van een groot aantal
+  berekende waarden doorheen een lange pipeline.
+  → Herbruikbaar voor andere berekeningspipelines
+
+9.6  TOEPASSING OP VORSTERNV AI-ANALYSE
+  De java_extractor.py + chunks kunnen gebruikt worden om:
+  1. Specifieke klassen op te vragen aan een Ollama-agent
+  2. De index te doorzoeken op klasse-naam of token-grootte
+  3. Per chunk een analyse te laten uitvoeren en samen te voegen
+  → Zie scripts/output/lpb_rekenmotor_chunks/index.json
+
+================================================================================
+STATISTIEKEN
+================================================================================
+Totaal Java-bestanden geanalyseerd:  496
+Totaal output chunks:                283
+Totaal geschatte tokens:             598.934
+Gemiddeld tokens/chunk:              2.116
+Grootste klassen (gesplitst):
+  MaandTotaalUtil                    3 chunks (~18.000 tokens)
+  BvTools                            2 chunks (~8.900 tokens)
+  GewaarborgdLoonServiceImp          2 chunks (~9.500 tokens)
+  RekenResultatenBeheer              2 chunks (~9.200 tokens)
+  AbstractBerekenSocialeBijdragen    2 chunks (~9.000 tokens)
+  StandaardRekenmotorWebService      2 chunks (~10.000 tokens)
+  MaandTotaalBeheerBasis             2 chunks (~11.500 tokens)
+
+================================================================================
+EINDE ANALYSE
+================================================================================
