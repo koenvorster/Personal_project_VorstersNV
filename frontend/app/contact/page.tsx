@@ -45,7 +45,7 @@ export default function ContactPage() {
 
   if (status === 'success') {
     return (
-      <main className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="flex items-center justify-center min-h-[70vh] px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -62,18 +62,18 @@ export default function ContactPage() {
             Bedankt voor je bericht. Ik neem zo snel mogelijk contact met je op.
           </p>
         </motion.div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 py-20 px-4">
+    <div className="py-12 sm:py-20 px-4">
       <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="text-center mb-10 sm:mb-12"
         >
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-2xl bg-green-500/20">
@@ -110,6 +110,7 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     placeholder="Jan Janssen"
+                    data-testid="field-naam"
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
                   />
                 </div>
@@ -124,6 +125,7 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     placeholder="jan@bedrijf.be"
+                    data-testid="field-email"
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
                   />
                 </div>
@@ -139,6 +141,7 @@ export default function ContactPage() {
                     value={form.bedrijf}
                     onChange={handleChange}
                     placeholder="Mijn Bedrijf NV"
+                    data-testid="field-bedrijf"
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
                   />
                 </div>
@@ -150,6 +153,7 @@ export default function ContactPage() {
                     name="dienst"
                     value={form.dienst}
                     onChange={handleChange}
+                    data-testid="field-dienst"
                     className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
                   >
                     {DIENSTEN.map((d) => (
@@ -172,6 +176,7 @@ export default function ContactPage() {
                   minLength={10}
                   rows={5}
                   placeholder="Vertel me over je project of vraag..."
+                  data-testid="field-bericht"
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all resize-none"
                 />
               </div>
@@ -185,6 +190,7 @@ export default function ContactPage() {
                 type="submit"
                 variant="primary"
                 disabled={status === 'loading'}
+                data-testid="submit-contact"
                 className="w-full text-base py-4 flex items-center justify-center gap-2"
               >
                 {status === 'loading' ? (
@@ -202,6 +208,6 @@ export default function ContactPage() {
           </GlassCard>
         </motion.div>
       </div>
-    </main>
+    </div>
   )
 }

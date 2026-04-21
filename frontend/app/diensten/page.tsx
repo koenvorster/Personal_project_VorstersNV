@@ -8,6 +8,7 @@ import {
 import GlassCard from '@/components/ui/GlassCard'
 import GradientButton from '@/components/ui/GradientButton'
 import Link from 'next/link'
+import Image from 'next/image'
 
 function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef(null)
@@ -156,6 +157,30 @@ export default function DienstenPage() {
             </AnimatedSection>
           ))}
         </div>
+      </section>
+
+      {/* Wat je leert over AI */}
+      <section className="mb-16 sm:mb-20">
+        <AnimatedSection>
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">Wat je leert over AI</h2>
+            <p className="text-slate-400 max-w-lg mx-auto text-sm sm:text-base">
+              Tijdens een AI-traject leer je niet alleen tools kennen — je begrijpt hoe AI écht werkt in productie
+            </p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <GlassCard className="overflow-hidden p-2">
+              <Image
+                src="/wat-je-leert-over-ai.png"
+                alt="Wat je leert over AI: AI Acceleration, Clear Specifications, Production Challenges, Right Tool Selection"
+                width={1200}
+                height={900}
+                className="rounded-lg w-full h-auto"
+                data-testid="wat-je-leert-over-ai-image"
+              />
+            </GlassCard>
+          </div>
+        </AnimatedSection>
       </section>
 
       {/* Hoe ik werk */}

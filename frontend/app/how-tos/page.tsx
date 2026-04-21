@@ -718,6 +718,7 @@ function SectionCard({ section, index }: { section: Section; index: number }) {
         <button
           onClick={() => setOpen(!open)}
           className="w-full flex items-center justify-between p-5 sm:p-6 text-left hover:bg-white/5 transition-colors"
+          data-testid={`section-toggle-${section.id}`}
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 flex items-center justify-center shrink-0">

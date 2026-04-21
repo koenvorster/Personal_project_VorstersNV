@@ -6,6 +6,7 @@ import { Brain, ChevronDown, ExternalLink } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import GradientButton from '@/components/ui/GradientButton'
 import Link from 'next/link'
+import Image from 'next/image'
 
 function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef(null)
@@ -129,6 +130,32 @@ export default function AiLabPage() {
             enterprise-grade, open-source, lokaal draaiend.
           </p>
         </motion.div>
+      </section>
+
+      {/* AI-Driven Software Development Infographic */}
+      <section className="mb-16 sm:mb-20">
+        <AnimatedSection>
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
+              AI-gedreven Softwareontwikkeling
+            </h2>
+            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">
+              Van user story tot zelfverbeterende pipeline — zo ziet de toekomst van software delivery eruit
+            </p>
+          </div>
+          <div className="max-w-6xl mx-auto">
+            <GlassCard className="overflow-hidden p-2">
+              <Image
+                src="/ai-gedreven-softwareontwikkeling.png"
+                alt="AI-gedreven softwareontwikkeling: end-to-end workflow, AI agents, Copilot CLI, feedback loops, model selection en Grafana test intelligence"
+                width={1600}
+                height={1200}
+                className="rounded-lg w-full h-auto"
+                data-testid="ai-gedreven-softwareontwikkeling-image"
+              />
+            </GlassCard>
+          </div>
+        </AnimatedSection>
       </section>
 
       {/* Platform Architecture */}

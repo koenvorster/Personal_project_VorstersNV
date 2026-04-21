@@ -143,8 +143,10 @@ export default function OverMijPage() {
             <span className="inline-flex items-center px-3 sm:px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
               Product Engineer · AI Platform Architect
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 sm:mb-4">
-              Koen Vorsters
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4">
+              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+                Koen Vorsters
+              </span>
             </h1>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed mb-3">
               Product Engineer &amp; AI Platform Architect met een passie voor technologie en innovatie. Afgestudeerd aan Thomas More in Electronica-ICT met specialisatie IoT. Ik bouw enterprise-grade AI-systemen die écht werken: van lokale LLM-orchestratie tot volledige AI Control Platforms met governance, auditing en zelflerende agents.
