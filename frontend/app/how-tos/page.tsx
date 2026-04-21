@@ -856,6 +856,25 @@ export default function HowTosPage() {
             </div>
           </GlassCard>
         </a>
+
+        <a href="/how-tos/ai-systeem-architectuur" className="block sm:col-span-2">
+          <GlassCard className="p-5 border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10 hover:border-violet-500/40 transition-all cursor-pointer">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0">
+                <Layers className="w-5 h-5 text-violet-400" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 border border-violet-500/30 font-medium">Gids 4 · Architectuur</span>
+                  <span className="text-xs text-slate-500">Full AI System</span>
+                </div>
+                <div className="font-bold text-white text-sm mb-1">🏗️ Gids 4: Full AI Systeem Architectuur</div>
+                <div className="text-xs text-slate-400">Data & Context · Orchestratie · Intelligence · Actie · Foundation Layer · Maturiteitsreis Level 0–3 — van tool naar systeem</div>
+              </div>
+              <ExternalLink className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+            </div>
+          </GlassCard>
+        </a>
       </div>
 
       {/* Voor wie is dit? */}
