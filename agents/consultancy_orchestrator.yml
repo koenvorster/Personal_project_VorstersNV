@@ -1,6 +1,7 @@
 name: consultancy_orchestrator
 version: "1.0"
 type: orchestrator
+model: llama3
 description: >
   Multi-agent pipeline voor IT/AI consultancy opdrachten.
   Orkestreert: code analyse → bedrijfsproces analyse → klantrapport generatie.

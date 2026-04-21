@@ -2,7 +2,7 @@ name: code_analyse_agent
 version: "1.0"
 type: standalone_agent
 description: "Agent voor het analyseren van broncode en genereren van leesbare documentatie voor klantprojecten"
-model: gpt-oss:20b
+model: codellama
 temperature: 0.1
 max_tokens: 512
 language: nl

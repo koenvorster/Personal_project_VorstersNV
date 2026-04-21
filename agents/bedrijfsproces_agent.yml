@@ -2,7 +2,7 @@ name: bedrijfsproces_agent
 version: "1.0"
 type: standalone_agent
 description: "Agent voor het in kaart brengen van bedrijfsprocessen en identificeren van automatiseringskansen"
-model: llama3.2
+model: llama3
 temperature: 0.3
 max_tokens: 1536
 language: nl

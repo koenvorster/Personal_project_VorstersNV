@@ -1,5 +1,6 @@
 name: product_recommender_agent
 version: "1.0"
+description: "Agent voor gepersonaliseerde product-aanbevelingen op basis van klantprofiel en gedrag"
 model: llama3
 temperature: 0.4
 max_tokens: 800
