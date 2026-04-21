@@ -239,15 +239,21 @@ Webshop blijft on hold — focus op dienstverlening en freelance opdrachten.
 
 #### 🔴 P0 – Analyse-tool productie-klaar maken
 
-- [ ] **Claude API integratie voor code-analyse**
-  - Lokale Ollama modellen zijn te traag voor productie (4+ min/chunk)
-  - `analyse_project.py` uitbreiden met `--provider claude` optie
-  - Claude Sonnet via Anthropic API: ~5s per chunk, veel betere output
-  - Fallback: lokale Ollama als Claude API niet beschikbaar
+> **Strategie:** Lokale Ollama setup behouden — gaming desktop als dedicated server.
+> Zie `documentatie/analyse/HARDWARE_ANALYSE_LLM.md` voor volledige hardware-analyse.
+> Aanbeveling: RTX 3090 (24 GB, occasion) of RTX 4070 Ti (12 GB, nieuw).
+> Laptop blijft thin client via `OLLAMA_BASE_URL=http://<desktop-ip>:11434`.
+
+- [ ] **Gaming desktop opzetten als Ollama server**
+  - Ollama installeren op desktop (Windows service of Docker met `--gpus all`)
+  - `OLLAMA_BASE_URL` in `.env` wijzigen naar desktop IP
+  - Modellen laden: `codellama:13b`, `llama3:8b`, `mistral:7b`
+  - Doel: 7B modellen < 5s, 13B modellen < 15s per chunk
 - [ ] **Pre-processor voor grote Java-bestanden**
   - Java-bestanden automatisch reduceren tot signaturen + comments + constanten
-  - Input verkleinen van 70KB → ~8KB zonder verlies van businesslogica
+  - Input verkleinen van 70KB → ~5KB zonder verlies van businesslogica
   - `scripts/java_extractor.py` bouwen (regex-based, geen AST nodig)
+  - Werkt ook op trage laptop als tijdelijke oplossing
 
 #### 🔴 P1 – Consultancy website
 
