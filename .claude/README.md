@@ -97,36 +97,81 @@ Canonieke bronnen voor tech stack en domain model:
 
 ## Claude Agents (`.claude/agents/`)
 
-### Platform-ontwikkeling
+> **46 agents** — volledig fleet, beschikbaar voor Claude-only gebruikers.
+
+### Architectuur & DDD
 | Agent | Model | Doel | permissionMode |
 |-------|-------|------|----------------|
+| `architect` | claude-sonnet-4-5 | Systeemontwerp, ADRs, bounded contexts, integraties | default |
+| `ddd-modeler` | claude-sonnet-4-5 | Domain model, aggregates, events, ubiquitous language | default |
+| `domain-validator` | claude-sonnet-4-5 | Valideer code vs domeinregels | default |
+| `ai-architect` | claude-opus-4-5 | Meta-agent: AI ecosystem beheer | default |
+
+### Ontwikkeling
+| Agent | Model | Doel | permissionMode |
+|-------|-------|------|----------------|
+| `developer` | claude-sonnet-4-5 | FastAPI + Next.js full-stack implementatie | allow |
 | `fastapi-developer` | claude-sonnet-4-5 | FastAPI endpoints, SQLAlchemy async, DDD, Alembic | allow |
-| `ollama-agent-designer` | claude-sonnet-4-5 | Ollama YAML agents ontwerpen en verbeteren | allow |
-| `nextjs-developer` | claude-sonnet-4-5 | Next.js 14 + App Router + TypeScript + Tailwind | allow |
-| `test-orchestrator` | claude-sonnet-4-5 | pytest + httpx API-tests coördineren | allow |
+| `frontend-specialist` | claude-sonnet-4-5 | Next.js 16.2 + App Router + TypeScript + Tailwind | allow |
+| `nextjs-developer` | claude-sonnet-4-5 | Next.js componenten en routes bouwen | allow |
+| `devops-engineer` | claude-sonnet-4-5 | Docker, GitHub Actions CI/CD, Cloud Run | allow |
+| `database-expert` | claude-sonnet-4-5 | SQLAlchemy async, Alembic migraties, PostgreSQL | allow |
+| `clean-code-reviewer` | claude-sonnet-4-5 | SOLID, naming, code smells, refactoring | default |
+| `security-permissions` | claude-sonnet-4-5 | RBAC, GDPR, JWT, HMAC, OWASP audit | default |
+| `performance-optimizer` | claude-sonnet-4-5 | Core Web Vitals, Redis caching, N+1 queries | default |
 | `mr-reviewer` | claude-sonnet-4-5 | Code review (FastAPI, Next.js, security) | default |
 | `ci-debugger` | claude-haiku-4-5 | GitHub Actions falen analyseren | default |
-| `ai-architect` | claude-opus-4-5 | Meta-agent: AI ecosystem beheer | default |
 | `feature-worker` | claude-sonnet-4-5 | Parallelle feature-ontwikkeling in git worktrees | allow |
+| `ollama-agent-designer` | claude-sonnet-4-5 | Ollama YAML agents ontwerpen en verbeteren | allow |
+
+### Domein Experts
+| Agent | Model | Doel | permissionMode |
+|-------|-------|------|----------------|
+| `mollie-expert` | claude-sonnet-4-5 | Mollie Payments API, webhooks, terugbetalingen | allow |
+| `klantenservice-expert` | claude-sonnet-4-5 | CS agent prompts, escalatieflows, sentimentanalyse | allow |
+| `order-expert` | claude-sonnet-4-5 | Order lifecycle, fraudedetectie, pipeline | allow |
+| `seo-specialist` | claude-sonnet-4-5 | SEO, metadata, structured data, sitemap | allow |
+| `product-content` | claude-sonnet-4-5 | Productbeschrijvingen, USPs, prompt-iteratie | allow |
+| `prompt-engineer` | claude-sonnet-4-5 | Ollama agent prompt optimalisatie | allow |
 
 ### Domein & Compliance
 | Agent | Model | Doel | permissionMode |
 |-------|-------|------|----------------|
 | `gdpr-advisor` | claude-sonnet-4-5 | GDPR compliance: anonimisatie, bewaartermijnen, Art.17 | default |
 | `db-explorer` | claude-sonnet-4-5 | Database-analyse: schema, queries, 3-mode safety | allow |
-| `fraud-advisor` | claude-haiku-4-5 | Fraude assessment interpreteren, risicoscore advies, HITL | allow |
+| `fraud-advisor` | claude-haiku-4-5 | Fraude assessment interpreteren, risicoscore advies | allow |
 | `klantenservice-coach` | claude-sonnet-4-5 | Klantenservice antwoorden, klachten, retour, escalaties | allow |
 | `audit-reporter` | claude-haiku-4-5 | Auditlogs genereren, GDPR decision-journal rapporten | allow |
 | `order-analyst` | claude-haiku-4-5 | Order compliance Belgisch recht, BTW, Mollie validatie | allow |
 | `product-writer` | claude-sonnet-4-5 | SEO productbeschrijvingen NL/FR, metateksten | allow |
 | `lead-orchestrator` | claude-sonnet-4-5 | Multi-agent workflow orkestratie, agent routing | default |
 
-### Freelance IT/AI Consultancy 🆕
+### Testing & Kwaliteit
 | Agent | Model | Doel | permissionMode |
 |-------|-------|------|----------------|
-| `code-analyzer` | claude-sonnet-4-5 | Bestaande codebases analyseren, business logic extraheren, documentatie genereren | allow |
-| `business-process-advisor` | claude-sonnet-4-5 | Bedrijfsprocessen mappen, automatiseringskansen identificeren, ROI inschatten | allow |
-| `it-consultant` | claude-sonnet-4-5 | IT/AI strategie, klantvoorstellen, rapporten en presentaties genereren | allow |
+| `test-orchestrator` | claude-sonnet-4-5 | pytest + httpx API-tests coördineren | allow |
+| `api-tester` | claude-sonnet-4-5 | FastAPI integratie tests, endpoint validatie | allow |
+| `automation-cypress` | claude-sonnet-4-5 | Cypress E2E testsuites | allow |
+| `playwright-mcp` | claude-sonnet-4-5 | Agentic browser automatisering | allow |
+| `regression-selector` | claude-haiku-4-5 | Impact analyse, test selectie na wijziging | default |
+| `test-data-designer` | claude-haiku-4-5 | Testdata sets, boundary values, fixtures | allow |
+| `performance-tester` | claude-sonnet-4-5 | Load tests, stress tests, SLA validatie | allow |
+| `security-tester` | claude-sonnet-4-5 | Security tests: IDOR, HMAC, injection, auth bypass | allow |
+| `accessibility-tester` | claude-sonnet-4-5 | WCAG 2.1 AA tests, ARIA, toetsenbord navigatie | allow |
+
+### Extra Specialisten
+| Agent | Model | Doel | permissionMode |
+|-------|-------|------|----------------|
+| `technical-writer` | claude-sonnet-4-5 | API docs, ADRs, runbooks, onboarding guides | allow |
+| `data-engineer` | claude-sonnet-4-5 | Data pipelines, analytics queries, dashboards | allow |
+| `ux-reviewer` | claude-sonnet-4-5 | UX flows, usability, friction points | default |
+
+### Freelance IT/AI Consultancy
+| Agent | Model | Doel | permissionMode |
+|-------|-------|------|----------------|
+| `code-analyzer` | claude-sonnet-4-5 | Bestaande codebases analyseren, business logic extraheren | allow |
+| `business-process-advisor` | claude-sonnet-4-5 | Bedrijfsprocessen mappen, automatiseringskansen, ROI | allow |
+| `it-consultant` | claude-sonnet-4-5 | IT/AI strategie, klantvoorstellen, rapporten | allow |
 
 ---
 
@@ -282,7 +327,7 @@ pytest tests/ -v --tb=short
 
 | Laag | Tech |
 |------|------|
-| Frontend | Next.js 14, TypeScript strict, Tailwind CSS, App Router |
+| Frontend | Next.js 16.2, TypeScript strict, Tailwind CSS, App Router |
 | Backend | FastAPI (Python 3.12), async SQLAlchemy 2.x |
 | Database | PostgreSQL 16, Alembic migraties |
 | Cache | Redis 7 |
