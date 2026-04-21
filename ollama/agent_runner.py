@@ -13,6 +13,7 @@ import httpx
 import yaml
 
 from .client import OllamaClient, get_client
+from .memory import ContextAssembler, get_context_assembler
 from .prompt_iterator import PromptIterator
 
 logger = logging.getLogger(__name__)
@@ -45,9 +46,9 @@ class Agent:
         self.temperature = config.get("temperature", 0.7)
         self.max_tokens = config.get("max_tokens", 1024)
         self.system_prompt = self._load_text(config.get("system_prompt_ref", ""))
-        # Support both spellings: preprompt_ref (correct) and preprompt_ref (legacy typo)
-        preprompt_ref = config.get("preprompt_ref") or config.get("preprompt_ref", "")
+        preprompt_ref = config.get("preprompt_ref", "")
         self.preprompt = self._load_text(preprompt_ref)
+        self.output_schema: dict[str, Any] | None = config.get("output_schema")
         self._config = config
 
     def _load_text(self, ref: str) -> str:
@@ -65,7 +66,8 @@ class Agent:
         user_input: str,
         context: dict[str, Any] | None = None,
         client: OllamaClient | None = None,
-    ) -> tuple[str, str]:
+        session_id: str | None = None,
+    ) -> tuple[str, str, dict[str, Any] | None]:
         """
         Voer de agent uit met de gegeven input.
 
@@ -73,9 +75,11 @@ class Agent:
             user_input: De invoer van de gebruiker of het systeem
             context: Extra context-variabelen voor de pre-prompt
             client: Optioneel een aangepaste Ollama client
+            session_id: Optioneel sessie-ID voor geheugen en context injectie
 
         Returns:
-            Het antwoord van de agent
+            Tuple van (antwoord, interaction_id, validated_output)
+            validated_output is None als er geen output_schema is of validatie mislukt.
         """
         if client is None:
             client = get_client()
@@ -86,8 +90,26 @@ class Agent:
             for key, value in context.items():
                 preprompt = preprompt.replace(f"{{{key}}}", str(value))
 
+        # Inject versioned context via ContextAssembler
+        assembler: ContextAssembler = get_context_assembler()
+        task_context = preprompt if preprompt else ""
+        versioned = assembler.assemble(
+            task_context=task_context,
+            session_id=session_id,
+        )
+        context_prefix = versioned.assemble()
+
         # Bouw de volledige prompt
-        full_prompt = preprompt + "\n\n" + user_input if preprompt else user_input
+        if context_prefix:
+            full_prompt = context_prefix + "\n\n" + user_input
+        elif preprompt:
+            full_prompt = preprompt + "\n\n" + user_input
+        else:
+            full_prompt = user_input
+
+        # Registreer user turn in geheugen indien sessie actief
+        if session_id:
+            assembler.record_turn(session_id, "user", user_input)
 
         logger.info("Agent '%s' wordt uitgevoerd (model: %s)", self.name, self.model)
 
@@ -101,6 +123,21 @@ class Agent:
 
         logger.info("Agent '%s' klaar. Respons: %d tekens", self.name, len(response))
 
+        # Registreer assistant turn in geheugen indien sessie actief
+        if session_id:
+            assembler.record_turn(session_id, "assistant", response)
+
+        # Valideer outputtegen schema indien aanwezig
+        validated: dict[str, Any] | None = None
+        if self.output_schema:
+            from .schema_validator import validate_output
+            validated = validate_output(response, self.output_schema, self.name)
+            if validated is None:
+                logger.warning(
+                    "Agent '%s': output-schema validatie mislukt — raw output wordt doorgegeven",
+                    self.name,
+                )
+
         # Log de interactie automatisch voor prompt-iteratie analyse
         iterator = PromptIterator(self.name)
         interaction_id = iterator.log_interaction(
@@ -109,7 +146,7 @@ class Agent:
             metadata={"context": context or {}, "model": self.model},
         )
 
-        return response, interaction_id
+        return response, interaction_id, validated
 
     async def chat(
         self,
@@ -178,7 +215,8 @@ class AgentRunner:
         user_input: str,
         context: dict[str, Any] | None = None,
         client: OllamaClient | None = None,
-    ) -> tuple[str, str]:
+        session_id: str | None = None,
+    ) -> tuple[str, str, dict[str, Any] | None]:
         """
         Voer een specifieke agent uit.
 
@@ -187,9 +225,10 @@ class AgentRunner:
             user_input: Invoer voor de agent
             context: Extra context-variabelen
             client: Optioneel een aangepaste Ollama client (handig voor testen)
+            session_id: Optioneel sessie-ID voor geheugen en context injectie
 
         Returns:
-            Tuple van (antwoord, interaction_id)
+            Tuple van (antwoord, interaction_id, validated_output)
 
         Raises:
             ValueError: Als de agent niet gevonden wordt
@@ -197,7 +236,7 @@ class AgentRunner:
         agent = self.get(agent_name)
         if agent is None:
             raise ValueError(f"Agent '{agent_name}' niet gevonden. Beschikbaar: {self.list_agents()}")
-        return await agent.run(user_input, context=context, client=client)
+        return await agent.run(user_input, context=context, client=client, session_id=session_id)
 
     async def run_agent_with_retry(
         self,
@@ -206,7 +245,8 @@ class AgentRunner:
         context: dict[str, Any] | None = None,
         client: OllamaClient | None = None,
         retry_config: RetryConfig | None = None,
-    ) -> tuple[str, str]:
+        session_id: str | None = None,
+    ) -> tuple[str, str, dict[str, Any] | None]:
         """
         Voer een agent uit met automatische retry bij Ollama timeout/netwerkfouten.
 
@@ -216,9 +256,10 @@ class AgentRunner:
             context: Extra context-variabelen
             client: Optioneel een aangepaste Ollama client
             retry_config: Retry-instellingen (standaard: 3 pogingen, 2s delay, factor 2)
+            session_id: Optioneel sessie-ID voor geheugen en context injectie
 
         Returns:
-            Tuple van (antwoord, interaction_id)
+            Tuple van (antwoord, interaction_id, validated_output)
 
         Raises:
             ValueError: Als de agent niet gevonden wordt
@@ -229,7 +270,9 @@ class AgentRunner:
 
         for attempt in range(cfg.max_retries + 1):
             try:
-                return await self.run_agent(agent_name, user_input, context=context, client=client)
+                return await self.run_agent(
+                    agent_name, user_input, context=context, client=client, session_id=session_id
+                )
             except _RETRYABLE_EXCEPTIONS as exc:
                 last_exc = exc
                 if attempt < cfg.max_retries:
