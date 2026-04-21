@@ -117,18 +117,18 @@ class TestCategorieën:
 
 
 class TestProductBijwerken:
-    async def test_prijs_bijwerken(self, client, db_session):
+    async def test_prijs_bijwerken(self, admin_client, db_session):
         p = await maak_product(db_session, naam="Amnesia", slug="amnesia", prijs=Decimal("10.00"))
 
-        r = await client.put(f"/api/products/{p.id}", json={"prijs": "14.99"})
+        r = await admin_client.put(f"/api/products/{p.id}", json={"prijs": "14.99"})
         assert r.status_code == 200
         assert float(r.json()["prijs"]) == pytest.approx(14.99)
 
-    async def test_niet_bestaand_product_geeft_404(self, client):
-        r = await client.put("/api/products/99999", json={"naam": "Nieuw"})
+    async def test_niet_bestaand_product_geeft_404(self, admin_client):
+        r = await admin_client.put("/api/products/99999", json={"naam": "Nieuw"})
         assert r.status_code == 404
 
-    async def test_geen_velden_geeft_400(self, client, db_session):
+    async def test_geen_velden_geeft_400(self, admin_client, db_session):
         p = await maak_product(db_session, slug="leeg-update")
-        r = await client.put(f"/api/products/{p.id}", json={})
+        r = await admin_client.put(f"/api/products/{p.id}", json={})
         assert r.status_code == 400
