@@ -232,30 +232,59 @@ Uitbreiding van het Ollama AI-ecosysteem voor IT/AI-consultancy en platform-opti
   - Product-recommender, review-analyzer, checkout-begeleiding
   - Wordt hernomen wanneer webshop (Fase 3) verder gaat
 
-### Fase 6 – Analytics & Groei 📊
+### Fase 6 – IT/AI Consultancy Platform 🚀 (VOLGENDE FOCUS)
 
-Data-gedreven optimalisatie van conversie en vindbaarheid.
+VorstersNV als professioneel IT/AI-consultancy platform voor Belgische KMOs.
+Webshop blijft on hold — focus op dienstverlening en freelance opdrachten.
 
-- [ ] **Google Analytics 4 integratie**
-  - GA4 tracking via Next.js `<Script>` component
-  - Custom events: productweergave, winkelwagen-toevoeging, checkout-start, aankoop
-  - Privacybewust: cookie consent banner (GDPR-compliant)
-- [ ] **Conversierapportage in dashboard**
-  - Funnel: Bezoek → Productpagina → Winkelwagen → Checkout → Betaald
-  - Conversieratio per productcategorie
-  - Abandonmentrate winkelwagen + geautomatiseerde follow-up email
-- [ ] **SEO audit automatisering**
-  - Lighthouse CI in GitHub Actions pipeline
-  - Automatische rapportage bij PR naar `main`
-  - Core Web Vitals bewaking (LCP, INP, CLS)
-  - Sitemap.xml automatisch genereren bij nieuw product
-- [ ] **Email marketing integratie**
-  - Transactionele emails via SendGrid of Mailgun
-  - Nieuwsbrief opt-in met double opt-in flow (GDPR)
-  - Geautomatiseerde bestelbevestiging + verzendnotificatie
-- [ ] **Retargeting pixels** (optioneel)
-  - Meta Pixel voor Facebook/Instagram retargeting
-  - Google Ads conversion tracking
+#### 🔴 P0 – Analyse-tool productie-klaar maken
+
+- [ ] **Claude API integratie voor code-analyse**
+  - Lokale Ollama modellen zijn te traag voor productie (4+ min/chunk)
+  - `analyse_project.py` uitbreiden met `--provider claude` optie
+  - Claude Sonnet via Anthropic API: ~5s per chunk, veel betere output
+  - Fallback: lokale Ollama als Claude API niet beschikbaar
+- [ ] **Pre-processor voor grote Java-bestanden**
+  - Java-bestanden automatisch reduceren tot signaturen + comments + constanten
+  - Input verkleinen van 70KB → ~8KB zonder verlies van businesslogica
+  - `scripts/java_extractor.py` bouwen (regex-based, geen AST nodig)
+
+#### 🔴 P1 – Consultancy website
+
+- [ ] **Diensten-pagina afwerken** (`frontend/app/diensten/page.tsx`)
+  - Code-analyse als dienst presenteren met concrete voorbeelden
+  - Procesanalyse en automatiseringsadvies als dienst
+  - Prijsindicatie of "offerte aanvragen" CTA
+- [ ] **Portfolio-pagina** met echte case studies
+  - LPB loonberekening analyse als anoniem case study
+  - Technologie-stack per project visueel maken
+  - Resultaten en tijdswinst kwantificeren
+- [ ] **Contact/offerte formulier**
+  - Koppelen aan email_template_agent voor geautomatiseerde opvolging
+  - Lead vastleggen in database (Customer bounded context)
+
+#### 🟠 P2 – Freelance project pipeline
+
+- [ ] **Project intake flow**
+  - Klant vult intake-formulier in (tech stack, pijnpunten, doel)
+  - `bedrijfsproces_agent` genereert automatisch een AS-IS analyse
+  - Output: PDF-rapport klaar voor eerste gesprek
+- [ ] **Offerte generator**
+  - Op basis van project scope → automatisch offertebedrag berekenen
+  - `klant_rapport_agent` maakt professioneel offertedocument
+- [ ] **Tijdregistratie en facturatie**
+  - Eenvoudige uren bijhouden per klant/project
+  - Koppeling met klant-entiteiten in DB
+
+#### 🟡 P3 – Model Upgrades & AI kwaliteit
+
+- [ ] **codellama model downloaden** voor betere code-analyse
+  - `ollama pull codellama:7b` (sneller dan llama3.2 voor code)
+  - Vergelijkingstest op LPB Java code
+- [ ] **Prompt kwaliteitsmonitoring activeren**
+  - Agent dashboard scores live tonen
+  - Drempelwaarden-alerting (score < 0.6)
+- [ ] **Multi-language support** (NL/FR) voor klantrapport agent
 
 ---
 
