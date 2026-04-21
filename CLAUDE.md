@@ -1,10 +1,14 @@
-# CLAUDE.md — VorstersNV KMO Platform
+# CLAUDE.md — VorstersNV IT/AI Consultancy Platform
 
 Provides guidance to Claude Code when working in this repository.
 
 ## Project Overview
 
-**VorstersNV** is a KMO (KMU) webshop + AI-agent platform. Full-stack monorepo:
+**VorstersNV** is een freelance IT/AI-consultancy platform voor Belgische KMOs.
+**Focus (Fase 6)**: legacy code-analyse, bedrijfsproces automatisering, AI-agents bouwen voor klanten.
+The webshop component is deprioritized — consultancy tooling is the primary development target.
+
+Full-stack monorepo:
 
 | Layer | Tech | Path |
 |-------|------|------|
@@ -48,8 +52,48 @@ docker compose logs -f api            # follow FastAPI logs
 ### Ollama agents
 ```bash
 ollama serve                           # start Ollama daemon
-python agent_runner.py --agent developer_agent --spec "..."  # run a YAML agent
+python scripts/analyse_project.py --pad /path/to/client/project --dry-run  # codebase analyse
+python agent_runner.py --agent code_analyse_agent --spec "..."  # directe agent run
 ```
+
+## Consultancy Tooling (Fase 6 — Primaire Focus)
+
+| Tool | Locatie | Doel |
+|------|---------|------|
+| `scripts/analyse_project.py` | `scripts/` | Codebase scannen + AI-analyse + rapport genereren |
+| `agents/code_analyse_agent.yml` | `agents/` | Technische code-analyse per chunk |
+| `agents/klant_rapport_agent.yml` | `agents/` | Klantgerichte samenvatting genereren |
+| `agents/bedrijfsproces_agent.yml` | `agents/` | Bedrijfsproces AS-IS/TO-BE mapping |
+| `agents/consultancy_orchestrator.yml` | `agents/` | End-to-end consultancy workflow |
+| `documentatie/analyse/` | `documentatie/` | Gegenereerde klantanalyses opslaan |
+
+### Analyse starten
+```bash
+# Dry run (geen AI, alleen bestandsscan)
+python scripts/analyse_project.py --pad C:\pad\naar\klant-project --dry-run
+
+# Volledige analyse (vereist werkende Ollama + GPU server)
+python scripts/analyse_project.py --pad C:\pad\naar\klant-project
+```
+
+## Local AI / Ollama Status
+
+> ⚠️ **Hardware beperking (laptop)**: Intel i7-1165G7, geen dedicated GPU (Intel Iris Xe 1GB).
+> Alle modellen draaien op CPU — analyse duurt 2–5 minuten per chunk.
+
+**Beschikbare modellen op dit apparaat:**
+| Model | Status | Gebruik |
+|-------|--------|---------|
+| `mistral:latest` (7.2B Q4_K_M) | ✅ Werkt, traag (~290s/chunk) | Primaire analyse |
+| `llama3.2:latest` (3.2B Q4_K_M) | ✅ Werkt, traag | Snellere fallback |
+| `gpt-oss:20b` (MXFP4) | ❌ Broken (MXFP4 incompatibel CPU) | Niet gebruiken |
+| `starcoder:3b` | ⚠️ Code completion only, geen instructies | Niet voor analyse |
+
+**Gaming desktop server (gepland):**
+```
+OLLAMA_BASE_URL=http://<desktop-ip>:11434   # in .env
+```
+Met RTX 3090/4070 Ti: mistral:7B in ~1-2s, modellen tot 34B parameters.
 
 ## Domain Model (DDD Bounded Contexts)
 

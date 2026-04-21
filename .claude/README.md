@@ -134,6 +134,7 @@ Skills worden automatisch getriggerd op basis van context-keywords.
 | `belgian-commerce` | `skills/belgian-commerce/` | "btw", "belgisch recht", "intracom", "taalwetgeving", "consumentenwet", "factuur" |
 | `mollie-payments` | `skills/mollie-payments/` | "mollie", "betaling", "webhook", "refund", "bancontact", "payment status" |
 | `order-lifecycle` | `skills/order-lifecycle/` | "order state", "lifecycle", "retour", "sla", "order timeout", "state machine" |
+| `local-llm` | `skills/local-llm/` | "ollama timeout", "model traag", "gpu server", "cpu ollama", "gpt-oss leeg", "mistral slow" |
 | `payroll-validation` | `skills/payroll-validation/` | "rsz", "loon", "bedrijfsvoorheffing", "vakantiegeld", "maaltijdcheques", "prc" |
 | `fraud-patterns` | `skills/fraud-patterns/` | "fraud", "risicoscore", "velocity check", "fraude detectie", "device fingerprint" |
 | `project-explainer` | `skills/project-explainer/` | "project uitleggen", "codebase overzicht", "waar beginnen", "nieuwe developer", "onboarding" |
@@ -155,6 +156,7 @@ Skills worden automatisch getriggerd op basis van context-keywords.
 | Domain | `@klantenservice-expert`, `@product-content`, `@seo-specialist`, `@order-expert`, `@prompt-engineer` |
 | Testing | `@automation-cypress`, `@playwright-mcp`, `@regression-selector`, `@test-data-designer`, `@test-orchestrator` |
 | Database | `@data-migrator` |
+| **Consultancy** 🆕 | `@code-analyzer`, `@it-consultant`, `@business-process-advisor` |
 
 ---
 

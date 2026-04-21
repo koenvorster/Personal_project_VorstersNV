@@ -2,8 +2,11 @@
 
 ## Projectoverzicht
 
-VorstersNV is een zakelijk platform met webshop, aangedreven door lokale AI-agents via Ollama.
-Het project bestaat uit een **FastAPI backend**, **Next.js frontend** en een **YAML-gebaseerd agent-systeem**.
+VorstersNV is een freelance **IT/AI-consultancy platform** voor Belgische KMOs, aangedreven door lokale AI-agents via Ollama.
+Het project bestaat uit een **FastAPI backend**, **Next.js frontend**, een **YAML-gebaseerd agent-systeem** en **consultancy tooling**.
+
+**Primaire focus (Fase 6)**: legacy code-analyse, bedrijfsproces automatisering, AI-agents bouwen voor klanten.
+De webshop is lager geprioriteerd — consultancy tools zijn het actieve ontwikkeldomein.
 
 ---
 
@@ -118,6 +121,13 @@ Gebruik `@agent-naam` in Copilot Chat om een gespecialiseerde agent in te schake
 | SEO Specialist | `@seo-specialist` | Meta tags, structured data, sitemap, robots.txt |
 | Order Expert | `@order-expert` | Order lifecycle, fraudedetectie, Mollie-flow |
 | Prompt Engineer | `@prompt-engineer` | AI prompt-iteratie, feedback-analyse, temperature-tuning |
+
+### Freelance IT/AI Consultancy 🆕
+| Agent | Aanroep | Doel |
+|-------|---------|------|
+| Code Analyzer | `@code-analyzer` | Bestaande codebases analyseren (Java/Python/PHP/C#), business logic extraheren |
+| IT Consultant | `@it-consultant` | Klantvoorstellen, IT/AI strategie, executive summaries, offertes |
+| Business Process Advisor | `@business-process-advisor` | Processen in kaart brengen (AS-IS/TO-BE), automatiseringskansen, ROI |
 
 ---
 
