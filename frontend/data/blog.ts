@@ -2139,6 +2139,331 @@ public Response berekenLoon(LoonBerekeningRequest request) {
       },
     ],
   },
+  {
+    slug: 'ai-fleet-productie-klaar-phr-globalconfig',
+    titel: 'Van analyse tot productie: hoe een AI agent fleet een heel project transformeerde in één sessie',
+    excerpt:
+      'Een gedetailleerd verslag van hoe ik met GitHub Copilot en een fleet van parallelle AI agents het phr-globalconfig project van grond tot dak doorlichtte, 70+ E2E tests repareerde en activeerde, een volledig backend security audit uitvoerde en CI/CD kwaliteitspoorten installeerde — allemaal in één werksessie.',
+    datum: '23 mei 2026',
+    datumISO: '2026-05-23',
+    leestijd: '18 min',
+    categorie: 'AI',
+    categorieKleur: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+    afbeelding:
+      'https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?auto=format&fit=crop&w=800&q=80',
+    inhoud: [
+      {
+        type: 'paragraph',
+        text: 'Wat als je een AI niet één taak geeft, maar vijf tegelijk — en ze volledig parallel laat werken? Dat is precies wat ik deed tijdens een intensieve werksessie met het phr-globalconfig project: een Spring Boot 3 + Angular 21 + Cypress 15 applicatie die loonschalen, mappings en verloningsregels beheert voor HR-software. Het resultaat was verbluffend, maar ook confronterend. In dit artikel vertel ik eerlijk wat er goed ging, wat de AI vond, en wat er nog werk vergt voor een echte productie-release.',
+      },
+      {
+        type: 'heading',
+        text: '🔍 Wat is phr-globalconfig?',
+      },
+      {
+        type: 'paragraph',
+        text: 'phr-globalconfig is een interne configuratie-applicatie voor een HR-platform. Het beheert loonschalen, schaalgroepen, tijdlijnen van geldigheidsperiodes, eGov-mappings en DSL-rekenregels. De stack: Spring Boot backend met MariaDB en Liquibase, een Angular 21 frontend met PrimeNG, en een Cypress 15 E2E test suite met 23 Claude agents en 18 Copilot agents voor AI-gestuurde ontwikkeling. In totaal: 52 Cypress testbestanden, 70 Java bronbestanden en een agent-ecosysteem dat klaar was om ingezet te worden.',
+      },
+      {
+        type: 'infobox',
+        icon: '🎯',
+        title: 'De startsituatie',
+        text: 'Veel E2E tests waren gebroken of geskipped. De AI agent setup had evaluatiemetrics die ontbraken. De backend had nooit een formele security audit gehad. Er was geen CI/CD kwaliteitspoort. Het project was functioneel, maar niet productie-klaar.',
+        color: 'border-orange-500/30 bg-orange-500/5',
+      },
+      {
+        type: 'heading',
+        text: '🤖 De aanpak: een fleet van parallelle agents',
+      },
+      {
+        type: 'paragraph',
+        text: 'In plaats van problemen één voor één aan te pakken, lanceerde ik meerdere gespecialiseerde AI agents tegelijk. Elke agent kreeg een specifieke, afgebakende opdracht mee met volledige context over de codebase, de relevante bestanden en de verwachte output. De agents werkten volledig parallel — terwijl de ene agent E2E tests repareerde, was een andere bezig met de backend audit en een derde met de CI/CD pipeline.',
+      },
+      {
+        type: 'grid2',
+        items: [
+          {
+            icon: '🧪',
+            title: 'e2e-timing-fixes agent',
+            text: 'Repareerde gebroken timing, wrong selectors en PrimeNG-specifieke interactieproblemen in 4 Cypress testbestanden.',
+          },
+          {
+            icon: '🤝',
+            title: 'ai-setup-evaluation agent',
+            text: 'Voegde evaluatiemetrics toe aan 5 agents, breidde de README uit van 18 naar 23 agents en bouwde een decision tree.',
+          },
+          {
+            icon: '🗺️',
+            title: 'e2e-egov-dsl agent',
+            text: 'Deed root cause analyse van 8 volledig falende eGov mapping tests en voegde 4 ontbrekende methoden toe aan MappingPage.js.',
+          },
+          {
+            icon: '⏱️',
+            title: 'timeline-unskip agent',
+            text: 'Implementeerde 30 tijdlijn-tests volledig, van create tot delete met popup-bevestiging en navigatie over 12+ periodes.',
+          },
+          {
+            icon: '📋',
+            title: 'dsl-acceptance agent',
+            text: "Schreef 17 nieuwe acceptatietests voor DSL overzicht en detail pagina's en repareerde een hardnekkige cancel-button bug.",
+          },
+          {
+            icon: '🔒',
+            title: 'backend-audit agent',
+            text: 'Doorlichtte alle 8 controllers, Feijn clients, Liquibase migraties, input validatie en Spring Security configuratie.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🧪 Wave 1: de E2E test problemen',
+      },
+      {
+        type: 'paragraph',
+        text: 'De eerste golf agents richtte zich op de meest zichtbare problemen: gebroken of overgeslagen Cypress tests. De AI identificeerde vier categorieën van fouten die telkens terugkwamen.',
+      },
+      {
+        type: 'list',
+        items: [
+          "p-inputNumber valkuil: clear().type() reset het Angular model naar 0. Fix: focus().type('{selectall}VALUE') — dit is een PrimeNG-specifiek probleem dat moeilijk te vinden is zonder diepgaande componentkennis",
+          'Sidebar timing: tests die op een cancel-knop klikten voordat de drawer-animatie volledig open was, faalden willekeurig. Fix: wachten op een zichtbaarheidsguard',
+          'Ontbrekende POM-methoden: MappingPage.js miste 4 methoden (mappingList, mappingPeriodCard, auditLogButton, auditLogPanel) waardoor 8 tests volledig crashten',
+          "Hardgecodeerde URLs: dsl-testdata-setup.cy.js gebruikte nb-docker-3 URLs die op andere omgevingen niet bestonden. Fix: Cypress.env('globalconfigUrl')",
+        ],
+      },
+      {
+        type: 'code',
+        language: 'javascript — p-inputNumber correcte interactie (Cypress)',
+        code: `// ❌ FOUT: reset het Angular model naar 0 bij clear()
+cy.get('[data-testid="amount-input"] .p-inputnumber-input')
+  .clear()
+  .type('150')
+
+// ✅ CORRECT: selecteer en overschrijf in één beweging
+cy.get('[data-testid="amount-input"] .p-inputnumber-input')
+  .focus()
+  .type('{selectall}150', { force: true })`,
+      },
+      {
+        type: 'paragraph',
+        text: 'Dit soort subtiele bugs zijn extreem moeilijk te vinden via handmatig debuggen — de test slaagt lokaal maar faalt in CI — maar een AI agent die de volledige PrimeNG-documentatie en componentstructuur kent, herkent het patroon onmiddellijk.',
+      },
+      {
+        type: 'heading',
+        text: '⏱️ Wave 2: 30 tijdlijn-tests van nul naar volledig',
+      },
+      {
+        type: 'paragraph',
+        text: 'De tijdlijn-tests waren de zwaarste klus. Er waren al 29 test-namen geschreven (it.skip), maar de implementatie ontbrak volledig. De agent moest op basis van de beschrijving en het page object zelf de volledige testlogica schrijven. Dat betekende: seed data aanmaken via de backend API, navigeren naar de juiste pagina, interageren met de tijdlijn-component, en assertions schrijven.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'cy.seedTimeline() al aanwezig',
+            text: 'De custom command was al geïmplementeerd in commands.js — de agent hoefde die niet te maken, alleen te gebruiken. Een mooi voorbeeld van hoe bestaande infrastructuur waarde heeft.',
+          },
+          {
+            title: "Testscenario's geïmplementeerd",
+            text: '30 tests: periodes toevoegen voor/na/tussen, ongeldige datums, annuleren, verwijderen met bevestiging, navigatie over 12+ periodes, waarschuwingsdrempel via cy.clock().',
+          },
+          {
+            title: 'TimelinePage.js selector-fout gecorrigeerd',
+            text: 'De agent ontdekte dat saveButton() en cancelButton() de verkeerde selector gebruikten (sidebar-header vs drawer-header). Dit werd tegelijk rechtgezet.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '📋 Wave 3: DSL acceptatietests en de cancel-button bug',
+      },
+      {
+        type: 'paragraph',
+        text: 'De DSL (Domain Specific Language) module had testbestanden die qua structuur goed waren, maar nauwelijks acceptatiecriteria bevatten. De agent breidde dsl-overview.cy.js uit van 18 naar 25 tests en dsl-detail.cy.js van 28 naar 38 tests. Tegelijk werd een hardnekkige bug gevonden in restore-commands.js: de cancel-knop gebruikte de verkeerde CSS-selector.',
+      },
+      {
+        type: 'code',
+        language: 'javascript — restore-commands.js bug',
+        code: `// ❌ VOOR: werkte niet na de PrimeNG drawer refactor
+cy.get('button.cancel-button').click()
+
+// ✅ NA: canonical data-testid selector
+cy.get('[data-testid="drawer-header-cancel-button"]').click()`,
+      },
+      {
+        type: 'paragraph',
+        text: 'Dit is een klassiek voorbeeld van regressionschade door een refactor: de template werd aangepast naar een drawer-patroon met data-testid attributen, maar één restore-command was vergeten. De AI vond het door het patroon in de rest van de codebase te vergelijken.',
+      },
+      {
+        type: 'heading',
+        text: '🔒 Wave 4: de backend security audit — schrikken geblazen',
+      },
+      {
+        type: 'paragraph',
+        text: 'De backend audit was de meest ontnuchterende stap. De AI doorlichtte systematisch alle 8 REST controllers, alle Feign clients, de Liquibase migraties, de input validatie en de Spring Security configuratie. Het verdict was helder: BLOCKERS PRESENT.',
+      },
+      {
+        type: 'infobox',
+        icon: '🔴',
+        title: 'Kritieke bevinding: geen autorisatie op 30+ endpoints',
+        text: 'Geen enkele van de 8 controllers heeft @FgaPermissionCheck of @PreAuthorize annotaties. Dit betekent dat elke geverifieerde JWT-houder alle data kan muteren — inclusief loonschalen verwijderen, schaalgroepen aanpassen en DSL-regels overschrijven.',
+        color: 'border-red-500/30 bg-red-500/5',
+      },
+      {
+        type: 'infobox',
+        icon: '🔴',
+        title: 'Kritieke bevinding: wildcard CORS op alle controllers',
+        text: '@CrossOrigin(origins = "*") staat op alle 8 controllers. Elke externe website kan cross-origin API-requests sturen naar de backend. Dit is een ernstig beveiligingslek in een loonverwerkingssysteem.',
+        color: 'border-red-500/30 bg-red-500/5',
+      },
+      {
+        type: 'list',
+        items: [
+          '🟠 Feijn clients zonder fallback of circuit-breaker: bij uitval van een externe service crasht de hele applicatie',
+          '🟠 wcs.url is leeg in application.properties: de WCS Feijn client kan nooit verbinding maken',
+          '🟠 16 @RequestBody parameters zonder @Valid: elk input-object passeert ongevalideerd de backend in',
+          '🟠 Actuator show-values=ALWAYS: alle Spring-properties inclusief secrets zijn leesbaar via /actuator/env',
+          '🟡 Geen Content-Security-Policy headers geconfigureerd',
+          '🟡 Liquibase: attractionbonus domein mist migratiescripts',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'Het is belangrijk om dit in context te plaatsen: dit is een intern configuratiesysteem achter Keycloak SSO, niet direct publiek toegankelijk. Maar voor een productie-release in een loonverwerkingsomgeving zijn dit harde blockers die opgelost moeten worden.',
+      },
+      {
+        type: 'heading',
+        text: '🚦 Wave 5: CI/CD kwaliteitspoorten en frontend audit',
+      },
+      {
+        type: 'paragraph',
+        text: 'De laatste wave richtte zich op preventie: zorgen dat toekomstige wijzigingen niet stilletjes kwaliteit kunnen afbreken. De agent voegde een validate-agents job toe aan de GitHub Actions pipeline en maakte een quality-gate script aan dat bij elke push een PASS/FAIL verdict geeft.',
+      },
+      {
+        type: 'code',
+        language: 'yaml — .github/workflows/cypress.yml',
+        code: `validate-agents:
+  name: Validate Agent Frontmatter
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Validate Claude agents
+      run: node .claude/scripts/validate-agents.mjs --quiet
+
+cypress-smoke:
+  name: Cypress Smoke Tests
+  needs: validate-agents   # ← wacht op validatie
+  runs-on: ubuntu-latest
+  # ...`,
+      },
+      {
+        type: 'paragraph',
+        text: 'De data-testid audit gaf een verrassend goed resultaat: alle 66 Angular templates hadden al correcte data-testid attributen. Dit is het resultaat van de eerder gevoerde refactor naar het drawer-patroon met gestandaardiseerde testid-conventies.',
+      },
+      {
+        type: 'heading',
+        text: '📊 De eindbalans: wat is er bereikt?',
+      },
+      {
+        type: 'grid2',
+        items: [
+          {
+            icon: '✅',
+            title: '70+ E2E tests geactiveerd',
+            text: '30 tijdlijn-tests geïmplementeerd, 17 DSL acceptatietests toegevoegd, 8 eGov mapping tests gerepareerd, cancel-button bug gefixed.',
+          },
+          {
+            icon: '✅',
+            title: 'AI agent setup geoptimaliseerd',
+            text: '23 agents gevalideerd (0 errors), evaluatiemetrics toegevoegd, README uitgebreid, decision tree voor agent-selectie.',
+          },
+          {
+            icon: '✅',
+            title: 'CI/CD kwaliteitspoorten actief',
+            text: 'validate-agents in GitHub Actions pipeline, quality-gate.mjs script, PASS/FAIL verdict bij elke push.',
+          },
+          {
+            icon: '📄',
+            title: 'BACKEND_SECURITY_AUDIT.md',
+            text: '7 bevindingen gedocumenteerd met bestandspaden, regelnummers en concrete fixinstructies. Verdict: BLOCKERS PRESENT.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '💡 Wat leerde ik van deze sessie?',
+      },
+      {
+        type: 'paragraph',
+        text: 'De kracht van een AI fleet zit niet in de snelheid alleen — het zit in de breedte. Een menselijk team zou weken nodig hebben om al deze domeinen tegelijk te doorzoeken: E2E tests, page objects, backend controllers, security configuratie, CI/CD pipelines én frontend templates. Een goed geconfigureerde AI fleet doet dit in uren. Maar er zijn ook grenzen.',
+      },
+      {
+        type: 'quote',
+        text: 'AI agents zijn ongeklopt in het vinden van patronen, het opsporen van inconsistenties en het schrijven van boilerplate. Ze struikelen nog over domeinkennis die nergens in de codebase staat — zoals de vraag of een leeg wcs.url bewust was tijdens development of een configuratiefout is.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Parallelle agents zijn multiplicatief, niet additief: 5 agents tegelijk levert meer dan 5× de output van 1 agent sequentieel',
+          'Context is alles: agents die de volledige file-tree, POM structuur en tech stack krijgen presteren dramatisch beter dan agents met vage opdrachten',
+          'Verificatie blijft menselijk: elk agentresultaat moet worden doorgelezen — niet om fouten te zoeken, maar om domeinspecifieke nuances te beoordelen',
+          'Audit-first is goud: de backend audit onthulde blockers die zonder AI-hulp maanden verborgen waren gebleven',
+          'Kleine bugs, groot effect: de p-inputNumber bug en de cancel-button selector — dit zijn de dingen die CI laten falen terwijl alles lokaal werkt',
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🚀 Wat staat er nog op de roadmap?',
+      },
+      {
+        type: 'paragraph',
+        text: 'De sessie heeft het project significant dichter bij productie gebracht, maar er zijn harde blockers die menselijk werk vereisen. AI kan de diagnose stellen en de fix suggereren — maar het implementeren van fine-grained authorization vereist domeinkennis over wie wat mag zien en aanpassen in een loonverwerkingscontext. Dat is bedrijfslogica, geen codeerwerk.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'FGA autorisatie implementeren (🔴 blokker)',
+            text: 'Per endpoint bepalen welke rollen (beheerder, HR-medewerker, auditor) welke operaties mogen uitvoeren. @FgaPermissionCheck toevoegen op alle 30+ endpoints.',
+          },
+          {
+            title: 'CORS beperken tot allowlist (🔴 blokker)',
+            text: "@CrossOrigin('*') vervangen door een expliciete allowlist van toegestane origins per omgeving (tst, acc, prd).",
+          },
+          {
+            title: 'Bean Validation toevoegen (🟠)',
+            text: '@Valid op alle 16 @RequestBody parameters, @NotNull/@Size/@Min/@Max op DTO-velden, foutmeldingen testen via E2E.',
+          },
+          {
+            title: 'Feijn resilience (🟠)',
+            text: 'FallbackFactory implementeren voor GlobalconfigCoreClient en WcsClient. wcs.url invullen in application.properties.',
+          },
+          {
+            title: 'Actuator beveiligen (🟠)',
+            text: 'show-values=NEVER instellen, of actuator endpoints beperken tot een beveiligd admin-pad.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🔑 Conclusie',
+      },
+      {
+        type: 'paragraph',
+        text: 'Een AI agent fleet is geen wondermiddel — het is een krachtig gereedschap dat het beste werkt wanneer je het goed configureert, goede context geeft en de resultaten kritisch doorleest. In deze sessie werden meer dan 70 E2E tests geactiveerd, een volledige security audit uitgevoerd, CI/CD kwaliteitspoorten geïnstalleerd en tientallen kleine bugs gerepareerd. Tegelijkertijd onthulde de audit serieuze beveiligingsproblemen die bewijs zijn dat AI-assistentie en domeinexpertise hand in hand moeten gaan.',
+      },
+      {
+        type: 'infobox',
+        icon: '🤝',
+        title: 'De samenwerking die werkt',
+        text: "AI is razendsnel in analyse, patroonherkenning en boilerplate. Mensen zijn onvervangbaar in domeinkennis, prioriteitsstelling en het beoordelen van beveiligingsrisico's in hun bedrijfscontext. Combineer beide — en je hebt een team dat sneller én veiliger werkt.",
+        color: 'border-green-500/30 bg-green-500/5',
+      },
+    ],
+  },
 ]
 
 export function getBlogPostBySlug(slug: string): BlogPost | undefined {
