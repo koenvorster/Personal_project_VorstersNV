@@ -82,6 +82,19 @@ Claude Code laadt de relevante rule-bestanden automatisch als context bij de cor
 
 ---
 
+## Architecture Docs (`.claude/architecture/`) 🆕
+
+Canonieke bronnen voor tech stack en domain model:
+
+| Document | Inhoud |
+|----------|--------|
+| `architecture/TECH_STACK.md` | **Versienummers** (Next.js 16.2, Python 3.12, ...) |
+| `architecture/BOUNDED_CONTEXTS.md` | **Domain model**, ubiquitous language, agent-routing per context |
+
+> Bij versie-twijfel of domain vragen: raadpleeg eerst deze docs.
+
+---
+
 ## Claude Agents (`.claude/agents/`)
 
 ### Platform-ontwikkeling
@@ -147,7 +160,14 @@ Skills worden automatisch getriggerd op basis van context-keywords.
 
 ## GitHub Copilot Agents (`.github/agents/`)
 
-23 gespecialiseerde agents — aanroepen via `@agent-naam` in GitHub Copilot Chat:
+> **Let op: twee aparte agent-systemen!**
+> - `.claude/agents/` → Claude Code delegates (subprocessen, volledige toolset)
+> - `.github/agents/` → GitHub Copilot Chat (`@agent-naam` in VS Code / web)
+>
+> Ze overlappen qua domein maar zijn niet identiek — Claude agents zijn diepgaander,
+> Copilot agents zijn breder. Kies op basis van je tool.
+
+26 gespecialiseerde agents — aanroepen via `@agent-naam` in GitHub Copilot Chat:
 
 | Categorie | Agents |
 |-----------|--------|

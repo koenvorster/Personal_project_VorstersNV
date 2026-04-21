@@ -38,7 +38,7 @@ Personal_project_VorstersNV/
 │   └── handlers/             # order_handler, payment_handler, inventory_handler
 ├── api/                      # FastAPI routers: products, orders, inventory
 ├── db/                       # SQLAlchemy modellen + Alembic migraties
-├── frontend/                 # Next.js 14 webshop (App Router, TypeScript)
+├── frontend/                 # Next.js 16.2 (App Router, TypeScript)
 ├── prompts/
 │   ├── system/               # System prompts per agent (.txt)
 │   ├── preprompt/             # Preprompts per versie + iteratie-logs (.yml)
@@ -75,7 +75,7 @@ Ubiquitous language per context staat in de domein-agent YAML-bestanden in `agen
 
 | Laag | Technologie |
 |------|-------------|
-| Frontend | Next.js 14 (TypeScript, App Router, Tailwind CSS) |
+| Frontend | Next.js 16.2 (TypeScript, App Router, Tailwind CSS) |
 | Backend API (Python) | FastAPI (Python 3.12) |
 | Backend API (Java) | Spring Boot 3.3.5 (Java 21) in `backend/` |
 | Lokale AI | Ollama – modellen: `llama3`, `mistral` |
@@ -105,7 +105,7 @@ Gebruik `@agent-naam` in Copilot Chat om een gespecialiseerde agent in te schake
 | Agent | Aanroep | Doel |
 |-------|---------|------|
 | Developer | `@developer` | Python/FastAPI/Next.js/Java implementatie |
-| Frontend Specialist | `@frontend-specialist` | Next.js 14, App Router, Tailwind, TypeScript |
+| Frontend Specialist | `@frontend-specialist` | Next.js 16.2, App Router, Tailwind, TypeScript |
 | Clean Code Reviewer | `@clean-code-reviewer` | Code review: SOLID, clean code, refactoring |
 | Security & Permissions | `@security-permissions` | HMAC, auth, input validatie, OWASP |
 | DevOps Engineer | `@devops-engineer` | Docker, GitHub Actions CI/CD, Cloud Run |
