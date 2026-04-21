@@ -128,7 +128,7 @@ export default function OverMijPage() {
           <div className="shrink-0">
             <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden shadow-2xl shadow-green-500/20 ring-4 ring-white/10">
               <Image
-                src="/profile.jpg"
+                src="/profile.png"
                 alt="Koen Vorsters"
                 width={224}
                 height={224}

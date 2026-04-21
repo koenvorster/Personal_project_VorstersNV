@@ -136,7 +136,7 @@ export default function HomePage() {
             className="mx-auto mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-2xl shadow-green-500/20 ring-2 ring-green-500/30"
           >
             <Image
-              src="/profile.jpg"
+              src="/profile.png"
               alt="Koen Vorsters"
               width={112}
               height={112}

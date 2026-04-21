@@ -172,7 +172,7 @@ export default function BlogPostPage() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex items-center gap-3">
               <Image
-                src="/profile.jpg"
+                src="/profile.png"
                 alt="Koen Vorsters"
                 width={44}
                 height={44}
