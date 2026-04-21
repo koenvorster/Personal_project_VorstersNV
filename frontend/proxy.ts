@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     const token = await getToken({
       req: request,
@@ -18,6 +18,9 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next()
 }
+
+export { proxy }
+export default proxy
 
 export const config = {
   matcher: ['/dashboard/:path*'],

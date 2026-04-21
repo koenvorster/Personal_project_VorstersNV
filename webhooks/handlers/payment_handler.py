@@ -3,6 +3,7 @@ import logging
 from typing import Any
 
 from ollama.agent_runner import get_runner
+from ollama.event_bridge import get_event_bridge
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,11 @@ async def handle_payment_confirmed(payload: dict[str, Any]) -> dict[str, Any]:
             "klant_naam": klant_naam,
         },
     )
+
+    try:
+        await get_event_bridge().emit_payment_completed(payload)
+    except Exception:
+        logger.exception("EventBridge emit_payment_completed failed (non-critical)")
 
     return {
         "status": "verwerkt",
@@ -72,6 +78,11 @@ async def handle_payment_failed(payload: dict[str, Any]) -> dict[str, Any]:
             "klant_naam": klant_naam,
         },
     )
+
+    try:
+        await get_event_bridge().emit_payment_failed(payload)
+    except Exception:
+        logger.exception("EventBridge emit_payment_failed failed (non-critical)")
 
     return {
         "status": "verwerkt",

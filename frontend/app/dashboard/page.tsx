@@ -5,10 +5,11 @@ import { motion, useInView } from 'framer-motion'
 import {
   Activity, Cpu, HardDrive, Wifi, Clock, Server,
   Database, Bot, CheckCircle2, RefreshCw,
-  Terminal, Zap, Star, AlertTriangle,
+  Terminal, Zap, Star, AlertTriangle, User, Shield,
 } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import AgentScoreCard, { type AgentAnalytics } from '@/components/ui/AgentScoreCard'
+import { useSession } from 'next-auth/react'
 
 function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef(null)
@@ -73,6 +74,7 @@ const levelColors: Record<string, string> = {
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession()
   const [uptime, setUptime] = useState('0d 0h 0m')
   const [refreshing, setRefreshing] = useState(false)
   const [services, setServices] = useState(defaultServices)
@@ -86,7 +88,14 @@ export default function DashboardPage() {
       const res = await fetch('/api/health')
       if (res.ok) {
         const data = await res.json()
-        setServices(data.services)
+        // Merge API data with defaultServices to preserve icons (can't serialize React components over JSON)
+        setServices(prev =>
+          prev.map(svc => {
+            const updated = (data.services as Array<{ naam: string; poort: number; status: 'online' | 'offline'; latency: string }>)
+              .find(s => s.naam === svc.naam)
+            return updated ? { ...svc, ...updated } : svc
+          })
+        )
         setLastCheck(new Date(data.timestamp).toLocaleTimeString('nl-BE'))
         if (data.startedAt) {
           const diff = Date.now() - new Date(data.startedAt).getTime()
@@ -144,8 +153,55 @@ export default function DashboardPage() {
 
   const onlineCount = services.filter(s => s.status === 'online').length
 
+  const greeting = () => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Goedemorgen'
+    if (h < 18) return 'Goedemiddag'
+    return 'Goedenavond'
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+      {/* Personalized welcome banner */}
+      {session && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6 sm:mb-8"
+        >
+          <GlassCard className="p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20 shrink-0">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-white font-bold text-lg sm:text-xl">
+                    {greeting()}, {session.user?.name?.split(' ')[0] ?? 'Koen'}! 👋
+                  </h2>
+                  <p className="text-slate-400 text-sm">{session.user?.email}</p>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+                  <Shield className="w-3.5 h-3.5 text-violet-400" />
+                  <span className="text-xs font-medium text-violet-400 capitalize">
+                    {session.user?.rol ?? 'viewer'}
+                  </span>
+                </div>
+                {lastCheck && (
+                  <span className="text-xs text-slate-500">
+                    Laatste check: {lastCheck}
+                  </span>
+                )}
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 sm:mb-10">
           <div>

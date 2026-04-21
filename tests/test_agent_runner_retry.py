@@ -50,7 +50,7 @@ class TestRunAgentWithRetrySuccess:
         mock_client = AsyncMock()
         mock_client.generate = AsyncMock(return_value="Antwoord!")
 
-        result, interaction_id = await runner.run_agent_with_retry(
+        result, interaction_id, _ = await runner.run_agent_with_retry(
             "klantenservice_agent",
             "Testinput",
             client=mock_client,
@@ -77,7 +77,7 @@ class TestRunAgentWithRetrySuccess:
         mock_client.generate = AsyncMock(side_effect=mock_generate)
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            result, _ = await runner.run_agent_with_retry(
+            result, *_ = await runner.run_agent_with_retry(
                 "klantenservice_agent",
                 "test",
                 client=mock_client,
@@ -103,7 +103,7 @@ class TestRunAgentWithRetrySuccess:
         mock_client.generate = AsyncMock(side_effect=mock_generate)
 
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            result, _ = await runner.run_agent_with_retry(
+            result, *_ = await runner.run_agent_with_retry(
                 "klantenservice_agent",
                 "test",
                 client=mock_client,

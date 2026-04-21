@@ -1,0 +1,23 @@
+name: release-to-payroll-impact
+version: "1.0"
+trigger: code_released
+description: "Chain 1: Release → Payroll Impact (V3)"
+steps:
+  - skill: analyze_code_changes
+    output_key: code_analysis
+  - skill: map_changes_to_business_logic
+    input_from: code_analysis
+    output_key: business_impact
+  - skill: detect_regression_scope
+    input_from: business_impact
+    output_key: regression_scope
+  - skill: compare_with_previous_run
+    input_from: regression_scope
+    output_key: comparison
+  - skill: detect_salary_anomalies
+    input_from: comparison
+    output_key: anomalies
+on_high_risk:
+  - classify_payroll_risk
+  - explain_salary_difference
+  - suggest_prc_actions

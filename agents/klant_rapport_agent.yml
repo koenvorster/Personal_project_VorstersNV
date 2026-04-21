@@ -1,0 +1,100 @@
+name: klant_rapport_agent
+version: "1.0"
+type: standalone_agent
+description: "Agent voor het genereren van professionele, klantgerichte rapporten op basis van analyses"
+model: mistral:latest
+temperature: 0.4
+max_tokens: 2048
+language: nl
+
+system_prompt_ref: "prompts/system/klant_rapport_v1.txt"
+preprompt_ref: "prompts/preprompt/klant_rapport_v1.yml"
+
+capabilities:
+  - executive_summary_schrijven
+  - technisch_rapport_opstellen
+  - aanbevelingen_prioriteren
+  - offerte_voorstel_genereren
+  - presentatie_outline_maken
+
+input_schema:
+  type: object
+  properties:
+    rapport_type:
+      type: string
+      enum: [code_analyse, procesanalyse, ai_strategie, volledig_advies]
+    klant_naam:
+      type: string
+    klant_sector:
+      type: string
+    bevindingen:
+      type: string
+      description: "Ruwe bevindingen en data voor het rapport"
+    doelgroep:
+      type: string
+      enum: [directie, it_manager, business_analist, gemengd]
+    toon:
+      type: string
+      enum: [formeel, zakelijk, toegankelijk]
+      default: zakelijk
+    include_offerte:
+      type: boolean
+      default: false
+
+output_schema:
+  type: object
+  properties:
+    rapport_titel:
+      type: string
+    executive_summary:
+      type: string
+      description: "Max 200 woorden, voor directie"
+    bevindingen_secties:
+      type: array
+      items:
+        type: object
+        properties:
+          titel: {type: string}
+          inhoud: {type: string}
+          visualisatie_hint: {type: string}
+    aanbevelingen:
+      type: array
+      items:
+        type: object
+        properties:
+          prioriteit: {type: integer, minimum: 1, maximum: 3}
+          titel: {type: string}
+          beschrijving: {type: string}
+          verwacht_resultaat: {type: string}
+    conclusie:
+      type: string
+    volgende_stap:
+      type: string
+      description: "Concrete call-to-action voor de klant"
+    offerte_indicatie:
+      type: object
+      nullable: true
+      properties:
+        dienst: {type: string}
+        prijs_range: {type: string}
+        looptijd: {type: string}
+        voorwaarden: {type: string}
+
+tools:
+  - name: sla_rapport_op
+    description: "Sla het gegenereerde rapport op als markdown-bestand"
+    endpoint: "/api/rapporten/opslaan"
+  - name: stuur_naar_klant
+    description: "Verstuur rapport per email naar klant"
+    endpoint: "/api/rapporten/versturen"
+
+evaluation:
+  metrics:
+    - professioneel_niveau
+    - volledigheid_score
+    - klant_tevredenheid
+    - conversie_naar_opdracht
+  feedback_loop: true
+  log_dir: "logs/klant_rapporten"
+
+iteration_log: "prompts/preprompt/klant_rapport_iterations.yml"

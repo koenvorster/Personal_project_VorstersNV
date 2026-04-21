@@ -1,0 +1,1438 @@
+================================================================================
+LOONBEREKENING ANALYSE - lpbunified-master
+Belgisch loonverwerkingssysteem voor lokale overheden
+================================================================================
+Gegenereerd op basis van broncode-analyse van:
+  spring/lima/lima-server/src/main/java/be/schaubroeck/lpb/rkm/rekenmotor/
+
+================================================================================
+INHOUDSOPGAVE
+================================================================================
+  1.  Overzicht architectuur (Chain of Responsibility)
+  2.  Reken Fases (RekenFase enum)
+  3.  Volledig overzicht van alle RekenCommand klassen
+  4.  Fase 1: Bruto loonberekening
+  5.  Fase 2: Sociale bijdragen (RSZ)
+  6.  Fase 3: Belastbaar inkomen
+  7.  Fase 4: Bedrijfsvoorheffing (BV)
+  8.  Fase 5: Netto loon
+  9.  Inhoudingen (BerekenInhoudingen)
+ 10.  Loonbeslag (BerekenBeslagOpLoon)
+ 11.  Context keys overzicht
+ 12.  Fiscale constanten en grenzen
+ 13.  Fiskgezinstoestand (gezinstype voor BV)
+ 14.  Data types en hulpklassen
+ 15.  APO-module (aanpassingen achteraf)
+ 16.  Resultaten beheer
+ 17.  REST API en web service laag
+
+================================================================================
+SECTIE 1: OVERZICHT ARCHITECTUUR (CHAIN OF RESPONSIBILITY)
+================================================================================
+
+Het rekenmotor-systeem is gebouwd op het Chain of Responsibility design pattern.
+Elke rekenStap is een klasse die AbstractRekenCommand implementeert.
+
+Klasse hiërachie:
+  org.apache.commons.chain.Command  (Apache Commons Chain)
+    └── AbstractRekenCommand        (be.schaubroeck.lpb.rkm.rekenmotor)
+          ├── BerekenBrutoLoon
+          ├── AbstractBerekenSocialeBijdragen
+          │     ├── BerekenSocialeBijdragenDmfa
+          │     ├── BerekenSocialeBijdragenDmfappl
+          │     └── BerekenSocialeBijdragenRszppo
+          ├── BerekenWerkbonus
+          ├── BerekenBijzondereBijdrage
+          ├── BerekenRuwBelastbaar
+          ├── BerekenTotaalBelastbaar
+          ├── AbstractBerekenBv
+          │     ├── BerekenBvGewoon
+          │     ├── BerekenBvAchterstal
+          │     ├── BerekenBvVakantiegeld
+          │     ├── BerekenBvExceptioneel
+          │     ├── BerekenBvTijdelijkeWerkloosheid
+          │     ├── BerekenBvVervangingsInkomen
+          │     ├── BerekenBvOpzegVergoedingen
+          │     ├── BerekenBvFietsVergoeding
+          │     ├── BerekenBvUittredingMandataris
+          │     ├── BerekenBvUittredingMandatarisAchterstal
+          │     ├── BerekenBvWinstPremie
+          │     ├── BerekenBvVrijwilligeBrandweer
+          │     └── BerekenBvToevalligeVergoedingen
+          ├── BerekenInhoudingen
+          ├── BerekenNettoLoon
+          ├── BerekenBeslagOpLoon
+          ├── PreRekenControles
+          ├── PostRekenControles
+          └── ... (vele andere command klassen)
+
+De Chain wordt opgebouwd door RekenChainFactoryImp via de Apache Commons Chain library.
+Elk commando ontvangt een RekenContext (key-value store), verwerkt gegevens,
+en retourneert CONTINUE_PROCESSING (boolean) zodat de volgende stap uitgevoerd wordt.
+
+RekenContext werkt op twee niveaus:
+  - mainContext: globaal per persoon
+  - opdrachtContext: per opdracht (aanstelling) per Opper (periode)
+
+================================================================================
+SECTIE 2: REKEN FASES (RekenFase enum)
+================================================================================
+
+Enum: be.schaubroeck.lpb.rkm.rekenmotor.factory.RekenFase
+
+De berekening verloopt in 5 opeenvolgende fases:
+
+  BRUTO       → Berekening van het bruto maandloon
+  SOCIAAL     → Berekening van sociale bijdragen (RSZ, TAO, BBSZ, werkbonus)
+  BELASTBAAR  → Berekening van het belastbaar inkomen
+  BV          → Berekening van de bedrijfsvoorheffing
+  NETTO       → Berekening van het netto loon
+
+================================================================================
+SECTIE 3: VOLLEDIG OVERZICHT VAN ALLE REKENCOMMAND KLASSEN
+================================================================================
+
+A. VOORBEREIDING
+  - VerzamelGegevens            → verzamelt persoons- en aanstellingsgegevens
+  - PreRekenControles            → controles vóór berekening start
+  - CheckSchoolVerlater          → controle statuut schoolverlater
+  - CheckDalendFiscaalJaarCommand → controle dalend fiscaal jaar
+  - ZetAfwijkendRegimeVoorMonitoren    → regime aanpassing voor monitoren
+  - ZetAfwijkendRegimeVoorUkagFF18     → regime aanpassing UKAG fiche 18
+  - ZetAfwijkendRegimeVrijwilligeBrandweer → regime aanpassing brandweer
+
+B. BRUTO FASE
+  - BerekenBrutoLoon              → orchestratie van bruto berekening
+  - BerekenTheoretischJaarWedde   → theoretische jaarwedde berekening
+  - BerekenBrutoTheoretischJaarLoon → bruto theoretisch jaarloon
+
+C. SOCIALE BIJDRAGEN FASE
+  - BerekenSocialeBijdragenDmfa    → RSZ voor DMFA-sector
+  - BerekenSocialeBijdragenDmfappl → RSZ voor DMFAPPL-sector (overheden)
+  - BerekenSocialeBijdragenRszppo  → RSZ voor RSZPPO-sector
+  - BerekenPens2Antwerpen          → pensioenberekening specifiek Antwerpen
+  - BerekenWerkbonus               → werkbonus (vermindering RSZ lage lonen)
+  - BerekenWerkbonusGepensioneerd  → werkbonus gepensioneerden
+  - BerekenBijzondereBijdrage      → BBSZ (bijzondere bijdrage sociale zekerheid)
+  - PostControleRsz                → controles na RSZ berekening
+  - TerugbetalingSocialeBijdragenCommand → terugbetaling soc. bijdragen
+  - BerekenVerminderingHerstructureringDmfappl → vermindering herstructurering
+
+D. BELASTBAAR FASE
+  - BerekenRuwBelastbaar           → ruw belastbaar bedrag
+  - BerekenTotaalBelastbaar        → totaal belastbaar inkomen
+  - BerekenBelastbaarAchterstal    → belastbaar voor achterstalbetalingen
+  - BerekenBelastbaarVrijwilligeBrandweer → belastbaar brandweer
+  - ControleRegulBelastbaar        → controles belastbaar
+  - ControlesBelastbaarVrijwilligeBrandweer → controles brandweer belastbaar
+
+E. BEDRIJFSVOORHEFFING FASE
+  - BerekenBvGewoon                → BV op gewone bezoldiging
+  - BerekenBvAchterstal            → BV op achterstalbetalingen
+  - BerekenBvVakantiegeld          → BV op vakantiegeld
+  - BerekenBvExceptioneel          → BV op exceptionele bezoldigingen
+  - BerekenBvTijdelijkeWerkloosheid → BV tijdelijke werkloosheid
+  - BerekenBvVervangingsInkomen    → BV vervangingsinkomen
+  - BerekenBvOpzegVergoedingen     → BV opzegvergoedingen
+  - BerekenBvFietsVergoeding       → BV fietsvergoeding
+  - BerekenBvUittredingMandataris  → BV uittreding mandataris
+  - BerekenBvUittredingMandatarisAchterstal → BV uittreding mandataris achterstal
+  - BerekenBvWinstPremie           → BV winstpremie
+  - BerekenBvVrijwilligeBrandweer  → BV vrijwillige brandweer
+  - BerekenBvToevalligeVergoedingen → BV toevallige vergoedingen
+
+F. INHOUDINGEN & NETTO
+  - BerekenWerkuitkeringInhoudingen → inhoudingen werkuitkeringen
+  - BerekenInhoudingen             → alle overige inhoudingen
+  - BerekenVoorschot               → voorschotberekening
+  - BerekenNettoLoon               → netto loon
+
+G. CORRECTIES & BIJZONDERE GEVALLEN
+  - BerekenBeslagOpLoon            → loonbeslag / onderhoudsgeld
+  - ActiveerAchterstal             → activatie achterstal verwerking
+  - OvernemenBijzondereBijdrage    → overname BBSZ bij achterstal
+  - OvernemenBijAchterstal         → overname gegevens bij achterstal
+  - SommatiesAchterstal            → sommaties voor achterstal
+  - Sommaties                      → totaliseringen
+  - FixManueleTussenkomstBeslagOpLoon → fix voor manuele tussenkomst beslag
+
+H. APO MODULE (Aanpassingen Persoonlijk/Organisatie)
+  - VerwerkApoInput                → APO invoer verwerking
+  - VerwerkApoInputInhoudingen     → APO inhoudingen
+  - ApoEarlyStopCheck              → vroege stopcheck APO
+
+I. MANUELE TUSSENKOMSTEN
+  - DoeTussenkomst                 → voer manuele tussenkomst uit
+  - DoeSleutelTussenkomst          → voer sleutel-gebaseerde tussenkomst uit
+  - GenereerNeutraliserendeTussenkomst      → neutraliseer tussenkomst
+  - GenereerNeutraliserendeSleutelTussenkomst → neutraliseer sleutelwaarde
+
+J. NAVERWERKING
+  - PostRekenControles             → controles na volledige berekening
+
+================================================================================
+SECTIE 4: FASE 1 - BRUTO LOONBEREKENING
+================================================================================
+
+Klasse: BerekenBrutoLoon.java
+Delegeert naar:
+  1. BerekenVergoedingen.java    → berekent vergoedingen (maaltijdcheques, etc.)
+  2. BerekenSupplementen.java    → berekent supplementen (nacht, weekend, etc.)
+  3. FlexiJobs.java              → verwerking flexi-job lonen
+
+Resultaat: BRUTO_MAANDLOON_KEY in RekenContext
+
+SUB-CALCULATORS in bruto/ subpackage:
+  LoonCodeCalculatorFactory      → factory die juiste calculator kiest
+  LoonCodeCalculatorTriviaal     → eenvoudige looncode berekening
+  LoonCodeCalculatorRegelingWerkgever → werkgeversregeling calculator
+  LoonCodeCalculatorOnregelmatigWerkgeverUurloon → onregelmatig uurloon
+  LoonCodeCalculatorHasta        → HASTA-schaal calculator
+  LoonCodeCalculatorDiploma      → diplomatoeslag calculator
+
+DISPONIBILITEIT:
+  Disponibiliteit.java           → berekening disponibiliteitstoeslag
+  DispoType.java                 → type enum: GEWONE_DISPO, BIJZONDERE_DISPO, etc.
+  PrestatiesDisponibiliteit.java → prestaties in disponibiliteit
+  PrestatiesGewaarborgdLoon100PctOfDispo → gewaarborgd loon / dispo 100%
+  BasisDispo.java                → basisbedrag disponibiliteit
+  DiplomaToeslagCombinatie.java  → combinatie diplomatoeslagen
+
+WEDDESCHAAL BEREKENING:
+  BerekenWeddeSchaal.java: berekenTrap(internnr, versie, trap)
+    → roept SchaalVersieService.getByInternNrVersie() op
+    → roept SchaalVerhogingService.findByInternNrVersie() op
+    → roept Weddeschaal.berekenTrap(schaalversie, schaalVerhogingen, trap) op
+    (Weddeschaal zit in de loonsimulator module)
+
+PRESTATIERATIO:
+  RkmPrestatieVerhouding.java    → teller/noemer verhouding (deeltijds werken)
+  VerwerkPrestaties.java         → verwerking van prestatiegegevens
+  PrestatiesZiekte.java          → prestaties tijdens ziekte
+  PrestatiesDeeltijdseWerkhervatting → prestaties deeltijdse werkhervatting
+  PrestatiesEuropeseVakantie.java → Europese vakantie prestaties
+  PrestatiesGewoneBezoldiging.java → gewone bezoldiging prestaties
+
+FLEXI-JOBS:
+  FlexiJobs.java                 → hoofdlogica flexi-jobs
+  FlexiJobsUtil.java             → hulpfuncties flexi-jobs
+  FlexiJobsControleOndergrens.java → controle ondergrens flexi-job
+  FlexiJobsControleNaceCode.java  → controle NACE-code voor flexi-jobs
+
+SLEUTELS (bruto invoergegevens per loonlijn):
+  SleutelAanstelling             → aanstellingsgegevens
+  SleutelRekenWijze              → rekenwijze (BAREMA, UURLOON, etc.)
+  SleutelJaarWedde               → jaarloon
+  SleutelJaarNaarMaand           → omzettingsfactor jaar→maand
+  SleutelTellerPrestatieVerhouding / SleutelNoemerPrestatieVerhouding
+  SleutelRszDagenStelsel         → RSZ-dagenstelsel
+  SleutelPensioenStelsel         → pensioenstelsel
+  SleutelMaatman                 → maatman verhouding (deeltijds)
+  SleutelSalarisverhoging        → percentage salarisverhoging
+  SleutelVergoedingen            → vergoedingsgegevens
+  SleutelCategorie               → loonkategorie
+  SleutelWerknemersKengetal      → kengetal werknemer
+  SleutelWerkgeversCategorie     → werkgeverskategorie
+  SleutelStatuutDmfappl          → DMFAPPL-statuut
+  SleutelAfwezighedenInvoerModule → afwezigheidsgegevens
+  SleutelAfwezigheidsCode        → afwezigheidscode
+  SleutelAfwezigheidsUren        → afwezigheidsuren
+  SleutelAfwijkendeIndex         → afwijkende indexering
+  SleutelAfwijkendeIndexFederaal → federale afwijkende index
+  SleutelUurNoemer               → uurnoemer (bv. 1/38)
+  SleutelPrestatieVerhoudingVorming → vorming prestatieratio
+  SleutelMaatregelingReorganisatieArbeidsTijd / *2 → arbeidsherorganisatie
+
+================================================================================
+SECTIE 5: FASE 2 - SOCIALE BIJDRAGEN (RSZ)
+================================================================================
+
+Klasse: AbstractBerekenSocialeBijdragen (abstract basisklasse)
+Drie concrete implementaties naargelang de sector:
+  - BerekenSocialeBijdragenDmfa     (privésector RSZ)
+  - BerekenSocialeBijdragenDmfappl  (lokale overheden DMFAPPL)
+  - BerekenSocialeBijdragenRszppo   (onderwijs RSZPPO)
+
+WERKNEMER BIJDRAGEN (RekenRszKey):
+  BIJDRAGE_RSZ_KEY                         → gewone RSZ werknemer
+  BIJDRAGE_TAO_KEY                         → bijdrage TAO (tijdelijke arbeidsonderschikten)
+  BIJDRAGE_PENSIOEN_VASTBENOEMDEN_KEY      → pensioen vastbenoemde
+  BIJDRAGE_PENSIOEN_VASTBENOEMDEN_APK_KEY  → pensioen vastbenoemde APK
+  BIJDRAGE_DUBBEL_VAKANTIEGELD_KEY         → bijdrage dubbel vakantiegeld
+  BIJDRAGE_DUBBEL_VAKANTIEGELD_MANDATARIS_KEY → dubbel vakantiegeld mandataris
+  BIJDRAGE_PENSIOEN_MANDATARIS_KEY         → pensioen mandataris
+  BIJDRAGE_BRUG_PENSIOEN_KEY              → brugpensioenbijdrage
+  BIJDRAGE_MOBILITEITSBUDGET_KEY          → mobiliteitsbudget bijdrage
+  BIJDRAGE_OVERUREN_GECO_KEY              → bijdrage overuren GECO
+
+WERKGEVER BIJDRAGEN (RekenPatronaalRszKey):
+  PATRONALE_BIJDRAGE_RSZ_KEY
+  PATRONALE_BIJDRAGE_MEER_DAN_10WERKNEMERS_KEY
+  PATRONALE_BIJDRAGE_PENSIOEN_VASTBENOEMDEN_KEY
+  PATRONALE_BIJDRAGE_PENSIOEN_VASTBENOEMDEN_APK_KEY
+  PATRONALE_BIJDRAGE_VOERTUIG_KEY         → bijdrage bedrijfswagen
+  PATRONALE_BIJDRAGE_TERUGBETALING_VERKEERSBOETES_KEY
+  PATRONALE_BIJDRAGE_ERKENTELIJKHEIDSPREMIE_KEY → erkentelijkheidspremie (grens: 1988)
+  PATRONALE_BIJDRAGE_PENSIOEN_MANDATARIS_KEY
+  VERMINDERING_PATRONALE_BIJDRAGE_RSZ_KEY → vermindering patronale bijdrage
+  PATRONALE_BIJDRAGE_GSD_KEY              → GSD bijdrage
+  PATRONALE_BIJDRAGE_OVERUREN_GECO_KEY
+  PATRONALE_BIJDRAGE_CORONAPREMIE_KEY     → COVID-19 coronapremie bijdrage
+
+RSZ BASES (RekenBasisRszKey):
+  BASIS_RSZ_KEY
+  BASIS_TAO_KEY
+  BASIS_BIJZONDERE_BIJDRAGE_KEY
+  BASIS_PENSIOEN_VASTBENOEMDEN_KEY
+  BASIS_PENSIOEN_MANDATARIS_KEY
+
+SOLIDARITEITSBIJDRAGE:
+  AANTAL_SOLIDARITEIDSBIJDRAGE_GRENZEN = 4
+  AANTAL_SOLIDARITEITSBIJDRAGE_INHOUDINGEN = 5
+  Begindatum: 01.01.1995
+
+BIJZONDERE BIJDRAGE SOCIALE ZEKERHEID (BBSZ) - BerekenBijzondereBijdrage.java:
+  - Van kracht vanaf: 01.04.1994
+  - Nieuwe regels vanaf: 01.04.2022 (3 types i.p.v. 2)
+  - AANTAL_SCHIJVEN = 7
+
+  BijzBijdrage enum waarden:
+    BAREMA   → berekening op basis van barema (maandinkomen)
+    SCHIJF_1 → eerste inkomensschijf
+    SCHIJF_2 → tweede inkomensschijf
+    SCHIJF_3 → derde inkomensschijf
+    SCHIJF_4 → vierde inkomensschijf
+    SCHIJF_5 → vijfde inkomensschijf
+    SCHIJF_6 → zesde inkomensschijf
+    GEEN_INH → geen inhouding
+
+  Grenzen (Konstanten):
+    BZBD_GRENS_1 t/m BZBD_GRENS_6
+
+  Berekeningsformule:
+    BBSZ = forfait + (inkomen - grens) × percentage
+    Min/max plafond van toepassing
+    Maandelijks berekend op basis van maandinkomen
+
+WERKBONUS (BerekenWerkbonus.java):
+  BerekenWerkbonus               → werkbonus voor actieve werknemers
+  BerekenWerkbonusGepensioneerd  → werkbonus gepensioneerden
+  Keys:
+    WERKBONUS_LAGE_LONEN_KEY
+    WERKBONUS_HEEL_LAGE_LONEN_KEY
+
+================================================================================
+SECTIE 6: FASE 3 - BELASTBAAR INKOMEN
+================================================================================
+
+Klassen:
+  BerekenRuwBelastbaar.java    → eerste benadering belastbaar
+  BerekenTotaalBelastbaar.java → definitief belastbaar bedrag
+
+Formule (BerekenTotaalBelastbaar):
+  belastbaar = bruto − sociale bijdragen + werkbonus
+
+Speciale gevallen:
+  - ONTHAALOUDERS: worden overgeslagen (geen belastbaar)
+  - Regime LnedefRegBv bepaalt welke aftrekken van toepassing zijn
+  - Vanaf 01.01.2024: nieuw regime VD_BV_10_VVAA_GB_AFTROK_SOC_INH
+
+LnedefRegBv enum (regime codes voor BV berekening):
+  VD_BV_10_VVAA_GB_BRUTO                 → bruto als basis voor BV
+  VD_BV_10_VVAA_GB_AFTROK_SOC_INH        → bruto na aftrek sociale inhoudingen (nieuw 2024)
+  (en andere regimecodes)
+
+Afzonderlijke belastbare berekeningsvarianten:
+  BerekenBelastbaarAchterstal.java
+    → afzonderlijk belastbare achterstalbetalingen
+  BerekenBelastbaarVrijwilligeBrandweer.java
+    → bijzondere berekening voor vrijwillige brandweer
+
+NOOT - AFTROK_EVUD_VWG:
+  Enkelvoudig vakantiegeld aftrok (EVUD VWG) is expliciet NIET meegenomen
+  in de bruto basis voor BV berekening.
+
+Key: BELASTBAAR_KEY (in RekenBbKey)
+
+================================================================================
+SECTIE 7: FASE 4 - BEDRIJFSVOORHEFFING (BV)
+================================================================================
+
+Basisklasse: AbstractBerekenBv.java
+
+BELASTINGSCHALEN:
+  Oud stelsel (vóór 01.01.2001):  AANTAL_GRENZEN_BELASTINGSCHAAL_OUD = 7
+  Nieuw stelsel (vanaf 01.01.2001): AANTAL_GRENZEN_BELASTINGSCHAAL = 6
+
+  Berekeningsformule per schijf:
+    schijfbedrag = (min(basis, bovengrens) - ondergrens) × percentage/100
+
+FORFAITAIRE BEROEPSKOSTEN:
+  AANTAL_GRENZEN_FORFAITAIRE_BV = 5
+  bvForfait = som van alle schijven forfaitaire aftrek
+
+ECHTGENOTENSPLITSING (Fiskgezinstoestand):
+  INKOMEN_PARTNER_GEWOON (Set):
+    ALLEENSTAANDE, EHOOGBPI, ELAAGBPI, EMIDPENS, EHOOGPENS
+    → berekening via bedrijfsvoorheffingInkomenPartnerGewoon()
+
+  INKOMEN_PARTNER_LAAG (Set):
+    EGEENBPI, ELAAGPENS
+    → berekening via bedrijfsvoorheffingInkomenPartnerLaag()
+    → echtgenotensplitsing: jaarBedragEega = jaarbedrag × percentage (max grens)
+
+VERMINDERINGEN op BV:
+  1. verminderingBvPersonenTenLaste → kinderen, gehandicapten ten laste
+  2. verminderingPersoonInvalide    → de persoon zelf is invalide
+  3. verminderingBvFiscaleGezinsToestand → afhankelijk van gezinstype:
+       ALLEENSTAANDE        → verminderingAlleenstaande (+ ouder met kind)
+       EHOOGBPI, EHOOGPENS  → geen vermindering
+       ELAAGBPI             → verminderingLaagLoonPartner
+       EMIDPENS             → verminderingPensioenPartner
+       EGEENBPI, ELAAGPENS  → verminderingPartnerInvalide (indien van toepassing)
+  4. verminderingLaagLoonJaarBedrag → extra vermindering laag loon maand
+  5. verminderingBvPensioen         → voor gepensioneerden (grens1/grens2/percentage)
+
+STAGIAR OVERHEIDSPERSONEEL (ZAO vermindering):
+  Voorwaarde: isStagairVastbenoemd EN belastbaar TUSSEN grensZao1 EN grensZao2
+  → extra maandvermindering: verminderingZaoMaandBedrag
+
+KRISISTAKS:
+  Konstante: KST_BV_KOEFF_KRISISTAX
+  bedrijfsvoorheffing = bedrijfsvoorheffing × coefficientKrisisTax
+
+JOBKORTING:
+  AANTAL_GRENZEN_JOB_KORTING = 22
+  Opzoekingstabel: belastbaar valt in welke schijf → vaste kortingsbedrag
+  Wordt NIET toegepast bij gepensioneerden
+
+AFRONDINGSREGEL:
+  Vóór 01.01.2023: afronden naar beneden (FLOOR)
+  Vanaf 01.01.2023: standaard afronding (HALF_UP)
+  Constante: EINDE_AFRONDEN_NAAR_BENEDEN = 2023-01-01
+
+ACHTERSTAALBV:
+  berekenBVAchterstalBarema()
+  AANTAL_GRENZEN_ACHTERSTAL_BV = 18 grenzen in opzoekingstabel
+  Vrijstelling kinderen ten laste: grensVerminderingAchterstalKinderenTenLaste
+
+TOEVALLIGE VERGOEDINGEN BV:
+  berekenToevalligeVergoedingenBarema()
+  AANTAL_GRENZEN_TOEVALLIGE_VERGOEDINGEN = 3
+
+VOLUNTARIAAT BV:
+  BvVoluntariaat klasse → speciale berekening voor vrijwilligers
+
+SPECIFIEKE BV BEREKENINGS-VARIANTEN:
+  BerekenBvGewoon                  → reguliere maandelijkse BV
+  BerekenBvAchterstal              → achterstal (art. 171 WIB - afzonderlijk tarief)
+  BerekenBvVakantiegeld            → dubbel vakantiegeld
+  BerekenBvExceptioneel            → exceptionele beloningen
+  BerekenBvTijdelijkeWerkloosheid  → tijdelijke werkloosheid
+  BerekenBvVervangingsInkomen      → vervangingsinkomen
+  BerekenBvOpzegVergoedingen       → opzegvergoedingen en verbrekingsvergoedingen
+  BerekenBvFietsVergoeding         → fietskilometervergoeding (belastingvrij tot grens)
+  BerekenBvUittredingMandataris    → uittreding mandataris (specifieke regels)
+  BerekenBvUittredingMandatarisAchterstal
+  BerekenBvWinstPremie             → winstpremie
+  BerekenBvVrijwilligeBrandweer    → vrijwillige brandweer (aparte tarieven)
+  BerekenBvToevalligeVergoedingen  → toevallige bezoldigingen (art. 171)
+
+Fiscale fiche types (FiskFiche enum):
+  Resultaten worden ingedeeld per fiche (fiche 10, 18, 28, etc.)
+  VERMINDERING_BEDRIJFSVOORHEFFING_FICHE_10_KEY
+  VERMINDERING_BEDRIJFSVOORHEFFING_FICHE_18_KEY
+
+================================================================================
+SECTIE 8: FASE 5 - NETTO LOON
+================================================================================
+
+Klasse: BerekenNettoLoon.java
+
+NETTO = BRUTO
+  − sociale bijdragen (RSZ/BV aftrekken)
+  + werkbonus toeslagen
+
+AFTREKPOSTEN van bruto (alle RSZ-gerelateerde inhoudingen):
+  RSZ werknemer (BIJDRAGE_RSZ_KEY)
+  TAO bijdrage (BIJDRAGE_TAO_KEY)
+  BBSZ (BIJZONDERE_BIJDRAGE_KEY)
+  Pensioen vastbenoemden (BIJDRAGE_PENSIOEN_VASTBENOEMDEN_KEY)
+  Pensioen vastbenoemden APK (BIJDRAGE_PENSIOEN_VASTBENOEMDEN_APK_KEY)
+  Dubbel vakantiegeld bijdrage (BIJDRAGE_DUBBEL_VAKANTIEGELD_KEY)
+  Dubbel vakantiegeld mandataris bijdrage
+  Pensioen mandataris bijdrage
+  Brugpensioen bijdrage
+  Mobiliteitsbudget bijdrage
+
+BV AFTREKKEN (alle varianten):
+  BEDRIJFSVOORHEFFING_GEWONE_BEZOLDIGING_KEY
+  BV achterstal
+  BV vakantiegeld
+  BV exceptioneel
+  BV tijdelijke werkloosheid
+  BV vervangingsinkomen
+  BV opzegvergoedingen
+  BV fietsvergoeding
+  BV uittreding mandataris
+  BV uittreding mandataris achterstal
+  BV winstpremie
+  BV vrijwillige brandweer
+  BV toevallige vergoedingen
+
+TOEVOEGINGEN aan netto:
+  WERKBONUS_LAGE_LONEN_KEY         → werkbonus lage lonen
+  WERKBONUS_HEEL_LAGE_LONEN_KEY    → werkbonus heel lage lonen
+  Vermindering herstructurering    → herstructureringsvermindering
+  Vlaamse vermindering BV          → gewestelijke vermindering BV
+
+BIJZONDER GEVAL:
+  AFTROK_EVUD_VWG (Enkelvoudig Vakantiegeld):
+    → wordt NIET meegenomen in de bruto basis berekening
+    → aparte verwerking voor Europese vakantie (uitbetaling enkelvoudig VG)
+
+Resultaat: NETTO_KEY
+
+================================================================================
+SECTIE 9: INHOUDINGEN (BerekenInhoudingen)
+================================================================================
+
+Klasse: BerekenInhoudingen.java
+Verwerkt alle looninhouding-looncodes (bijv. maaltijdcheques, groepsverzekering,
+persoonlijke premies, vakbondsbijdragen, enz.)
+
+VERWERKINGSLUS:
+  Voor elke Opdracht → voor elke Opper (periode):
+    1. Haal lijst van inhoudingen op (NlpPrestaties met INHOUDINGEN_KEY)
+    2. Groepeer per AardKodeExtensie (looncode)
+    3. Bepaal KedefFormuletype voor de inhouding
+    4. Bereken bedrag
+    5. Voeg toe aan LoonElement met NETTO_KEY (negatief)
+
+FORMULETYPES (KedefFormuletype):
+  INH_WN                   → werknemer inhouding (Y × X)
+  INH_WG                   → werkgever inhouding (basisBedrag × X)
+  INH_WG_PCT_BB_TOT        → % van totaal belastbaar
+  INH_WG_PCT_BR_V1         → % van bruto verzamelstaat loontype NORMAAL_LN
+  INH_WG_PCT_TB            → % van theoretisch bruto (opdrachtsom)
+  INH_WG_PCT_BR_TOT        → % van totaal bruto
+  INH_WG_PCT_BB_GEWOON     → % van gewoon belastbaar
+  INH_WG_PCT_NETTO         → % van netto loon
+
+EXCLUSIES bij verwerking:
+  INH_WERKUITKERING_UREN_KEY → werkuitkeringsuren worden apart verwerkt
+  INHOUDING_VOORSCHOT_KEY   → voorschot apart (BerekenVoorschot)
+  BETALING_VOORSCHOT_KEY    → betaling voorschot apart
+
+SPECIALE INHOUDING - MAALTIJDCHEQUES (kode 5401):
+  Werkgeversbijdrage maaltijdcheques (BIJDRAGE_WG_MTC):
+    → Van toepassing vanaf: KST_START_WG_BIJDRAGE_MTC
+    → Bedrag = basisBedrag (const3) × aantal cheques
+
+PARTIJKAS UITZONDERING:
+  Bij INKOMEN_PARTNER_LAAG en niet-beschermde mandataris:
+    → loonElementen met terugbetaling sociale bijdragen worden gefilterd
+
+UITVOER: netto-bedrag (negatief voor inhoudingen) als LoonElement toegevoegd.
+
+VERMINDERING BV INHOUDINGEN:
+  berekenVerminderingBvInhoudingen() → aparte BV-vermindering op inhoudingen
+  Keys: INH_MET_VERM_BV_KEY, EXCL_PERS_BIJDRAGE_GROEPSVERZ_KEY
+        INH_PERS_BIJDRAGE_GROEPSVERZ_KEY
+
+================================================================================
+SECTIE 10: LOONBESLAG (BerekenBeslagOpLoon)
+================================================================================
+
+Klasse: BerekenBeslagOpLoon.java
+
+LOONCODES:
+  CODE_VRIJWILLIGER = 1419
+  ONDERHOUDSGELD_BLO_CODE = 5102    → onderhoudsgeld (alimentatie)
+  BESLAG_OP_LOON_CODE = 5101        → loonbeslag
+  VOORDEEL_IN_NATURA_CODE = 5701    → voordelen in natura
+
+GRENZEN:
+  ENUMS_GRENS_BLO: {KST_BLO_GR1, KST_BLO_GR2, KST_BLO_GR3, KST_BLO_GR4}
+  ENUMS_PERCENTAGE_BLO: {KST_BLO_PCT1, KST_BLO_PCT2, KST_BLO_PCT3, KST_BLO_PCT4, KST_BLO_PCT5}
+
+SCHIJVENSYSTEEM:
+  Vóór 01.07.2003 (DATUM_BLO_KINDERLAST): 3 grenzen
+  Vanaf 01.07.2003: 4 grenzen
+
+WIJZIGING GRENS DATUM:
+  DATUM_VERHOGING_GRENS_AANTAL = 01.01.2001
+  Vóór: GRENS_BLO_AANTAL_OUD = 3
+  Vanaf: GRENS_BLO_AANTAL = 4
+
+EXTENSIES WETTELIJKE REGELING:
+  Extensies 1 en 51 vallen onder de wettelijke beslag-regeling
+
+CONTEXT KEYS:
+  BESLAG_MAAND_RESULTATEN_KEY          → maandresultaten voor beslagberekening
+  BESLAG_MAAND_PERSOONSFISCALITEIT_KEY → fiscaliteit voor beslag
+  PERSOON_INHOUDING_BESLAG_OP_LOON     → info over het loonbeslag
+  PERSOON_INHOUDING_ONDERHOUDSGELD     → info over onderhoudsgeld
+
+INFO OUTPUT:
+  LOONBESLAG_NAAM_SCHULDEISER          → naam schuldeiser
+  LOONBESLAG_IBAN                      → IBAN schuldeiser
+  LOONBESLAG_OPMERKING                 → extra opmerking
+
+================================================================================
+SECTIE 11: CONTEXT KEYS OVERZICHT
+================================================================================
+
+Alle context-sleutels zijn gedefinieerd in key-enums (sealed interfaces/enums):
+
+A. RekenChainKey (globale chain context):
+  PERSOON_KEY                           → het Persoon object
+  REKENTIJD_KEY                         → begin- en einddatum, isAchterstal
+  INHOUDINGEN_KEY                       → lijst van inhoudingen
+  LOONCODE_MANAGER_KEY                  → manager voor looncodes
+  LOONELEMENT_MANAGER_KEY               → manager voor loonelementen
+  REGUL_MANAGER_KEY                     → manager voor regulaties/exceptions
+  INDEXATOR_KEY                         → indexeringsmanager
+  FISCAAL_JAAR_KEY                      → huidig fiscaal jaar
+  PRE_BEREKENING_CONTEXT_KEY            → vorige berekening context
+  PRE_BEREKENING_CONTEXT_VORIG_FISCAAL_JAAR_KEY → vorig jaar
+  BESLAG_MAAND_RESULTATEN_KEY
+  BESLAG_MAAND_PERSOONSFISCALITEIT_KEY
+  PERSOON_INHOUDING_BESLAG_OP_LOON
+  PERSOON_INHOUDING_ONDERHOUDSGELD
+  OPPER_LAATSTE_GEGEVENS_KEY
+  PERSOONSDATA_MANAGER_KEY
+
+B. RekenBrutoKey (bruto fase):
+  BRUTO_MAANDLOON_KEY                   → bruto maandloon
+  BASIS_BEDRAG_KEY                      → basisloonelement bedrag
+
+C. RekenBasisRszKey (bases voor RSZ):
+  BASIS_RSZ_KEY
+  BASIS_TAO_KEY
+  BASIS_BIJZONDERE_BIJDRAGE_KEY
+  BASIS_PENSIOEN_VASTBENOEMDEN_KEY
+  BASIS_PENSIOEN_MANDATARIS_KEY
+
+D. RekenRszKey (werknemer bijdragen):
+  BIJDRAGE_RSZ_KEY
+  BIJDRAGE_TAO_KEY
+  BIJDRAGE_PENSIOEN_VASTBENOEMDEN_KEY
+  BIJDRAGE_PENSIOEN_VASTBENOEMDEN_APK_KEY
+  BIJDRAGE_DUBBEL_VAKANTIEGELD_KEY
+  BIJDRAGE_DUBBEL_VAKANTIEGELD_MANDATARIS_KEY
+  BIJDRAGE_PENSIOEN_MANDATARIS_KEY
+  BIJDRAGE_BRUG_PENSIOEN_KEY
+  BIJDRAGE_MOBILITEITSBUDGET_KEY
+  BIJDRAGE_OVERUREN_GECO_KEY
+  BIJZONDERE_BIJDRAGE_KEY               → BBSZ
+
+E. RekenPatronaalRszKey (werkgever RSZ bijdragen):
+  PATRONALE_BIJDRAGE_RSZ_KEY
+  PATRONALE_BIJDRAGE_MEER_DAN_10WERKNEMERS_KEY
+  PATRONALE_BIJDRAGE_PENSIOEN_VASTBENOEMDEN_KEY
+  PATRONALE_BIJDRAGE_PENSIOEN_VASTBENOEMDEN_APK_KEY
+  PATRONALE_BIJDRAGE_VOERTUIG_KEY
+  PATRONALE_BIJDRAGE_TERUGBETALING_VERKEERSBOETES_KEY
+  PATRONALE_BIJDRAGE_ERKENTELIJKHEIDSPREMIE_KEY
+  PATRONALE_BIJDRAGE_PENSIOEN_MANDATARIS_KEY
+  VERMINDERING_PATRONALE_BIJDRAGE_RSZ_KEY
+  PATRONALE_BIJDRAGE_GSD_KEY
+  PATRONALE_BIJDRAGE_OVERUREN_GECO_KEY
+  PATRONALE_BIJDRAGE_CORONAPREMIE_KEY
+
+F. RekenBbKey (belastbaar):
+  BELASTBAAR_KEY                        → totaal belastbaar
+
+G. RekenBvKey (bedrijfsvoorheffing):
+  BEDRIJFSVOORHEFFING_GEWONE_BEZOLDIGING_KEY
+  VERMINDERING_BEDRIJFSVOORHEFFING_FICHE_10_KEY
+  VERMINDERING_BEDRIJFSVOORHEFFING_FICHE_18_KEY
+  (+ varianten per BV type)
+
+H. RekenNettoKey (netto):
+  NETTO_KEY                             → netto loon
+  BIJDRAGE_WG_MTC                       → werkgeversbijdrage maaltijdcheques
+
+I. RekenPatronaalPriveRszKey (speciale werkgever keys):
+  (privé-sector patronale bijdragen)
+
+J. RekenInfoKey (info/meta):
+  LOONBESLAG_NAAM_SCHULDEISER
+  LOONBESLAG_IBAN
+  LOONBESLAG_OPMERKING
+
+================================================================================
+SECTIE 12: FISCALE CONSTANTEN EN GRENZEN
+================================================================================
+
+Klasse: FiscaleConstant (be.schaubroeck.lpb.tools)
+Service: FiscaleConstantService → getByDate(LocalDate taxdatum)
+
+BELASTINGSCHALEN (FiscaleConstant):
+  getGrenzenBelastingSchaal(boolean belastingOud)   → lijst van grenswaarden
+  getPercentagesBelastingSchaal(boolean belastingOud) → lijst van percentages
+  Nieuw stelsel: 6 grenzen + percentage per schijf (max 50%)
+
+FORFAITAIRE AFTREK:
+  getGrensForfaitaireBV(int index)      → 5 grenzen
+  getPercentageForfaitaireBV(int index) → 5 percentages
+
+JOBKORTING:
+  getGrensJobkorting(int grensNr)       → 22 + 1 grenzen (tabel)
+  getVerminderingJobkorting(int grensNr) → vaste bedragen per schijf
+
+ACHTERSTAL BV:
+  getGrensAchterstalBv(int grensNr)     → 18 grenzen
+  getPercentageAchterstalBv(int grensNr) → percentage per schijf
+
+VRIJSTELLING ACHTERSTAL KINDEREN TEN LASTE:
+  getGrensVerminderingAchterstalKinderenTenLaste(int aantal)
+
+PARTNER LAAG LOON:
+  getJaarBedragPartnerLaagLoonPercentage() → % van jaarinkomen voor splitsing
+  getJaarBedragPartnerLaagLoonGrens()      → maximum jaarinkomen partner
+  getVerminderingJaarBedragPartnerLaagLoon() → vaste vermindering
+
+VERMINDERINGEN (maandbedragen):
+  getVerminderingAlleenstaandeOf2Verdiener()
+  getVerminderingAlleenstaande()
+  getVerminderingAlleenstaandeOuder()
+  getVerminderingLaagLoonMaandGrens()
+  getVerminderingLaagLoonJaarBedrag()
+  getVerminderingPersoonInvalide()
+  getVerminderingPartnerInvalide()
+  getVerminderingLaagLoonPartner()
+  getVerminderingPensioenPartner()
+
+PENSIOEN VERMINDERING:
+  getVerminderingPensioenGrens1()
+  getVerminderingPensioenGrens2()
+  getVerminderingPensioenPercentage()
+  getVerminderingPensioenBedrag()
+
+ZAO VERMINDERING (Stagairs Overheidspersoneel):
+  getVerminderingZaoMinMaandGrens()
+  getVerminderingZaoMaxMaandGrens()
+  getVerminderingZaoMaandBedrag()
+
+TOEVALLIGE VERGOEDINGEN:
+  getGrensToevalligeVergoedingen(int grensNr)   → 3 grenzen
+  getPercentageToevalligeVergoedingen(int grensNr) → percentage per schijf
+
+CONSTANTEN VIA ConstantManager (Konstanten enum):
+  KST_BV_KOEFF_KRISISTAX          → krisistaksmultiplicator
+  KST_BLO_GR1..4                  → loonbeslag grenzen
+  KST_BLO_PCT1..5                 → loonbeslag percentages
+  KST_START_WG_BIJDRAGE_MTC       → startdatum werkgeversbijdrage maaltijdcheques
+  KST_BV_KOEFF_KRISISTAX          → krisistaks coëfficiënt
+  BZBD_GRENS_1..6                 → BBSZ schijfgrenzen
+  (en honderden andere constants)
+
+================================================================================
+SECTIE 13: FISKGEZINSTOESTAND (GEZINSTYPE VOOR BV)
+================================================================================
+
+Enum: Fiskgezinstoestand (be.schaubroeck.lpb.tools.enumtypes)
+
+WAARDEN EN BETEKENIS:
+  ALLEENSTAANDE  → alleenstaande (zonder partner, zonder pensioen)
+  EHOOGBPI       → gehuwd/wettelijk samenwonend, partner met hoog belastbaar
+                   niet-pensioen inkomen (BPI = Belastbaar Persoonlijk Inkomen)
+  ELAAGBPI       → gehuwd/wettelijk samenwonend, partner met laag BPI
+  EMIDPENS       → gehuwd, partner met midden pensioen
+  EHOOGPENS      → gehuwd, partner met hoog pensioen
+  EGEENBPI       → gehuwd/samenwonend, partner met geen BPI
+  ELAAGPENS      → gehuwd, partner met laag pensioen
+
+GROEPERING (in AbstractBerekenBv):
+  INKOMEN_PARTNER_GEWOON = {ALLEENSTAANDE, EHOOGBPI, ELAAGBPI, EMIDPENS, EHOOGPENS}
+    → BV berekend op volledige jaarinkomen
+  INKOMEN_PARTNER_LAAG = {EGEENBPI, ELAAGPENS}
+    → echtgenotensplitsing toegepast
+
+IMPACT OP BV VERMINDERING:
+  ALLEENSTAANDE → verminderingAlleenstaande + evt. verminderingAlleenstaandeOuder
+  EHOOGBPI / EHOOGPENS → geen extra vermindering
+  ELAAGBPI → verminderingLaagLoonPartner
+  EMIDPENS → verminderingPensioenPartner
+  EGEENBPI / ELAAGPENS → verminderingPartnerInvalide (als invalide)
+
+ONGEHUWDE WEDUWE MET KINDEREN TEN LASTE:
+  isOngehuwdeWeduweMetKinderenTenLaste() → extra vermindering alleenstaande ouder
+  Contradictie-controle: kinderenTenLaste=0 maar vlag gezet → CONTRADICTIE_KINDEREN_TEN_LASTE
+
+================================================================================
+SECTIE 14: DATA TYPES EN HULPKLASSEN
+================================================================================
+
+A. Money (be.schaubroeck.lpb.tools.Money)
+   Custom geldbedrag type, wrapper over BigDecimal.
+   Methoden:
+     .add(Money)          → optelling
+     .subtract(Money)     → aftrekking
+     .multiply(BigDecimal) → vermenigvuldiging
+     .divide(BigDecimal)  → deling
+     .round(int)          → afronden
+     .round(int, RoundingMode) → afronden met modus
+     .max(Money)          → maximum van twee bedragen
+     .min(Money)          → minimum van twee bedragen
+     .negate()            → teken wisselen
+     .signum()            → teken: -1, 0, +1
+     .compareTo(Money)    → vergelijking
+     Money.ZERO           → nul bedrag
+     new Money("99999.99") → aanmaken vanuit String
+
+B. LoonElement
+   Houdt de berekende bedragen bij per looncode per fase.
+   Elk LoonElement heeft:
+     - AardKodeExtensie (looncode + extensie)
+     - Properties (MoneyKey → Money map)
+   Typische properties:
+     BRUTO_MAANDLOON_KEY, BELASTBAAR_KEY, NETTO_KEY, RSZ-keys, BV-keys
+
+C. RekenContext
+   Key-value store doorgegeven aan alle chain commands.
+   Twee niveaus:
+     - getUnchecked(RekenChainKey) → globale waarden
+     - getOpdrachtContext(Opdracht) → per aanstelling
+     - getDoubleKey(key, Opper) → per aanstelling per periode
+
+D. RekenTijd
+   Bevat de tijdsparameters voor de berekening:
+     beginDatum      → begin van de looptijd
+     eindDatum       → einde van de looptijd
+     rekenDatum      → datum voor maandberekening
+     isAchterstal    → is dit een achterstalberekening?
+
+E. Persoon / Opdracht / Opper
+   Persoon → de werknemer (met fiscaliteitsgegevens, opdrachten, ...)
+   Opdracht → een aanstelling/benoeming (met Opper-slices)
+   Opper → een tijdsperiode binnen de opdracht
+
+F. PersoonsFiscaliteit
+   Bevat de fiscale gegevens van een persoon:
+     getFiscaleGezinsToestand()             → Fiskgezinstoestand
+     getTotaalAantalKinderenTenLaste()      → int
+     getAantalMinderValideKinderenTenLaste() → int
+     isMinderValide()                       → boolean
+     isPartnerMinderValide()                → boolean
+     isOngehuwdeWeduweMetKinderenTenLaste() → boolean
+
+G. Hulpklassen:
+   ConstantManager → haalt constanten op (getActualConstant / getByCodeDatum)
+   RegulManager → beheert fouten/regulaties (doRegulException)
+   LoonElementManager → beheert lijst van loonelementen
+   LoonCodeManager → beheert looncodes (getByPrestatie)
+   Indexator → past indexering toe (indexeer)
+   BedragVerdelerFactory → verdeelt bedragen proportioneel
+   BvTools → hulpfuncties BV (getBelastbaar, ...)
+   RekenTools → hulpfuncties (getPersoonsFiscaliteitLaatsteGegevens, TWELVE, ...)
+   LogTools → log-helpers (toSimpleLog, toLogInhouding, ...)
+   CheckRegime → controleert regime voor loonelementverdeling
+   JaarBedragBvGewoon → berekent het jaarlijkse BV-basisbedrag
+   VerminderingBvPersonenTenLaste → kinderenaftrek BV
+   BvVoluntariaat → BV voor vrijwilligers
+   BepaalJaarNaarMaand → omzetting jaar→maand
+   PercentageBasisVormer → berekent procentuele bases
+
+================================================================================
+SECTIE 15: APO MODULE (AANPASSINGEN ACHTERAF)
+================================================================================
+
+Package: be.schaubroeck.lpb.rkm.rekenmotor.apo
+
+APO = Aanpassing (achteraf) van berekende bedragen.
+
+Klassen:
+  VerwerkApoInput.java             → verwerkt APO-input (handmatige aanpassingen)
+  VerwerkApoInputInhoudingen.java  → APO voor inhoudingen
+  ApoEarlyStopCheck.java           → controle of APO-verwerking vroegtijdig stopt
+
+Gebruik:
+  Via looncode-gebaseerde aanpassingen die de rekenresultaten bijstellen.
+  Typisch gebruikt voor:
+    - Correcties van vorige periodes
+    - Handmatige aanpassingen door de loonsachtige
+    - Bijzondere situaties die niet in standaardberekening passen
+
+================================================================================
+SECTIE 16: RESULTATEN BEHEER
+================================================================================
+
+Package: be.schaubroeck.lpb.rkm.rekenmotor.results
+
+Klassen:
+  RekenResultatenBeheer.java   → beheert de volledige set rekenresultaten
+  RekenElementBeheer.java      → beheert individuele rekenelementen
+  RekenResultaatUtil.java      → hulpfuncties voor resultaten verwerking
+
+Naverwerking:
+  Sommaties.java               → totaliseert over alle opdrachten/oppers
+  SommatiesAchterstal.java     → totaliseert acherstalbedragen afzonderlijk
+
+Voorbereiding:
+  Package voorbereiding/:
+    RekenVoorbereiding.java          → voorbereiding van de berekeningsinput
+    RekenVoorbereidingFactory.java   → factory voor voorbereiding
+    RekenUitVoorbereidingStatus.java → status na voorbereiding
+    RekenAtomenCollector.java        → interface voor atomen verzameling
+    RekenAtomenCollectorImp.java     → implementatie
+
+================================================================================
+SECTIE 17: REST API EN WEB SERVICE LAAG
+================================================================================
+
+Package: be.schaubroeck.lpb.rkm.rekenmotor.service.web
+
+Klassen:
+  RekenProcesCentral.java      → centrale service voor rekenprocesaanroepen
+  RekenProcesImp.java          → implementatie van het rekenproces
+  RekenActionFactoryImp.java   → factory voor rekenacties
+
+Service laag:
+  RekenmotorDtoConverter.java  → converteert DTO's voor/na de rekenmotor
+  RekenRszConstantService.java → RSZ-constanten service
+  NlpGlobalService.java        → globale service aggregatie
+  BijdragePercentages.java     → bijdragepercentages service
+  BijdragePercentagesFactory   → factory voor bijdragepercentages
+
+Factory laag:
+  RekenStrategyImp.java        → implementatie van de rekenstrategie
+  RekenMotorStrategyFactoryImp.java → factory voor strategieën
+  RekenChainFactoryImp.java    → bouwt de complete chain
+    → importeert ALLE BerekXxx commands
+    → ordent ze in de juiste rekenFase-volgorde
+    → gebruikt Apache Commons Chain (ChainBase)
+
+DMFA modules (specifiek voor DmfA/DmfAppl aangifte):
+  dmfa/:
+    BerekenSocialeBijdragenDmfa.java
+    BerekenTerugbetalingSocialeBijdragen.java
+    TerugbetalingSocialeBijdragenCommand.java
+    bijdrage/patronaal/ → patronale bijdragen DmfA
+  dmfappl/:
+    BerekenSocialeBijdragenDmfappl.java
+    BerekenPens2Antwerpen.java
+    BerekenVerminderingHerstructureringDmfappl.java
+  rszppo/:
+    BerekenSocialeBijdragenRszppo.java
+
+Werkbonus subpackage:
+  werkbonus/:
+    BerekenWerkbonus.java
+    BerekenWerkbonusGepensioneerd.java
+
+================================================================================
+SAMENVATTING LOONBEREKENINGSTROOM
+================================================================================
+
+COMPLETE REKENTOOM (vereenvoudigd):
+
+[1] VOORBEREIDING
+    VerzamelGegevens → PreRekenControles → ZetAfwijkendRegime* → CheckSchoolVerlater
+
+[2] BRUTO FASE
+    BerekenBrutoLoon
+      └─ BerekenWeddeSchaal (via Weddeschaal.berekenTrap)
+      └─ BerekenVergoedingen (maaltijdcheques, abonnementen, ...)
+      └─ BerekenSupplementen (nacht, weekend, shift, ...)
+      └─ FlexiJobs (flexi-job lonen)
+    BerekenBrutoTheoretischJaarLoon → BerekenTheoretischJaarWedde
+
+[3] SOCIALE BIJDRAGEN FASE
+    BerekenSocialeBijdragenDmfa/Dmfappl/Rszppo
+      └─ RSZ werknemer + patronale RSZ
+      └─ TAO, pensioen vastbenoemden, vakantiegeld bijdragen
+    BerekenWerkbonus (+ gepensioneerden)
+    BerekenBijzondereBijdrage (BBSZ - 7 schijven)
+    PostControleRsz
+
+[4] BELASTBAAR FASE
+    BerekenRuwBelastbaar
+    BerekenTotaalBelastbaar
+      └─ belastbaar = bruto − RSZ bijdragen + werkbonus
+      └─ Regime LnedefRegBv bepaalt aftrekken
+    BerekenBelastbaarAchterstal (indien achterstal)
+    ControleRegulBelastbaar
+
+[5] BEDRIJFSVOORHEFFING FASE
+    BerekenBvGewoon (normale bezoldiging)
+      └─ AbstractBerekenBv:
+           jaarBedrag → bvForfait (5 grenzen) → netto jaarBedrag
+           Echtgenotensplitsing (INKOMEN_PARTNER_GEWOON / LAAG)
+           basisBV (6 schijven belastingschaal)
+           verminderingen (personen ten laste, invalide, gezinsstatus, laag loon)
+           krisistaks coefficient × (÷12) → jobKorting (22 grenzen)
+           ZAO-vermindering (stagairs overheidspersoneel)
+           afronden (FLOOR vóór 2023, HALF_UP vanaf 2023)
+    BerekenBvAchterstal (18 grenzen, aparte tabel)
+    BerekenBvVakantiegeld
+    BerekenBvExceptioneel / BerekenBvTijdelijkeWerkloosheid / ...
+    BerekenBvUittredingMandataris
+
+[6] INHOUDINGEN
+    BerekenWerkuitkeringInhoudingen
+    BerekenInhoudingen (8 formuletypes)
+    BerekenVoorschot
+
+[7] NETTO FASE
+    BerekenNettoLoon
+      └─ netto = bruto − alle RSZ − alle BV + werkbonus + vlaamse vermindering
+
+[8] BIJZONDERE CORRECTIES
+    BerekenBeslagOpLoon (loonbeslag/onderhoudsgeld, 4 schijven, 5 %)
+    ActiveerAchterstal + OvernemenBijAchterstal
+    DoeTussenkomst / DoeSleutelTussenkomst (manuele aanpassingen)
+    GenereerNeutraliserendeTussenkomst
+
+[9] APO CORRECTIES
+    VerwerkApoInput + VerwerkApoInputInhoudingen + ApoEarlyStopCheck
+
+[10] NAVERWERKING
+    Sommaties + SommatiesAchterstal
+    PostRekenControles
+    RekenResultatenBeheer → RekenElementBeheer
+
+UITVOER:
+  Volledig RekenResultatenBeheer met alle berekende loonelementen
+  Beschikbaar via REST API (RekenProcesCentral / RekenProcesImp)
+
+================================================================================
+SECTIE 18: AANVULLENDE BEVINDINGEN - INTERFACES, ENUMS & C-ENGINE
+================================================================================
+
+=== 18.1 JAVA INTERFACES (lpb-tools-api) ===
+
+WeddeBerekening.java (Interface)
+  Definieert loonberekeningsregels per personeelslid/opdracht.
+  Locatie: lpb-tools/lpb-tools-api/.../be/schaubroeck/lpb/tools/
+
+  Belangrijkste velden:
+    getRekenGroep()                          → berekeningsgroep (int)
+    getRekenBron()                           → berekeningsbron (int)
+    getRekenWijze()                          → Rekenwijze enum (MAAND/UUR/PRESTATIE)
+    getRegelingEindejaarstoelage()           → RegEindejaarstoelage
+    getRegelingVakantiegeld()                → RegVakantiegeld
+    isNooitRechtOpVakantiegeld()             → boolean
+    isNooitRechtOpEindejaarsPremie()         → boolean
+    isRechtOpHaardEnStandplaatsVergoedging() → boolean
+    getOmzettingLoonJaarNaarUur()            → Integer
+    getOmzettingLoonJaarNaarMaand()          → Jaar2maand enum
+    getOmzettingLoonMaandNaarDag()           → Maandverwerking enum
+    getPrestatieVerhoudingVorming()          → PvhVorming enum
+    getTellerPrestatieVerhouding()           → BigDecimal (teller ratio)
+    getNoemerPrestatieVerhouding()           → BigDecimal (noemer ratio)
+    getRszDagenStelsel()                     → Integer
+    getArbeidsCyclusId()                     → Integer
+    getArbeidsCyclusReferentieDatum()        → Date
+    getArbeidsCyclusBeginDag()               → Integer
+    getHasMaaltijdCheque()                   → Boolean
+    getMaaltijdChequeAkeId()                 → Integer
+
+RekenHoofd.java (Master record per berekening)
+  Hoofd loonberekeningsdocument.
+  Velden:
+    getOpdracht()                → Opdracht (aanstelling)
+    getBeginDatum() / getEindDatum() / getPeriode()
+    getRekenTijdstip()           → LocalDateTime
+    getRekenDatum()              → LocalDate
+    getBeslagDatum()             → LocalDate
+    getFiscaalJaar()             → Integer
+    getAchterstal()              → Boolean
+    getRnummer()                 → Integer (referentienummer)
+    getHoedanigheid()            → Hoedanigheid enum
+    getCategorie()               → RszppoKategorie
+    getWerkgeversCategorie()     → WerkgeversCategorie
+    getWerknemersKengetal()      → DmfapplWnkengetal
+    getPensioenStelsel()         → Pensioenstelsel
+    getRekenLijnen()             → Set<RekenLijn>
+    getArtikelHoofden()          → Set<ArtikelHoofd>
+    getBron()                    → RekenHoofdBron
+    getJaar() / getKwartaal()
+    getRekenGroep()              → Rekengroep
+    getRekenModus()              → Rekenmodus enum
+    getEgovFormId()              → Integer
+    getRszppoAangifteId()        → Integer
+    getDmfapplAangifteId()       → Integer
+    getRekenOverdrachten()       → Set<RekenOverdracht>
+
+RekenLijn.java (Detailregel per looncode)
+  Velden:
+    getRekenHoofd()              → parent RekenHoofd
+    getAardKodeExtensie()        → AardKodeExtensie (looncode+extensie)
+    getBeginDatum() / getEindDatum()
+    getRekenBedragen()           → Set<RekenBedrag>
+    getToegepasteTussenkomsten() → Set<ToegepasteTussenkomst>
+    getRekenInfos()              → Set<RekenInfo>
+    getRegimeBv()                → LnedefRegBv (BV-regime)
+    getTypeBoeking()             → AardRekenelement
+    getReferentieJaar()          → Integer
+
+RekenBedrag.java (Bedrag per type)
+  Velden:
+    getRekenLijn()               → parent RekenLijn
+    getBedragType()              → RekenBedragType enum
+    getBedrag()                  → Money
+    getArtikelBedragen()         → Set<ArtikelBedrag>
+
+RekenInfo.java (Metadata per rekenlijn)
+  Velden:
+    getRekenLijn()               → parent RekenLijn
+    getInfoType()                → RekenInfoType enum
+    getInfo()                    → String (waarde)
+
+RekenElement.java (Legacy element)
+  Velden:
+    getBeginDatum() / getEindDatum()
+    getAard()                    → Integer (type)
+    getTijdperk()                → Integer
+    getCode()                    → Integer (looncode)
+    getExtensie()                → Integer
+    getVakantieReferentiejaar()  → Integer
+    getBruto()                   → Money
+    getMaandTotaal1()            → MaandTotaal1
+    getBasisSocialeInhoudingen() → Money
+    getTypeBoeking()             → Integer
+
+BasisJaarWedde.java (Basis jaarloon per aanstelling)
+  Velden:
+    getJaarWedde()               → Money (jaarloon bedrag)
+    getSalarisVerhoging()        → Money
+    getJaarWeddeNota()           → String
+    getRszppoNiveau()            → String (RSZ-niveau)
+    getAfwijkendeIndex()         → BigDecimal
+    getAfwijkendDisponibiliteit60Percentage() → BigDecimal
+    getWeddeSoort()              → WeddeSoort
+    getInfoVersie()              → Integer
+    getInfoGraadId()             → Integer
+    getInfoGeldelijkeAncienniteitRitme()   → Integer
+    getInfoGeldelijkeAncienniteitMaanden() → Integer
+    getInfoGeldelijkeAncienniteitDatum()   → LocalDate
+    getOudeSchaalVoordeliger()   → Boolean
+    getOudeBasisJaarwedde()      → Money
+    getWaarnemingHogereFunctie() → Boolean (waarnemer hoger ambt)
+    getWaarnemingBasisJaarwedde() → Money
+    getBevordering()             → Boolean
+    getAfwijkendeIndexFederaal() → Boolean
+
+RekenAgenda.java (Berekeningsagenda / -schema)
+  Velden:
+    getBeginDatum() / getEindDatum()
+    getOpdrachtNummer()          → Integer
+    getPersoon()                 → Persoon
+    getRekenDatum()              → LocalDate
+    getBeslagDatum()             → LocalDate
+    getBoekDatum()               → LocalDate
+    getRekenGroep()              → Rekengroep
+    getHoedanigheid()            → Hoedanigheid
+    getWerkgever()               → Werkgever
+
+=== 18.2 ENUM TYPES ===
+
+Rekenwijze (berekeningswijze per werknemer):
+  MAAND     (code 1) → maandloon (standaard)
+  UUR       (code 2) → uurloon
+  PRESTATIE (code 3) → per prestatie
+
+Rekengroep (betalingsgroep):
+  NULL            (0)  → enkel selectie op hoedanigheid
+  VOOR_TERMIJN    (1)  → voor-termijn betaalden
+  IN_TERMIJN      (2)  → in-termijn betaalden
+  NA_TERMIJN      (3)  → na-termijn contractuelen / tijdelijken
+  PER_KWARTAAL    (4)  → per kwartaal betaalden
+  BRANDWEER       (5)  → vrijwillige brandweer
+  NA_DATUM        (6)  → na-datum betaalden
+  VOOR_TERMIJN_POL (7) → voor-termijn politiepersoneel
+  NA_TERMIJN_POL  (8)  → na-termijn politiepersoneel
+  STUDENTEN      (23)  → studentenstatuut
+  MONITOREN      (24)  → monitoren
+  RAADSLEDEN     (33)  → gemeenteraadsleden
+  JURYLEDEN      (34)  → juryleden
+  COMMISSIELEDEN (36)  → commissieleden
+  VRIJWILLIGERS  (44)  → vrijwilligers
+
+Rekenmodus (berekeningseenheid / bijzondere modi):
+  NORMAAL                 (1) → standaard maandelijkse berekening
+  VOORSCHOT               (2) → enkel voorschotten berekenen
+  VORM_ARTIKELS           (3) → enkel artikels vormen
+  NEUTRAAL_REKENEN        (4) → platrekenen (neutralisatie)
+  SOCIAAL_REKENEN         (5) → zuiver sociale berekening
+  BIJSTUREN_EUROCENT      (6) → bijsturen eurocenten
+  XML_DOELGROEPVERMINDERING (7) → XML doelgroepvermindering
+  VERMIJDEN_FICHE_25      (8) → vermijden fiche 25
+  NETTO_FISCAAL_VORIG_JAAR (9) → netto fiscaal vorig jaar
+
+RekenBedragType (121 bedragtypes, voorbeelden):
+  BRUTO_MAANDLOON          (code 100)  → bruto maandloon
+  BASIS_SOCIALE_INHOUDINGEN (code 200) → basis sociale bijdragen
+  BASIS_RSZ                 (code 400) → RSZ-basis
+  BIJDRAGE_RSZ              (code 2500) → RSZ werknemer
+  BEDRIJFSVOORHEFFING       (code 5600) → BV gewone bezoldiging
+  BEDRIJFSVOORHEFFING_ACHTERSTAL (code 5700) → BV achterstal
+  NETTO                     (code 6300) → netto loon
+  PATRONALE_BIJDRAGE_RSZ    (code 6500) → patronale RSZ
+  WERKBONUS_LAGE_LONEN      (code 4000) → werkbonus lage lonen
+  VLAAMSE_VERMINDERING_BEDRIJFSVOORHEFFING (code 6000) → Vlaamse BV-vermindering
+  (+ 111 andere types voor elk soort bedrag)
+
+RekenInfoType (metadata bij rekenlijn):
+  TEWERKSTELLING_PERIODE          (1) → tewerkstellingsperiode
+  AANTAL_UREN                     (2) → aantal uren
+  AANTAL_UREN_EFFECTIEF           (3) → effectieve uren
+  MAATMAN                         (4) → maatman (deeltijds ref.)
+  BASIS_BEDRAG_WERKUITKERING      (5) → basisbedrag werkuitkering
+  LOONBESLAG_NAAM_SCHULDEISER     (6) → naam schuldeiser
+  LOONBESLAG_IBAN                 (7) → IBAN schuldeiser
+  LOONBESLAG_OPMERKING            (8) → opmerking loonbeslag
+  LOONBESLAG_VOORNAAM_SCHULDEISER (9) → voornaam schuldeiser
+
+Hoedanigheid (statuut/hoedanigheid werknemer):
+  1000 → Vast bediende / permanent statutair
+  1100 → Contractueel
+  1200 → Interim / tijdelijk
+  1500 → Raadslid / gemeenteraadslid
+  HOE_VRIJ_BRAND → vrijwillige brandweer
+  HOE_D100_2015_MET_CUMUL_VBRW → D100 met cumulatie brandweer
+
+Jaar2maand (jaar-naar-maand omzettingsfactor):
+  Omzettingsregels voor jaarwedde → maandloon
+  Gebruikt bij deeltijdse en variabele uurberekeningen
+
+Maandverwerking (maand-naar-dag verwerking):
+  13 MAANDEN → Belgische standaard (13e maand geïntegreerd)
+  12 MAANDEN → 12-maandse jaarberekening
+
+=== 18.3 LOONCODE DEFINITIES ===
+
+Looncode.java structuur:
+  Elke looncode heeft: code, extensie, omschrijving, kleur (UI), versie
+  Kleur: voor visuele groepering in de loonstrookinterface
+
+Looncode reeksen (voorbeelden):
+  100-109  → Bruto salaris / basisloon
+  200-299  → Verhogingen en toeslagen
+  600-699  → Vakantiegeld
+  800-899  → Eindejaarstoelage (13e maand)
+  1000+    → Bijdragen en inhoudingen
+  5101     → Loonbeslag
+  5102     → Onderhoudsgeld
+  5401     → Maaltijdcheques (werkgeversbijdrage)
+  5701     → Voordelen in natura
+
+=== 18.4 C/C++ LEGACY REKENMOTOR (NLP-ENGINE) ===
+
+Locatie: nlp/nlproot/src/reken/
+
+Hoofd C-structuren (reken.h):
+  CLoonBedrag: loonbedrag record
+    long tp        → type
+    long aard      → aard/categorie
+    long loonkode  → looncode
+    long loonext   → extensie
+    CRekenValuta bedrag → bedrag
+
+  CLoonBedragList: gesorteerde lijst CLoonBedrag
+    .Add(type, aard, kode, extensie, bedrag, KEDef*)
+    .Sort()
+
+  CPrestatie: prestatie/kalender record
+    s_prest_kalender spk
+    CDatum Datum()
+    long Tp(), Aard(), Kode(), Ext(), RefJaar()
+    double X()           → hoeveelheid / factor
+    CRekenValuta Y()     → bedrag per eenheid
+    double Teller()      → voor dagcodes
+    double Aantal()      → aantal
+
+  CRA: intern berekenings-agenda record
+    long pid             → persoon ID
+    long opid            → opdracht ID
+    long begindatum, einddatum, rekendatum, beslagdatum
+    long hoedanigheid
+    long vak_refjaar     → vakantie referentiejaar
+
+Hoofd C-functies (reken.C):
+  HaalDatums()          → haalt data op uit rekenagenda
+  CvtCmdline()          → verwerkt commandline-parameters
+    sturing 'r' = per groep, 'h' = per hoedanigheid, 'p' = per persoon
+  ExpandeerRA3A()       → breidt agenda uit vóór sweep-startdatum
+  ExpandeerRA3B()       → breidt agenda uit ná sweep-startdatum
+    + kwartaalgrens verwerking voor brandweer
+  ExpandeerRA4()        → breidt enkel RA-record uit per periode
+
+Andere C-bestanden:
+  r_bv_routine.C        → bedrijfsvoorheffing berekening
+  r_ld_pers.C           → laden persoonsgegevens
+  r_vakgeld.C           → vakantiegeld berekening
+  r_opdracht1/2/3/4.C   → opdracht/artikel afhandeling
+  r_verg_wg.C           → werkgeversvergelijking
+  wbp.C                 → loonkader/classificatie
+  xreken.C              → uitgebreide berekening
+  xrekenaar.C           → berekeningsregistratie
+  rkn.C                 → berekeningsutilities
+  rekenblo.C            → berekeningsblokken
+  CFtGenerator.C        → FT-bestand generatie
+  boekartikel_herbereken.C → herberekening boekhoudartikels
+  constmanager.C        → constantenbeheer
+  auto_man_tssk.C       → automatisch manuele looncode afhandeling
+  vakejtschatter.C      → vakantie eindejaarstoelage schatting
+
+SQL-query patronen (uit reken.C):
+  SELECT min(begindatum), max(einddatum), max(rekendatum), max(beslagdatum)
+  FROM rekenagenda
+  → haalt berekeningsperiode op
+
+  SELECT o2.pid, o2.opid, o1.hoedanigheid, begindatum, einddatum
+  FROM opdracht o1, opper o2, weddeberekening w
+  WHERE o2.wbrkid = w.wbrkid
+    AND o1.pid = o2.pid AND o1.opid = o2.opid
+    AND wgid = ? AND rekengroep = ?
+    AND begindatum <= ? AND einddatum >= ?
+    AND o1.regultijdstip IS NULL AND o2.regultijdstip IS NULL
+  ORDER BY pid, opid, begindatum
+
+=== 18.5 DATABASE TABELLEN (volledig overzicht) ===
+
+KERN REKENTABELLEN:
+  rekenagenda        → berekeningsschema / wachtrij
+  rekenhoofden       → master berekeningsrecords
+  rekenelemen        → berekeningselementen (legacy Informix)
+  rekenlijn          → detailregels per looncode
+  rekenbedrag        → bedragen per type per lijn
+  rekeninfo          → metadata/notities per lijn
+  rekenlog           → berekenings audit trail
+
+CONFIGURATIETABELLEN:
+  weddeberekening    → loonberekeningsregels per persoon/opdracht
+  basisjaarwedde     → basis jaarloonbedragen
+  wedde              → loon master
+  weddebepaling      → loonbepalingsregels
+  wedde_uitwisseling → loongegevens uitwisseling
+
+GERELATEERDE ENTITEITEN:
+  opdracht           → aanstelling/arbeidscontract
+  opper              → aanstellingsdetails (met wbrkid)
+  persoon1, persoon2 → personeelsgegevens
+  looncode           → looncodedefinities
+  looncode_ext       → looncodeextensies
+  maandtotaal        → maandtotalen
+  inhouding          → inhoudingen
+  prsfiskali         → persoonsfiscaliteitsgegevens
+  pens_manda         → pensioen mandataris
+  rszppo             → RSZ/PPO-aangiften
+
+=== 18.6 REST API ENDPOINTS (overzicht) ===
+
+/corehr/hrrelatie/weddeberekening/fields
+  POST /{clusterId}/beroepsbrandweer/values
+  POST /{clusterId}/regelingeindejaarstoelage/values
+  POST /{clusterId}/regelingvakantiegeld/values
+
+/corehr/rekenmotor/config
+  GET  /{clusterId}/overview/{adminId}/{werkgeverId}
+  GET  /{clusterId}/startConstant956/{adminId}  (maaltijdcheques startdatum)
+  POST /{clusterId}/create/{adminId}
+  PUT  /{clusterId}/update/{adminId}
+  DELETE /{clusterId}/delete/{adminId}/{werkgeverId}
+
+Overige:
+  beheer/IndividueleRekeningResource    → individuele rekening
+  beheer/LoonstrokenPapierResource      → loonstrook/papier
+  corehr/relatie/WeddeResource          → wedde master data
+  corehr/relatie/WeddeValidationResource → wedde validatie
+  corehr/ancienniteit/AnciBerekeningResource → anciënniteitsberekening
+  capelo/dhg/BaremiekeWeddeDhgResource  → DHG barema-wedde
+  capelo/dhg/WeddebijslagDhgResource    → DHG wedde-bijslag
+  corehr/api/extern/rekenmotor/RekenmotorCoreHrExternResource → externe API
+  corehr/api/publicresources/rekenmotor/RekenmotorPublicResource → publieke API
+
+=== 18.7 HISTORISCHE DATUMCONSTANTEN (reken.h) ===
+
+STARTJAAR_NIEUWE_REDENERING_VRBRW = 2005
+  → nieuwe redenering vrijwillige brandweer
+
+STARTJAAR_NIEUWE_REDENERING_ERKPREM = 2006
+  → nieuwe redenering erkentelijkheidspremie
+
+STARTJAAR_NIEUWE_REDENERING_FISKAAL_VOLUNTARIAAT = 2007
+  → nieuw fiscaal gedrag vrijwilligerswerk
+
+STARTJAAR_NIEUWE_REDENERING_THEORETISCH_BELASTBAAR = 2007
+  → gewijzigde definitie theoretisch belastbaar
+
+STARTJAAR_FICHE_281_18 = 2007
+  → start van fiche 281-18
+
+STARTDATUM_NIEUWE_VERDELING_WERKBONUS = 2007-07-01
+  → nieuwe werkbonusverdeling
+
+STARTDATUM_VLAAMSE_VERMINDERING_ENKEL_DIENSTVERBAND_JA = 2007-10-01
+  → Vlaamse vermindering voor voltijds dienstverband
+
+STARTDATUM_NIEUWE_BEPALING_VLTEORBB = 2009-01-01
+  → nieuwe definitie Vlaamse theoretische belastbare basis
+
+STARTJAAR_OPSLAAN_VRIJSTELLING_VRIJWBRW = 2010
+  → opslaan vrijstelling vrijwillige brandweer
+
+=== 18.8 ARCHITECTUURDIAGRAM (volledig systeem) ===
+
+LPBUNIFIED LOONBEREKENING - VOLLEDIGE ARCHITECTUUR
+
+┌──────────────────────────────────────────────────┐
+│  FRONTEND (Angular RIA2)                         │
+│  - Weddeberekening UI                            │
+│  - Berekeningsresultaten / loonstroken           │
+│  - Configuratiebeheer                            │
+└────────────────────┬─────────────────────────────┘
+                     │ REST (JAX-RS / Spring)
+┌────────────────────┴─────────────────────────────┐
+│  REST API (lima-rest)                            │
+│  /corehr/rekenmotor/...                          │
+│  /corehr/hrrelatie/weddeberekening/...           │
+│  /corehr/relatie/wedde...                        │
+└────────────────────┬─────────────────────────────┘
+                     │
+┌────────────────────┴─────────────────────────────┐
+│  JAVA SERVICE LAYER (lima-server)                │
+│  RekenProcesCentral / RekenProcesImp             │
+│  RekenChainFactoryImp → ChainBase (Apache)       │
+│  VerzamelGegevens → PreRekenControles → ...      │
+│  BerekenBrutoLoon                                │
+│  BerekenSocialeBijdragenDmfa/Dmfappl/Rszppo      │
+│  BerekenBijzondereBijdrage (BBSZ)                │
+│  BerekenTotaalBelastbaar                         │
+│  BerekenBvGewoon / BerekenBvAchterstal / ...     │
+│  BerekenInhoudingen / BerekenNettoLoon           │
+│  BerekenBeslagOpLoon                             │
+│  PostRekenControles → Sommaties                  │
+└────────────────────┬─────────────────────────────┘
+                     │ (legacy integratie)
+┌────────────────────┴─────────────────────────────┐
+│  C/C++ REKENMOTOR (nlp/nlproot/src/reken/)       │
+│  reken.C / reken.h                               │
+│  r_bv_routine.C / r_vakgeld.C / r_ld_pers.C     │
+│  CLoonBedrag / CPrestatie / CRA structuren       │
+└────────────────────┬─────────────────────────────┘
+                     │
+┌────────────────────┴─────────────────────────────┐
+│  DATABASE (Informix)                             │
+│  rekenagenda / rekenhoofden / rekenlijn          │
+│  rekenbedrag / rekeninfo / rekenlog              │
+│  weddeberekening / basisjaarwedde                │
+│  opdracht / opper / persoon / looncode           │
+│  90+ gerelateerde tabellen                       │
+└──────────────────────────────────────────────────┘
+
+================================================================================
+EINDE ANALYSE
+================================================================================
+Bron: lpbunified-master/spring/lima/lima-server/src/main/java/be/schaubroeck/lpb/rkm/
+      lpbunified-master/lpb-tools/lpb-tools-api/.../tools/ (interfaces & enums)
+      lpbunified-master/nlp/nlproot/src/reken/ (C/C++ engine)
+      lpbunified-master/spring/lima/lima-rest/ (REST endpoints)
+Analyse op: bruto/, rsz/, manueletussenkomst/, apo/, check/, factory/, results/,
+            service/web/, voorbereiding/, BerekenXxx.java bestanden (30+),
+            interfaces, enums, C-engine bestanden
+================================================================================

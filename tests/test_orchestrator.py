@@ -23,7 +23,7 @@ def _make_runner(responses: dict[str, str]) -> AgentRunner:
 
     async def _run(agent_name, user_input, context=None, client=None, retry_config=None):
         resp = responses.get(agent_name, f"<output van {agent_name}>")
-        return resp, f"interaction-{agent_name}"
+        return resp, f"interaction-{agent_name}", None
 
     runner.run_agent_with_retry = AsyncMock(side_effect=_run)
     return runner
@@ -140,7 +140,7 @@ class TestRunWorkflow:
             call_count += 1
             if agent_name == "optional_fail":
                 raise RuntimeError("tijdelijke fout")
-            return f"output_{agent_name}", "id"
+            return f"output_{agent_name}", "id", None
 
         runner = MagicMock(spec=AgentRunner)
         runner.run_agent_with_retry = AsyncMock(side_effect=_run)
@@ -404,7 +404,7 @@ class TestParallelExecution:
         async def _run(agent_name, user_input, context=None, client=None, retry_config=None):
             if agent_name == "failing_agent":
                 raise RuntimeError("Tijdelijke fout")
-            return f"output_{agent_name}", "id"
+            return f"output_{agent_name}", "id", None
 
         runner = MagicMock(spec=AgentRunner)
         runner.run_agent_with_retry = AsyncMock(side_effect=_run)

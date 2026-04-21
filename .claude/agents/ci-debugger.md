@@ -5,8 +5,8 @@ description: >
   but passing locally, TypeScript build errors appear in the frontend-ci job, Ruff linting fails,
   or mypy type errors block the pipeline.
   Triggers: "build faalt", "CI rood", "GitHub Actions", "pipeline broken", "test fails in CI"
-model: haiku
-permissionMode: plan
+model: claude-haiku-4-5
+permissionMode: default
 maxTurns: 15
 memory: project
 tools:

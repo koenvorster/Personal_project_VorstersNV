@@ -1,11 +1,17 @@
-# Capability Registry — VorstersNV AI Agent System
-# Centrale index van alle capabilities in dit systeem.
-
 version: "1.0"
-updated: "2026-04-20"
-owner: "Koen Vorsters"
-
+platform: vorstersnv-ai
 capabilities:
+  - fraud-detection
+  - order-validation
+  - content-generation
+  - risk-classification
+  - customer-service
+  - product-content
+  - loyalty-management
+  - audit-reporting
+
+# Claude/Copilot capabilities (developer tooling)
+claude_capabilities:
   - id: feature-development
     file: feature-development.yaml
     audience: [developer]
@@ -47,6 +53,69 @@ capabilities:
     audience: [developer]
     category: operationeel
     platforms: [claude, copilot]
+
+  - id: audit-reporting
+    file: audit-reporting.yaml
+    audience: [developer, owner]
+    category: compliance
+    platforms: [claude]
+
+  - id: customer-service
+    file: customer-service.yaml
+    audience: [developer, support]
+    category: generatief
+    platforms: [claude]
+
+  - id: content-generation
+    file: content-generation.yaml
+    audience: [developer, content]
+    category: generatief
+    platforms: [claude, copilot]
+
+ollama:
+  base_url: "http://localhost:11434"
+  default_model: "llama3"
+  capabilities:
+    - fraud-detection
+    - order-validation
+    - risk-classification
+    - audit-reporting
+  runners:
+    - agent: fraud-advisor
+      capability: fraud-detection
+      model: llama3
+    - agent: order-analyst
+      capability: order-validation
+      model: llama3
+    - agent: audit-reporter
+      capability: audit-reporting
+      model: llama3
+
+agent_groups:
+  dev-intelligence:
+    label: "DEV Intelligence"
+    agents: [ai-architect, feature-worker, fastapi-developer, nextjs-developer, ollama-agent-designer]
+    lane: advisory
+  test-intelligence:
+    label: "Test Intelligence"
+    agents: [test-orchestrator, ci-debugger]
+    lane: deterministic
+  ecommerce-validation:
+    label: "E-Commerce Validation"
+    agents: [order-analyst, fraud-advisor]
+    lane: deterministic
+  risk-decision:
+    label: "Risk & Decision"
+    agents: [fraud-advisor, lead-orchestrator]
+    lane: advisory
+  explanation:
+    label: "Explanation"
+    agents: [klantenservice-coach, product-writer, mr-reviewer]
+    lane: generative
+  audit:
+    label: "Audit"
+    agents: [audit-reporter, gdpr-advisor, db-explorer]
+    lane: deterministic
 
 # Platform beschikbaarheid
 platforms:

@@ -5,8 +5,8 @@ description: >
   adding test coverage for new endpoints, debugging failing tests, choosing between mocks and
   real DB, or reviewing test quality and coverage gaps.
   Triggers: "schrijf test", "test coverage", "conftest", "pytest", "test failing", "add test for"
-model: sonnet
-permissionMode: auto
+model: claude-sonnet-4-5
+permissionMode: allow
 maxTurns: 20
 memory: project
 tools:

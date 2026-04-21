@@ -1,0 +1,11 @@
+agent: klant_rapport_agent
+iterations:
+  - version: "1.0"
+    datum: "2026-04-21"
+    wijzigingen: "Initiële versie — 4 rapport types, 3 doelgroepen, VorstersNV branding"
+    score_professionaliteit: null
+    score_volledigheid: null
+    score_duidelijkheid: null
+    getest_op: null
+    notities: "Eerste versie, nog niet getest met echte klantdata"
+feedback_log: []

@@ -1,0 +1,129 @@
+name: consultancy_orchestrator
+version: "1.0"
+type: orchestrator
+description: >
+  Multi-agent pipeline voor IT/AI consultancy opdrachten.
+  Orkestreert: code analyse → bedrijfsproces analyse → klantrapport generatie.
+  Kan volledig sequentieel of deels parallel uitgevoerd worden.
+
+# Stap 1: Intake — bepaal welke analyses nodig zijn
+intake:
+  agent: architect_agent
+  model: llama3
+  temperature: 0.3
+  taak: "Bepaal op basis van de opdrachtbeschrijving welke analyse-modules te activeren"
+  output_velden:
+    - code_analyse_vereist: bool
+    - procesanalyse_vereist: bool
+    - rapport_type: string  # code_analyse_rapport | procesanalyse_rapport | ai_strategie_rapport | projectvoorstel
+    - doelgroep: string     # directie | it_team | business_analist
+    - taal: string          # nl | fr
+
+# Stap 2: Parallelle uitvoering van analyse-agents
+analyses:
+  parallel: true
+  agents:
+    - id: code_analyse
+      agent: code_analyse_agent
+      condition: "intake.code_analyse_vereist == true"
+      model: llama3
+      temperature: 0.2
+      input_mapping:
+        code_fragment: "opdracht.code_fragment"
+        taal: "opdracht.programmeertaal"
+        context: "opdracht.business_context"
+        analyse_type: "volledig"
+        doelgroep: "intake.doelgroep"
+
+    - id: procesanalyse
+      agent: bedrijfsproces_agent
+      condition: "intake.procesanalyse_vereist == true"
+      model: llama3
+      temperature: 0.3
+      input_mapping:
+        proces_beschrijving: "opdracht.proces_beschrijving"
+        sector: "opdracht.sector"
+        uren_per_week: "opdracht.uren_per_week"
+        prioriteit_focus: "automatisering"
+
+# Stap 3: Rapport consolidatie en generatie
+rapport:
+  agent: klant_rapport_agent
+  model: mistral
+  temperature: 0.4
+  input_mapping:
+    rapport_type: "intake.rapport_type"
+    klant_naam: "opdracht.klant_naam"
+    bevindingen:
+      code_analyse: "analyses.code_analyse.output"
+      procesanalyse: "analyses.procesanalyse.output"
+    doelgroep: "intake.doelgroep"
+    toon: "professioneel"
+    taal: "intake.taal"
+
+# Input schema voor de volledige pipeline
+input_schema:
+  type: object
+  required: [klant_naam, opdrachtbeschrijving]
+  properties:
+    klant_naam:
+      type: string
+      description: "Naam van de klant/bedrijf"
+    opdrachtbeschrijving:
+      type: string
+      description: "Wat wil de klant bereiken? Context van de opdracht"
+    code_fragment:
+      type: string
+      description: "Code of pad naar codebase (optioneel)"
+    programmeertaal:
+      type: string
+      enum: [java, python, csharp, php, javascript, typescript, other]
+      default: java
+    business_context:
+      type: string
+      description: "Wat doet het systeem voor de klant?"
+    proces_beschrijving:
+      type: string
+      description: "Beschrijving van het te analyseren proces (optioneel)"
+    sector:
+      type: string
+      description: "Sector van de klant"
+    uren_per_week:
+      type: number
+      description: "Uren per week besteed aan het handmatige proces"
+
+# Output schema
+output_schema:
+  type: object
+  properties:
+    rapport_markdown:
+      type: string
+      description: "Volledig klantrapport in markdown"
+    executive_summary:
+      type: string
+      description: "Standalone samenvatting (max 200 woorden)"
+    business_rules:
+      type: array
+      description: "Geëxtraheerde bedrijfsregels (van code_analyse)"
+    automatisering_score:
+      type: number
+      description: "Gemiddelde automatiseringsscore (van procesanalyse)"
+    aanbevelingen_top3:
+      type: array
+      description: "De 3 meest impactvolle aanbevelingen"
+
+# Logging
+logging:
+  log_dir: "logs/consultancy_orchestrator"
+  log_level: INFO
+  opslaan_per_opdracht: true
+  output_bestand: "logs/consultancy_orchestrator/{klant_naam}_{datum}.md"
+
+evaluation:
+  metrics:
+    - rapport_kwaliteitsscore
+    - business_rules_count
+    - aanbevelingen_count
+  feedback_loop: true
+  drempelwaarden:
+    rapport_kwaliteitsscore: 7.5

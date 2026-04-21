@@ -1,0 +1,288 @@
+{
+  "generatedAt": "2026-04-21T19:03:22.794Z",
+  "summary": {
+    "totalAgents": 16,
+    "averageScore": 1,
+    "threshold": 0.7,
+    "passedThreshold": true,
+    "agentsBelowThreshold": 0,
+    "topPerformer": {
+      "file": "ai-architect.md",
+      "score": 1
+    },
+    "worstPerformer": {
+      "file": "test-orchestrator.md",
+      "score": 1
+    },
+    "modelBreakdown": {
+      "claude-opus-4-5": 1,
+      "claude-haiku-4-5": 4,
+      "claude-sonnet-4-5": 11
+    }
+  },
+  "weights": {
+    "name": 0.2,
+    "description": 0.25,
+    "model": 0.2,
+    "maxTurns": 0.15,
+    "body": 0.2
+  },
+  "agents": [
+    {
+      "file": "ai-architect.md",
+      "name": "ai-architect",
+      "model": "claude-opus-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 8,
+      "belowThreshold": false
+    },
+    {
+      "file": "audit-reporter.md",
+      "name": "audit-reporter",
+      "model": "claude-haiku-4-5",
+      "maxTurns": 8,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 15,
+      "belowThreshold": false
+    },
+    {
+      "file": "ci-debugger.md",
+      "name": "ci-debugger",
+      "model": "claude-haiku-4-5",
+      "maxTurns": 15,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 4,
+      "belowThreshold": false
+    },
+    {
+      "file": "db-explorer.md",
+      "name": "db-explorer",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 10,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 6,
+      "belowThreshold": false
+    },
+    {
+      "file": "fastapi-developer.md",
+      "name": "fastapi-developer",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 10,
+      "belowThreshold": false
+    },
+    {
+      "file": "feature-worker.md",
+      "name": "feature-worker",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 30,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 5,
+      "belowThreshold": false
+    },
+    {
+      "file": "fraud-advisor.md",
+      "name": "fraud-advisor",
+      "model": "claude-haiku-4-5",
+      "maxTurns": 10,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 13,
+      "belowThreshold": false
+    },
+    {
+      "file": "gdpr-advisor.md",
+      "name": "gdpr-advisor",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 10,
+      "belowThreshold": false
+    },
+    {
+      "file": "klantenservice-coach.md",
+      "name": "klantenservice-coach",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 12,
+      "belowThreshold": false
+    },
+    {
+      "file": "lead-orchestrator.md",
+      "name": "lead-orchestrator",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 30,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 14,
+      "belowThreshold": false
+    },
+    {
+      "file": "mr-reviewer.md",
+      "name": "mr-reviewer",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 15,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 5,
+      "belowThreshold": false
+    },
+    {
+      "file": "nextjs-developer.md",
+      "name": "nextjs-developer",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 9,
+      "belowThreshold": false
+    },
+    {
+      "file": "ollama-agent-designer.md",
+      "name": "ollama-agent-designer",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 14,
+      "belowThreshold": false
+    },
+    {
+      "file": "order-analyst.md",
+      "name": "order-analyst",
+      "model": "claude-haiku-4-5",
+      "maxTurns": 10,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 13,
+      "belowThreshold": false
+    },
+    {
+      "file": "product-writer.md",
+      "name": "product-writer",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 15,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 8,
+      "belowThreshold": false
+    },
+    {
+      "file": "test-orchestrator.md",
+      "name": "test-orchestrator",
+      "model": "claude-sonnet-4-5",
+      "maxTurns": 20,
+      "scores": {
+        "nameScore": 1,
+        "descriptionScore": 1,
+        "modelScore": 1,
+        "maxTurnsScore": 1,
+        "bodyScore": 1,
+        "overallScore": 1
+      },
+      "sectionsFound": 8,
+      "belowThreshold": false
+    }
+  ]
+}

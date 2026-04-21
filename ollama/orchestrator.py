@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .agent_runner import AgentRunner, RetryConfig, get_runner
+from .skills.tracing import get_tracer
 
 logger = logging.getLogger(__name__)
 
@@ -64,14 +65,24 @@ class OrchestratorResult:
     escalatie_vereist: bool = False
 
 
-def _parse_fraud_score(agent_output: str) -> int | None:
+def _parse_fraud_score(
+    agent_output: str,
+    validated: dict[str, Any] | None = None,
+) -> int | None:
     """
-    Parseer de risicoscore uit de JSON-output van fraude_detectie_agent.
+    Parseer de risicoscore uit de output van fraude_detectie_agent.
 
+    Gebruikt eerst validated output (schema-gevalideerd), valt terug op regex-parse.
     Retourneert de score als integer (0-100), of None als parsing mislukt.
     """
+    # Gebruik schema-gevalideerde output indien beschikbaar
+    if validated is not None:
+        score = validated.get("risicoscore")
+        if isinstance(score, (int, float)):
+            return int(score)
+
+    # Fallback: regex-parse op ruwe output
     try:
-        # Zoek JSON-blok in de output (agent kan tekst voor/na JSON hebben)
         match = re.search(r"\{.*\}", agent_output, re.DOTALL)
         if match:
             data = json.loads(match.group())
@@ -117,7 +128,7 @@ class AgentOrchestrator:
     async def run_workflow(
         self,
         workflow_name: str,
-        steps: list[OrchestratorStep],
+        steps: list[OrchestratorStep | ParallelStep],
         initial_input: str,
         shared_context: dict[str, Any] | None = None,
         retry_config: RetryConfig | None = None,
@@ -127,7 +138,7 @@ class AgentOrchestrator:
 
         Args:
             workflow_name: Naam van de workflow (voor logging)
-            steps: Lijst van te uitvoeren stappen
+            steps: Lijst van te uitvoeren stappen (sequentieel of parallel)
             initial_input: Initiële input voor de eerste agent
             shared_context: Gedeelde context beschikbaar voor alle stappen
             retry_config: Retry-instellingen (standaard: 3 pogingen)
@@ -136,95 +147,200 @@ class AgentOrchestrator:
             OrchestratorResult met alle outputs en eventuele fouten
         """
         context = dict(shared_context or {})
+        total_steps = sum(
+            len(s.steps) if isinstance(s, ParallelStep) else 1 for s in steps
+        )
         result = OrchestratorResult(
             workflow_name=workflow_name,
-            steps_total=len(steps),
+            steps_total=total_steps,
             steps_completed=0,
         )
         current_input = initial_input
 
-        logger.info("Orchestrator start workflow '%s' met %d stappen", workflow_name, len(steps))
-
-        for i, step in enumerate(steps):
-            # Sla stap over als conditie-sleutel ontbreekt in context
-            if step.condition_key and step.condition_key not in context:
-                logger.info(
-                    "Stap %d/%d overgeslagen (conditie '%s' niet aanwezig)",
-                    i + 1, len(steps), step.condition_key,
-                )
-                result.steps_total -= 1
-                continue
-
-            # Sla stap over als fraude geblokkeerd is
-            if step.skip_if_blocked and context.get("fraud_blocked"):
-                logger.warning(
-                    "Stap %d/%d '%s' overgeslagen — fraude geblokkeerd",
-                    i + 1, len(steps), step.agent_name,
-                )
-                result.steps_total -= 1
-                continue
-
-            logger.info(
-                "Stap %d/%d: agent='%s' – %s",
-                i + 1, len(steps), step.agent_name, step.description,
-            )
-            try:
-                output, interaction_id = await self._runner.run_agent_with_retry(
-                    agent_name=step.agent_name,
-                    user_input=current_input,
-                    context=context,
-                    retry_config=retry_config,
-                )
-
-                result.steps_completed += 1
-
-                # Sla output op in context voor volgende stap
-                if step.context_key:
-                    context[step.context_key] = output
-
-                # Output van deze stap wordt input van de volgende
-                current_input = output
-
-                if step.context_key:
-                    result.outputs[step.context_key] = output
-                else:
-                    result.outputs[f"stap_{i + 1}"] = output
-
-                logger.info("Stap %d voltooid (%d tekens)", i + 1, len(output))
-
-                # Na fraude-check: parseer score en stel blocking in
-                if step.context_key == "fraude_beoordeling":
-                    score = _parse_fraud_score(output)
-                    result.fraud_score = score
-                    if score is not None and score >= FRAUD_BLOCK_THRESHOLD:
-                        context["fraud_blocked"] = True
-                        result.fraud_blocked = True
-                        logger.warning(
-                            "Fraude geblokkeerd — score %d >= drempel %d voor order '%s'",
-                            score, FRAUD_BLOCK_THRESHOLD, context.get("order_id", "?"),
-                        )
-
-            except Exception as exc:
-                error_msg = f"Stap {i + 1} ({step.agent_name}): {exc}"
-                logger.error("Orchestrator fout: %s", error_msg)
-                result.errors.append(error_msg)
-
-                if step.required:
-                    result.success = False
-                    logger.error("Verplichte stap mislukt – workflow gestopt")
-                    break
-                else:
-                    logger.warning("Optionele stap mislukt – workflow gaat door")
+        tracer = get_tracer()
+        trace_id = tracer.new_trace_id()
 
         logger.info(
-            "Workflow '%s' klaar: %d/%d stappen, succes=%s, fraude_blocked=%s",
+            "Orchestrator start workflow '%s' met %d stappen [trace_id=%s]",
+            workflow_name, len(steps), trace_id,
+        )
+
+        async with tracer.span(workflow_name, model="orchestrator", trace_id=trace_id) as workflow_span:
+            workflow_span.metadata["workflow"] = workflow_name
+            workflow_span.metadata["steps_total"] = total_steps
+            workflow_span.input_length = len(initial_input)
+
+            for i, step in enumerate(steps):
+                if isinstance(step, ParallelStep):
+                    current_input = await self._execute_parallel(
+                        step, i, current_input, context, result, retry_config, trace_id,
+                    )
+                    if not result.success:
+                        break
+                else:
+                    current_input = await self._execute_sequential(
+                        step, i, len(steps), current_input, context, result, retry_config, trace_id,
+                    )
+                    if not result.success:
+                        break
+
+            workflow_span.finish(output=current_input)
+
+        logger.info(
+            "Workflow '%s' klaar: %d/%d stappen, succes=%s, fraude_blocked=%s [trace_id=%s]",
             workflow_name,
             result.steps_completed,
             result.steps_total,
             result.success,
             result.fraud_blocked,
+            trace_id,
         )
         return result
+
+    async def _execute_sequential(
+        self,
+        step: OrchestratorStep,
+        step_index: int,
+        total_steps: int,
+        current_input: str,
+        context: dict[str, Any],
+        result: OrchestratorResult,
+        retry_config: RetryConfig | None,
+        trace_id: str,
+    ) -> str:
+        """Voer één sequentiële agent-stap uit."""
+        # Sla stap over als conditie-sleutel ontbreekt in context
+        if step.condition_key and step.condition_key not in context:
+            logger.info(
+                "Stap %d/%d overgeslagen (conditie '%s' niet aanwezig)",
+                step_index + 1, total_steps, step.condition_key,
+            )
+            result.steps_total -= 1
+            return current_input
+
+        # Sla stap over als fraude geblokkeerd is
+        if step.skip_if_blocked and context.get("fraud_blocked"):
+            logger.warning(
+                "Stap %d/%d '%s' overgeslagen — fraude geblokkeerd",
+                step_index + 1, total_steps, step.agent_name,
+            )
+            result.steps_total -= 1
+            return current_input
+
+        logger.info(
+            "Stap %d/%d: agent='%s' – %s [trace_id=%s]",
+            step_index + 1, total_steps, step.agent_name, step.description, trace_id,
+        )
+
+        tracer = get_tracer()
+        try:
+            async with tracer.span(step.agent_name, trace_id=trace_id) as step_span:
+                step_span.input_length = len(current_input)
+                output, interaction_id, validated = await self._runner.run_agent_with_retry(
+                    agent_name=step.agent_name,
+                    user_input=current_input,
+                    context=context,
+                    retry_config=retry_config,
+                )
+                step_span.finish(output=output)
+
+            result.steps_completed += 1
+
+            if step.context_key:
+                context[step.context_key] = output
+                result.outputs[step.context_key] = output
+                # Sla ook gevalideerde structured output op
+                if validated is not None:
+                    context[f"{step.context_key}_validated"] = validated
+            else:
+                result.outputs[f"stap_{step_index + 1}"] = output
+
+            logger.info("Stap %d voltooid (%d tekens)", step_index + 1, len(output))
+
+            # Na fraude-check: parseer score en stel blocking in
+            if step.context_key == "fraude_beoordeling":
+                score = _parse_fraud_score(output, validated)
+                result.fraud_score = score
+                if score is not None and score >= FRAUD_BLOCK_THRESHOLD:
+                    context["fraud_blocked"] = True
+                    result.fraud_blocked = True
+                    logger.warning(
+                        "Fraude geblokkeerd — score %d >= drempel %d voor order '%s'",
+                        score, FRAUD_BLOCK_THRESHOLD, context.get("order_id", "?"),
+                    )
+
+            return output
+
+        except Exception as exc:
+            error_msg = f"Stap {step_index + 1} ({step.agent_name}): {exc}"
+            logger.error("Orchestrator fout: %s", error_msg)
+            result.errors.append(error_msg)
+
+            if step.required:
+                result.success = False
+                logger.error("Verplichte stap mislukt – workflow gestopt")
+            else:
+                logger.warning("Optionele stap mislukt – workflow gaat door")
+
+            return current_input
+
+    async def _execute_parallel(
+        self,
+        parallel: ParallelStep,
+        step_index: int,
+        current_input: str,
+        context: dict[str, Any],
+        result: OrchestratorResult,
+        retry_config: RetryConfig | None,
+        trace_id: str,
+    ) -> str:
+        """Voer meerdere agent-stappen gelijktijdig uit via asyncio.gather."""
+        active_steps = [
+            s for s in parallel.steps
+            if not (s.skip_if_blocked and context.get("fraud_blocked"))
+            and not (s.condition_key and s.condition_key not in context)
+        ]
+
+        if not active_steps:
+            logger.info("Parallelle stap %d: alle substappen overgeslagen", step_index + 1)
+            return current_input
+
+        logger.info(
+            "Parallelle stap %d: %d agents gelijktijdig — %s [trace_id=%s]",
+            step_index + 1, len(active_steps), parallel.description, trace_id,
+        )
+
+        tasks = [
+            self._runner.run_agent_with_retry(
+                agent_name=s.agent_name,
+                user_input=current_input,
+                context=context,
+                retry_config=retry_config,
+            )
+            for s in active_steps
+        ]
+
+        outputs = await asyncio.gather(*tasks, return_exceptions=True)
+
+        last_output = current_input
+        for sub_step, output in zip(active_steps, outputs):
+            if isinstance(output, Exception):
+                error_msg = f"Parallelle stap ({sub_step.agent_name}): {output}"
+                result.errors.append(error_msg)
+                logger.error("Parallel substap mislukt: %s", error_msg)
+                if sub_step.required:
+                    result.success = False
+            else:
+                response, _, validated = output
+                result.steps_completed += 1
+                if sub_step.context_key:
+                    context[sub_step.context_key] = response
+                    result.outputs[sub_step.context_key] = response
+                    if validated is not None:
+                        context[f"{sub_step.context_key}_validated"] = validated
+                last_output = response
+
+        return last_output
 
     # ─────────────────────────────────────────────
     # PIPELINE 1: Product publicatie
@@ -249,23 +365,28 @@ class AgentOrchestrator:
         Stap 2: seo_agent — optimaliseert metatags en structured data (optioneel)
         Stap 3: email_template_agent — notificeert content manager (optioneel)
         """
-        steps = [
+        steps: list[OrchestratorStep | ParallelStep] = [
             OrchestratorStep(
                 agent_name="product_beschrijving_agent",
                 description="Productbeschrijving genereren (JSON output)",
                 context_key="productbeschrijving",
             ),
-            OrchestratorStep(
-                agent_name="seo_agent",
-                description="SEO-optimalisatie toepassen",
-                context_key="seo_output",
-                required=False,
-            ),
-            OrchestratorStep(
-                agent_name="email_template_agent",
-                description="Content team notificeren over nieuw product",
-                context_key="notificatie_email",
-                required=False,
+            ParallelStep(
+                description="SEO-optimalisatie en team-notificatie parallel",
+                steps=[
+                    OrchestratorStep(
+                        agent_name="seo_agent",
+                        description="SEO-optimalisatie toepassen",
+                        context_key="seo_output",
+                        required=False,
+                    ),
+                    OrchestratorStep(
+                        agent_name="email_template_agent",
+                        description="Content team notificeren over nieuw product",
+                        context_key="notificatie_email",
+                        required=False,
+                    ),
+                ],
             ),
         ]
         initial_input = (
@@ -676,7 +797,7 @@ class AgentOrchestrator:
         )
 
         async def _run_one(step: OrchestratorStep) -> tuple[str, str]:
-            output, _ = await self._runner.run_agent_with_retry(
+            output, _, _validated = await self._runner.run_agent_with_retry(
                 agent_name=step.agent_name,
                 user_input=shared_input,
                 context=context,

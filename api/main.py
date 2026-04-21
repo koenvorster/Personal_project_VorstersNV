@@ -6,20 +6,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import auth as auth_router
-from api.routers import agents, betalingen, dashboard, inventory, logs, notifications, orders, products
+from api.routers import agents, ai_platform, betalingen, dashboard, inventory, logs, notifications, orders, products
 
 app = FastAPI(
     title="VorstersNV API",
     description="""
 ## VorstersNV Webshop & Bedrijfsplatform API
 
-Volledige REST API voor de VorstersNV webshop met AI-agent integratie.
+Volledige REST API voor de VorstersNV webshop met AI-agent integratie en AI Control Platform.
 
 ### Functionaliteit
 - 🛍️ **Producten** – catalogusbeheer met AI-gegenereerde beschrijvingen
 - 📦 **Orders** – orderverwerking met automatische agent-communicatie
 - 📊 **Voorraad** – realtime voorraadbeheer met low-stock alerts
 - 🤖 **AI-agents** – Ollama-aangedreven klantenservice en SEO
+- 🧠 **AI Platform** – Quality monitoring, decision journal, observability en capability registry
 
 ### Authenticatie
 Gebruik de `Authorization: Bearer <token>` header voor beveiligde endpoints.
@@ -56,6 +57,7 @@ app.include_router(betalingen.router, prefix="/api", tags=["Bestellingen & Betal
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notificaties"])
 app.include_router(agents.router, prefix="/api/agents", tags=["AI Agents & Analytics"])
 app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
+app.include_router(ai_platform.router, prefix="/api/ai", tags=["AI Platform"])
 
 
 @app.get("/", tags=["Algemeen"], summary="API Root")

@@ -1,0 +1,58 @@
+version: "1.0"
+description: "Basis productaanbeveling op basis van huidig product en klantgeschiedenis"
+agent: product_recommender_agent
+model: llama3
+
+prompt: |
+  Huidig product: {current_product_name}
+  Categorie: {current_product_category}
+  Klantgeschiedenis (eerder bekeken/gekocht): {customer_history}
+
+  Geef precies 3 productaanbevelingen die complementair zijn aan het huidige product
+  of een betere versie vertegenwoordigen.
+
+  Geef je antwoord in dit exacte JSON-format:
+  {
+    "recommendations": [
+      {
+        "product_id": "string",
+        "product_naam": "string",
+        "type": "cross_sell|upsell|accessoire",
+        "reden": "Waarom dit product relevant is (1-2 zinnen)"
+      }
+    ],
+    "reasoning": "Korte uitleg van je aanbevelingslogica (max 2 zinnen)"
+  }
+
+variables:
+  current_product_name:
+    type: string
+    required: true
+    description: "Naam van het product dat de klant nu bekijkt"
+  current_product_category:
+    type: string
+    required: false
+    default: "Algemeen"
+    description: "Productcategorie voor contextuele aanbevelingen"
+  customer_history:
+    type: array
+    required: false
+    default: []
+    description: "Lijst van eerder bekeken of gekochte producten"
+
+test_cases:
+  - name: "Basis aanbeveling zonder geschiedenis"
+    input:
+      current_product_name: "Ergonomische bureaustoel"
+      current_product_category: "Kantoorinrichting"
+      customer_history: []
+    expected_output_contains:
+      - "recommendations"
+      - "reasoning"
+
+  - name: "Aanbeveling met klantgeschiedenis"
+    input:
+      current_product_name: "Staand bureau"
+      current_product_category: "Kantoorinrichting"
+      customer_history: ["Ergonomische bureaustoel", "Bureaulamp", "Monitor arm"]
+    expected_sentiment: "relevant"

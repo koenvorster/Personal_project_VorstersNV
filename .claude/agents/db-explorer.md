@@ -7,8 +7,8 @@ description: >
   or exploring data without writing production code.
   Triggers: "wat staat er in de database", "toon mij orders van", "query de DB",
   "hoeveel producten", "database schema", "SQLAlchemy fout", "migration history"
-model: sonnet
-permissionMode: auto
+model: claude-sonnet-4-5
+permissionMode: allow
 maxTurns: 10
 memory: project
 tools:

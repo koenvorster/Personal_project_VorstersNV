@@ -1,0 +1,11 @@
+agent: bedrijfsproces_agent
+iterations:
+  - version: "1.0"
+    datum: "2026-04-21"
+    wijzigingen: "Initiële versie — AS-IS/TO-BE mapping, automatisering scoring, ROI berekening"
+    score_procesdekking: null
+    score_roi_onderbouwing: null
+    score_haalbaarheid: null
+    getest_op: null
+    notities: "Eerste versie, nog niet getest op echte klantopdracht"
+feedback_log: []

@@ -37,6 +37,10 @@ const skills = [
   { naam: 'PostgreSQL', icon: Database, kleur: 'from-indigo-500 to-indigo-700' },
   { naam: 'FastAPI', icon: Cpu, kleur: 'from-emerald-500 to-emerald-700' },
   { naam: 'Cloud (AWS / Azure)', icon: Cloud, kleur: 'from-orange-500 to-orange-700' },
+  { naam: 'LLM Orchestration', icon: Brain, kleur: 'from-purple-500 to-purple-700' },
+  { naam: 'Multi-Agent Systems', icon: Cpu, kleur: 'from-violet-500 to-violet-700' },
+  { naam: 'Policy-as-Code', icon: Terminal, kleur: 'from-rose-500 to-rose-700' },
+  { naam: 'Prompt Engineering', icon: Code2, kleur: 'from-amber-500 to-amber-700' },
 ]
 
 const tijdlijn = [
@@ -60,6 +64,13 @@ const tijdlijn = [
     beschrijving: 'Freelance trajecten voor KMO\'s: procesautomatisering met AI, digitale transformatie, custom software en hands-on workshops.',
     icon: Rocket,
     kleur: 'from-violet-500 to-violet-700',
+  },
+  {
+    jaar: '2025 – 2026',
+    titel: 'AI Control Platform Architect',
+    beschrijving: 'Ontwerp en realisatie van een enterprise-grade AI Control Platform met governance, audit trail, event-driven skill chains en zelflerende agents. 1389+ geautomatiseerde tests. Vergelijkbaar niveau met enterprise spelers — gebouwd op een moderne open-source stack.',
+    icon: Brain,
+    kleur: 'from-purple-500 to-purple-700',
   },
 ]
 
@@ -87,6 +98,18 @@ const certificaten = [
     instelling: 'Online Certificering',
     jaar: '2023',
     icon: Server,
+  },
+  {
+    titel: 'AI Platform Engineering',
+    instelling: 'Praktijkervaring — VorstersNV',
+    jaar: '2026',
+    icon: Brain,
+  },
+  {
+    titel: 'Policy-as-Code & AI Governance',
+    instelling: 'Praktijkervaring — VorstersNV',
+    jaar: '2026',
+    icon: Award,
   },
 ]
 
@@ -118,24 +141,22 @@ export default function OverMijPage() {
           {/* Bio text */}
           <div className="text-center lg:text-left max-w-2xl">
             <span className="inline-flex items-center px-3 sm:px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
-              Product Engineer · AI & IT Specialist
+              Product Engineer · AI Platform Architect
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 sm:mb-4">
               Koen Vorsters
             </h1>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed mb-3">
-              Product Engineer met een passie voor technologie en innovatie. Afgestudeerd aan Thomas More in Electronica-ICT met specialisatie IoT. 
-              Ik help KMO&apos;s groeien door slimme AI-oplossingen, digitale transformatie en op maat gemaakte software.
+              Product Engineer &amp; AI Platform Architect met een passie voor technologie en innovatie. Afgestudeerd aan Thomas More in Electronica-ICT met specialisatie IoT. Ik bouw enterprise-grade AI-systemen die écht werken: van lokale LLM-orchestratie tot volledige AI Control Platforms met governance, auditing en zelflerende agents.
             </p>
             <p className="text-slate-500 text-sm sm:text-base leading-relaxed mb-4">
-              Met een sterke achtergrond in zowel hardware als software breng ik een uniek perspectief 
-              naar elk project — van embedded systemen en IoT-sensoren tot full-stack webapplicaties en AI-chatbots.
+              Met een unieke combinatie van hardware-achtergrond (embedded systems, IoT) en moderne software-expertise (AI-platforms, multi-agent orchestratie, Policy-as-Code) breng ik een breed perspectief naar elk project. Mijn AI Control Platform staat op hetzelfde niveau als enterprise spelers — maar gebouwd op een open-source stack die voor iedereen toegankelijk is.
             </p>
 
             {/* Personal quote */}
             <div className="border-l-2 border-green-500/40 pl-4 mb-5">
               <p className="text-slate-400 text-sm italic">
-                &ldquo;Technologie is pas krachtig als het echte problemen oplost. Ik bouw oplossingen, geen speelgoed.&rdquo;
+                &ldquo;AI is pas krachtig als het bestuurd, geauditeerd en schaalbaar is. Ik bouw platforms, geen chatbots.&rdquo;
               </p>
             </div>
 
@@ -180,6 +201,31 @@ export default function OverMijPage() {
                   <skill.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <span className="text-white text-xs sm:text-sm font-semibold">{skill.naam}</span>
+              </GlassCard>
+            </AnimatedSection>
+          ))}
+        </div>
+      </section>
+
+      {/* Platform Stats */}
+      <section className="mb-16 sm:mb-20">
+        <AnimatedSection>
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">In Cijfers</h2>
+            <p className="text-slate-400 max-w-lg mx-auto text-sm sm:text-base">Wat het AI Control Platform vandaag kan</p>
+          </div>
+        </AnimatedSection>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5 max-w-4xl mx-auto">
+          {[
+            { waarde: '1.389', label: 'Geautomatiseerde tests', kleur: 'text-green-400' },
+            { waarde: '41', label: 'Features gebouwd', kleur: 'text-violet-400' },
+            { waarde: '6', label: 'AI skill groepen', kleur: 'text-blue-400' },
+            { waarde: '8', label: 'REST API endpoints', kleur: 'text-amber-400' },
+          ].map((stat, i) => (
+            <AnimatedSection key={stat.label} delay={i * 0.08}>
+              <GlassCard className="p-5 sm:p-6 text-center h-full flex flex-col items-center justify-center gap-2">
+                <span className={`text-3xl sm:text-4xl font-extrabold ${stat.kleur}`}>{stat.waarde}</span>
+                <span className="text-slate-400 text-xs sm:text-sm text-center leading-tight">{stat.label}</span>
               </GlassCard>
             </AnimatedSection>
           ))}

@@ -1,0 +1,86 @@
+version: "1.0"
+description: "Basis reviewanalyse met sentiment, thema's en verbeterpunten"
+agent: review_analyzer_agent
+model: mistral
+
+prompt: |
+  Product: {product_name}
+  Categorie: {product_category}
+  Aantal reviews: {review_count}
+
+  Te analyseren reviews:
+  {reviews}
+
+  Analyseer alle bovenstaande reviews en geef je antwoord in dit exacte JSON-format:
+  {
+    "sentiment": "positief|neutraal|negatief|gemengd",
+    "score": 0.0,
+    "themes": ["thema1", "thema2"],
+    "strengths": ["sterk punt 1", "sterk punt 2"],
+    "improvements": ["verbeterpunt 1", "verbeterpunt 2"],
+    "keywords": ["zoekwoord1", "zoekwoord2"],
+    "summary": "Beknopte samenvatting in 2-3 zinnen.",
+    "review_count": 0
+  }
+
+  Richtlijnen:
+  - score: gemiddelde klanttevredenheid op schaal 0-10
+  - themes: max 5 terugkerende onderwerpen
+  - strengths: max 5 concrete positieve punten
+  - improvements: max 5 concrete verbeterpunten
+  - keywords: max 10 relevante zoekwoorden voor SEO
+
+variables:
+  reviews:
+    type: array
+    required: true
+    description: "Lijst van klantreviews als strings"
+    format: "joined with newline separator"
+  product_name:
+    type: string
+    required: false
+    default: "Onbekend product"
+    description: "Productnaam voor context"
+  product_category:
+    type: string
+    required: false
+    default: "Algemeen"
+    description: "Productcategorie voor contextuele analyse"
+  review_count:
+    type: integer
+    required: false
+    computed: true
+    description: "Automatisch berekend op basis van reviews array lengte"
+
+test_cases:
+  - name: "Positieve reviewset"
+    input:
+      reviews:
+        - "Geweldig product, zeer tevreden met de kwaliteit!"
+        - "Snelle levering en uitstekende verpakking."
+        - "Doet precies wat beloofd, aanrader!"
+      product_name: "Draadloze muis"
+    expected_output:
+      sentiment: "positief"
+      score_min: 7.0
+
+  - name: "Gemengde reviewset"
+    input:
+      reviews:
+        - "Goede kwaliteit maar levering duurde lang."
+        - "Product is OK maar verwachtte meer voor deze prijs."
+        - "Werkt perfect, maar instructies zijn onduidelijk."
+      product_name: "Mechanisch toetsenbord"
+    expected_output:
+      sentiment: "gemengd"
+
+  - name: "Negatieve reviewset"
+    input:
+      reviews:
+        - "Kapot geleverd, teruggestuurd."
+        - "Slechte kwaliteit, na 2 weken al stuk."
+        - "Niet wat op de foto staat, teleurgesteld."
+      product_name: "USB-hub"
+    expected_output:
+      sentiment: "negatief"
+      score_max: 4.0

@@ -1,0 +1,15 @@
+name: testing-chain
+version: "1.0"
+trigger: test_requested
+description: "Chain 2: Testing Intelligence"
+steps:
+  - skill: validate_acceptance_criteria
+    output_key: criteria_result
+  - skill: generate_advanced_test_cases
+    input_from: criteria_result
+    output_key: test_cases
+  - skill: detect_regression_risk
+    input_from: test_cases
+    output_key: regression_risk
+on_high_risk:
+  - generate_test_documentation

@@ -1,0 +1,11 @@
+agent: code_analyse_agent
+iterations:
+  - version: "1.0"
+    datum: "2026-04-21"
+    wijzigingen: "Initiële versie — 6-staps analyse pipeline, Java/Python/C#/PHP support"
+    score_volledigheid: null
+    score_leesbaarheid: null
+    score_business_relevantie: null
+    getest_op: null
+    notities: "Eerste versie, nog niet getest op echte klantcodebase"
+feedback_log: []

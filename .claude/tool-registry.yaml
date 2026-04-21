@@ -1,0 +1,204 @@
+version: "1.0"
+description: "VorstersNV MCP Tool Registry — alle beschikbare tools met metadata"
+
+tools:
+  - name: mollie-payment-status
+    version: "2.1"
+    owner: team-payments
+    description: "Haalt betalingsstatus op van Mollie API"
+    category: external
+    capabilities:
+      - order-validation
+      - fraud-detection
+    auth:
+      type: api_key
+      env_var: MOLLIE_API_KEY
+    cost_per_call:
+      unit: api_call
+      estimated_eur: 0.0001
+    reliability_score: 0.99
+    timeout_seconds: 10
+    idempotent: true
+    requires_hitl: false
+    input_schema:
+      type: object
+      required: [payment_id]
+      properties:
+        payment_id:
+          type: string
+          description: "Mollie payment ID (bijv. tr_xxx)"
+    output_schema:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [paid, pending, failed, expired, canceled, refunded]
+        amount:
+          type: object
+        metadata:
+          type: object
+    fallback_tool: order-db-readonly
+    otel_span: true
+
+  - name: order-db-readonly
+    version: "1.0"
+    owner: team-operations
+    description: "Leest orderdata uit de database (read-only, geen side effects)"
+    category: read
+    capabilities: []  # allen toegestaan
+    auth:
+      type: service_account
+      env_var: DB_CONNECTION_STRING
+    cost_per_call:
+      unit: db_query
+      estimated_eur: 0.00001
+    reliability_score: 0.999
+    timeout_seconds: 5
+    idempotent: true
+    requires_hitl: false
+    input_schema:
+      type: object
+      required: [order_id]
+      properties:
+        order_id:
+          type: string
+    output_schema:
+      type: object
+      properties:
+        order_id: {type: string}
+        status: {type: string}
+        total_amount: {type: number}
+        customer_id: {type: string}
+    fallback_tool: null
+    otel_span: true
+
+  - name: fraud-score-compute
+    version: "1.3"
+    owner: team-risk
+    description: "Berekent fraudescore op basis van orderdata en historiek"
+    category: compute
+    capabilities:
+      - fraud-detection
+    auth:
+      type: none
+    cost_per_call:
+      unit: compute
+      estimated_eur: 0.0005
+    reliability_score: 0.97
+    timeout_seconds: 15
+    idempotent: true
+    requires_hitl: false
+    input_schema:
+      type: object
+      required: [order_id, amount, customer_id]
+      properties:
+        order_id: {type: string}
+        amount: {type: number}
+        customer_id: {type: string}
+        use_vpn: {type: boolean, default: false}
+    output_schema:
+      type: object
+      properties:
+        score: {type: integer, minimum: 0, maximum: 100}
+        risk_level: {type: string, enum: [low, medium, high, critical]}
+        factors: {type: array}
+    fallback_tool: null
+    otel_span: true
+
+  - name: backoffice-write
+    version: "1.0"
+    owner: team-operations
+    description: "Schrijft naar backoffice systeem — HITL vereist in productie"
+    category: write
+    capabilities:
+      - order-validation
+    auth:
+      type: service_account
+      env_var: BACKOFFICE_API_KEY
+    cost_per_call:
+      unit: api_call
+      estimated_eur: 0.001
+    reliability_score: 0.95
+    timeout_seconds: 30
+    idempotent: false
+    requires_hitl: true
+    input_schema:
+      type: object
+      required: [action, order_id]
+      properties:
+        action: {type: string, enum: [block, approve, flag, refund]}
+        order_id: {type: string}
+        reason: {type: string}
+    output_schema:
+      type: object
+      properties:
+        success: {type: boolean}
+        action_id: {type: string}
+    fallback_tool: null
+    otel_span: true
+
+  - name: email-notify
+    version: "1.1"
+    owner: team-marketing
+    description: "Verstuurt e-mailnotificatie naar klant via SendGrid"
+    category: notify
+    capabilities:
+      - customer-service
+      - order-validation
+    auth:
+      type: api_key
+      env_var: SENDGRID_API_KEY
+    cost_per_call:
+      unit: email
+      estimated_eur: 0.0002
+    reliability_score: 0.98
+    timeout_seconds: 10
+    idempotent: false
+    requires_hitl: false
+    input_schema:
+      type: object
+      required: [to_email, template_id]
+      properties:
+        to_email: {type: string, format: email}
+        template_id: {type: string}
+        variables: {type: object}
+    output_schema:
+      type: object
+      properties:
+        message_id: {type: string}
+        status: {type: string}
+    fallback_tool: null
+    otel_span: false
+
+  - name: audit-log-write
+    version: "1.0"
+    owner: team-compliance
+    description: "Schrijft audit entry naar compliance log (append-only)"
+    category: write
+    capabilities: []  # allen toegestaan
+    auth:
+      type: service_account
+      env_var: AUDIT_DB_CONNECTION
+    cost_per_call:
+      unit: db_write
+      estimated_eur: 0.000005
+    reliability_score: 0.9999
+    timeout_seconds: 5
+    idempotent: true
+    requires_hitl: false
+    input_schema:
+      type: object
+      required: [trace_id, action, capability]
+      properties:
+        trace_id: {type: string}
+        action: {type: string}
+        capability: {type: string}
+        outcome: {type: string}
+        metadata: {type: object}
+    output_schema:
+      type: object
+      properties:
+        entry_id: {type: string}
+        timestamp: {type: string}
+    fallback_tool: null
+    otel_span: true

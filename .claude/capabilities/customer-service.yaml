@@ -1,0 +1,34 @@
+name: customer-service
+version: "1.0"
+description: "Klantenservice coaching en antwoordgeneratie"
+lane: generative
+audience: support-team
+risk: low
+
+maturity:
+  level: L2
+  label: internal-beta
+  eval_required: false
+  human_approval_required: false
+  min_first_pass_score: 0.75
+
+operational:
+  owner: team-support
+  sla_tier: bronze
+  cost_budget_monthly_eur: 75.0
+  preferred_model: llama3.1
+  escalation_model: "llama3.1:70b"
+
+release:
+  rollout_ring: ring-1
+  feature_flag: "ai.capability.customer-service.v1"
+
+agents:
+  - klantenservice-coach
+
+eval_metrics:
+  target_success_rate: 0.88
+  target_avg_score: 0.85
+  target_latency_ms: 3000
+  alert_threshold_score: 0.70
+  review_interval_days: 7

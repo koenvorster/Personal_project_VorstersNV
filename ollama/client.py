@@ -21,7 +21,7 @@ class OllamaClient:
 
     def __init__(self, base_url: str = OLLAMA_BASE_URL):
         self.base_url = base_url.rstrip("/")
-        self._http = httpx.AsyncClient(timeout=120.0)
+        self._http = httpx.AsyncClient(timeout=360.0)
 
     async def is_available(self) -> bool:
         """Controleer of Ollama beschikbaar is."""

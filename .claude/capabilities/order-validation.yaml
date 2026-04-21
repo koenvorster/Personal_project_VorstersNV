@@ -1,0 +1,40 @@
+name: order-validation
+version: "1.5"
+description: "Valideert orders: BTW, prijzen, voorraad, klantdata"
+lane: deterministic
+audience: operations
+risk: medium
+
+maturity:
+  level: L3
+  label: team-production
+  eval_required: true
+  human_approval_required: false
+  min_first_pass_score: 0.90
+
+assurance:
+  min_schema_validation_rate: 0.98
+
+operational:
+  owner: team-operations
+  sla_tier: silver
+  cost_budget_monthly_eur: 50.0
+  preferred_model: llama3
+  escalation_model: llama3.1
+
+release:
+  rollout_ring: ring-3
+  feature_flag: "ai.capability.order-validation.v4"
+
+agents:
+  - order-analyst
+
+contract: OrderAnalysisContract
+chain: release-to-payroll-impact
+
+eval_metrics:
+  target_success_rate: 0.92
+  target_avg_score: 0.85
+  target_latency_ms: 1500
+  alert_threshold_score: 0.70
+  review_interval_days: 7

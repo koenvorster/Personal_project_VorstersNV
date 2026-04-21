@@ -1,0 +1,27 @@
+name: order-analysis-pipeline
+version: "1.0"
+capability: order-validation
+audience: internal
+risk: medium
+lane: deterministic
+inputs:
+  - order_id: str
+  - customer_id: str
+  - total_amount: float
+outputs:
+  - contract: OrderAnalysisContract
+steps:
+  - id: validate-schema
+    skill: schema_validation
+    required: true
+  - id: fraud-check
+    skill: fraud_detection
+    required: true
+    depends_on: [validate-schema]
+  - id: price-check
+    skill: price_validation
+    required: false
+    depends_on: [validate-schema]
+chains:
+  on_high_risk: [fraud-check, classify_payroll_risk, suggest_prc_actions]
+  on_anomaly: [detect_salary_anomalies, explain_salary_difference]

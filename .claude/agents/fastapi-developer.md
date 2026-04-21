@@ -5,9 +5,9 @@ description: >
   Pydantic v2 schemas, Alembic migrations, DDD patterns (aggregates, services, repositories),
   writing backend tests with pytest + httpx, or reviewing API logic.
   Triggers: "add endpoint", "fix async", "implement feature", "DDD", "migration", "backend"
-model: sonnet
-permissionMode: auto
-maxTurns: 25
+model: claude-sonnet-4-5
+permissionMode: allow
+maxTurns: 20
 memory: project
 tools:
   - view

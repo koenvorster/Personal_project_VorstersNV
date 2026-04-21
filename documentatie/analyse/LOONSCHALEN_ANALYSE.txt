@@ -1,0 +1,844 @@
+================================================================================
+LOONSCHALEN - ANALYSE VAN HET LPBUNIFIED-MASTER PROJECT
+================================================================================
+Bronproject  : C:\Users\kvo\Desktop\lpbunified-master
+Geanalyseerd : 2026-04-21
+Door         : GitHub Copilot (VorstersNV analyse)
+================================================================================
+
+
+INHOUDSOPGAVE
+-------------
+1.  Overzicht & technologie
+2.  Kernconcept: Schaal / Weddeschaal
+3.  Java interfaces (lpb-tools-api)
+4.  Enum-types voor loonschalen
+5.  Databasetabellen (SQL-schema)
+6.  C/NLP tabelstructuren (libtables)
+7.  REST-endpoints
+8.  Frontend (Angular / TypeScript)
+9.  Loonsimulator
+10. Capelo / DMFA-integratie
+11. Mandatarissen
+12. Bestandsoverzicht - loonschaal-gerelateerde bestanden
+
+
+================================================================================
+1. OVERZICHT & TECHNOLOGIE
+================================================================================
+
+Het lpbunified-master project is een Belgisch gemeentelijk loonverwerkingssysteem
+(LPB = LoonPakket Beheer), ontwikkeld door Schaubroeck. Het beheert de lonen
+van gemeentepersoneel en mandatarissen.
+
+Technologiestapel:
+  - Java (Spring Boot) + JPA/Hibernate : backend business logic
+  - C/C++ (NLP module)                 : legacy rekenengine
+  - AngularJS (lima-ria)               : frontend
+  - TypeScript / Angular (lima-ria2)   : moderne frontend
+  - MySQL / Informix                   : databases (BI datamarts)
+  - JAX-RS REST API                    : web services
+
+Terminologie in het project:
+  - "Wedde"        = salaris / loon
+  - "Schaal"       = loonschaal (barema)
+  - "Weddeschaal"  = loonschaal (synoniem)
+  - "Trap"         = salaristrap / trede binnen de schaal
+  - "Versie"       = schaalversie (gekoppeld aan CAO of akkoord)
+  - "Ritme"        = aanscienniteitritme (tempo van trapverhoging)
+  - "Internnr"     = intern nummer van de loonschaal
+  - "Schaalnummer" = extern, leesbaar schaalnummer
+  - "GEA"          = Geldelijke Anciënniteit
+  - "SCA"          = Schaal-Anciënniteit
+  - "DIA"          = Dienstanciënniteit
+  - "NIA"          = Niveau-Anciënniteit
+  - "GRA"          = Graad-Anciënniteit
+  - "SOGID"        = Schaal Overgangsgroep ID
+
+
+================================================================================
+2. KERNCONCEPT: SCHAAL / WEDDESCHAAL
+================================================================================
+
+Een loonschaal in dit systeem bestaat uit:
+
+  A. SchaalDefinitie
+     - Internnummer   : unieke interne code (bv. "A1/1")
+     - Schaalnummer   : leesbaar schaalnummer
+     - Soort          : type schaal
+     - Grpkls         : groepklasse
+     - SchaalNiveau   : niveau-aanduiding (bv. A, B, C, D, E)
+     - RszppoNiveau   : RSZ-PPO niveau (sociaalzekerheidsklassificatie)
+     - InschakelInternnr : bij promotie te gebruiken volgschaal
+     - Rang           : rang binnen de loonschaal
+
+  B. SchaalVersie (per internnr + versie)
+     - MinBedrag      : minimumbedrag van de schaal (basisbedrag)
+     - MaxBedrag      : maximumbedrag van de schaal
+     - BevordGrd      : bevorderingsgraad
+     - BevordNr       : bevordering schaalnummer
+     - AanvangNr      : aanvangsschaalnummer
+     - BevordMin      : minimumbedrag bij bevordering
+     - AanvangMin     : minimumbedrag bij aanvang
+     - Grensverhoging : grensverhogingsbedrag
+     - EuroOriVersie  : euro-oorsprongsversie
+     - EuroCvt        : euro-conversie indicator
+
+  C. SchaalVerhoging (trappenstructuur per schaal+versie)
+     - Lijn    : lijnnummer (volgorde van verhogingsregel)
+     - Aantal  : aantal maal deze verhogingsregel van toepassing is
+     - Periode : aantal tijdsperiodes (maanden/jaren) per trap
+     - Bedrag  : verhogingsbedrag per trap
+
+  Berekening loonbedrag voor trap N:
+    startbedrag = schaalversie.minBedrag
+    voor elke verhogingsregel (lijn):
+      voor elk "aantal":
+        na "periode" maanden → bedrag += verhoging.bedrag
+    resultaat = bedrag na N trappen
+
+  D. WeddeBepaling (per personeelslid/opdracht)
+     - Graad              : aangestelde graad
+     - PersoneelsGroep    : personeelsgroepsclassificatie
+     - DienstStaat        : dienststaatnummer
+     - GEA ritme/maanden/datum : geldelijke anciënniteitsparameters
+     - SCA ritme/maanden/datum : schaalanciènniteitsparameters
+     - DIA ritme/maanden/datum : dienstanciènniteitsparameters
+     - NIA ritme/maanden/datum : niveauanciènniteitsparameters
+     - GRA ritme/maanden/datum : graadanciènniteitsparameters
+     - BevorderingsExamen : indicator bevorderingsexamen
+     - InschakelSchaal    : inschakeling nieuwe schaal
+     - PrincipeFunctioneleLoopbaan : 0/1 vlag
+
+
+================================================================================
+3. JAVA INTERFACES (lpb-tools-api)
+================================================================================
+
+Bestandslocatie: lpb-tools/lpb-tools-api/src/main/java/be/schaubroeck/lpb/tools/
+
+Kerninterfaces:
+
+  - SchaalDefinitie.java
+    Beschrijft de definitie van een loonschaal (internnr, schaalnr, niveau, rang).
+
+  - SchaalVersie.java
+    Eén specifieke versie van een schaal: min/max-bedrag, bevorderingsinfo.
+
+  - SchaalVerhoging.java
+    Eén lijn in de trappenstructuur: lijn, aantal, periode, bedrag.
+
+  - WeddeBepaling.java
+    Interface voor de wedde-toewijzing aan een opdracht (personeelslid):
+    alle anciënniteitstypes, graad, dienststaatinformatie, schaalovergang.
+
+  - WeddeBerekening.java
+    Interface voor de berekeningsparameters: rekenwijze, jaar/maand/dag-omzetting,
+    RSZ-dagenstelsel, vakantiegeld-regeling, eindejaarstoelage-regeling,
+    prestatieverhouding, arbeidscyclus.
+
+  - SchaalKoppeling.java
+    Koppeling tussen de interne NLP-schaal en de PDOS/CAPELO-schaal.
+    Bevat: status, admin, KBO-nummer, internnr, versie, klasse, beslissingsdatum.
+
+  - CapeloWeddeschaal.java
+    Externe schaalreferentie voor de CAPELO-pensioenkadasterapplicatie.
+    Bevat: capeloWerkgever, referentie, startDatum, eindDatum.
+
+  - MandatarisBarema.java
+    Barema specifiek voor mandatarissen (burgemeester, schepenen, raadsleden).
+    Bevat: begin/eindatum normale pensioenberekening, klasseverheffing.
+
+  - HrWedde.java (in jpa/cl/)
+    HR-loongegevens voor CoreHR-integratie.
+
+
+================================================================================
+4. ENUM-TYPES VOOR LOONSCHALEN
+================================================================================
+
+Bestandslocatie: lpb-tools/lpb-tools-api/src/main/java/be/schaubroeck/lpb/tools/enumtypes/
+
+A. Schaalversie.java (GROEPID=93)
+   Alle beschikbare loonschaalversies (gekoppeld aan CAO's en bestuursniveaus):
+
+   Code | Korte naam    | Omschrijving
+   -----|---------------|-----------------------------------------------------------
+    0   | NVT           | Niet van toepassing
+    1   | A 01.01.90    | Schaalversie CAO 1.1.1990 (A)
+    2   | B 01.11.90    | Schaalversie CAO 1.11.1990 (B)
+    3   | C 01.11.91    | Schaalversie CAO 1.11.1991 (C)
+    4   | D 1,02 * 3    | Schaalversie 3 * 1,02 (D)
+    5   | E 1,03 * 3    | Schaalversie 3 * 1,03 (E)
+    6   | F 1,05 * 3    | Schaalversie 3 * 1,05 (F)
+    7   | G             | Schaalversie 6 * 1,01 (G)
+   11   | S * 0,97      | Nieuw personeelsstatuut (01.01.1994+) (S * 0.97)
+   12   | S * 0,98      | Nieuw personeelsstatuut (01.01.1994+) (S * 0.98)
+   21   | S             | Nieuw personeelsstatuut (01.01.1994+) (S)
+   22   | BRU HFD 06    | Brussels Hoofdstedelijk Gewest 2006
+   23   | BRU HFD 07    | Brussels Hoofdstedelijk Gewest 2007
+   30   | S EURO        | Nieuw personeelsstatuut (S EURO POL)
+   31   | F EURO        | Schaalversie 3 * 1,05 (F EURO)
+   32   | G EURO        | Schaalversie 6 * 1,01 (G EURO)
+   33   | S EURO        | Nieuw personeelsstatuut (S EURO)
+   34   | VERH NA 94    | Verhoogde schalen na Krachtlijnen Kelchtermans
+   35   | VL GEMEEN     | Vlaamse Gemeenschap
+   36   | VLGEM 0102    | Vlaamse Gemeenschap inter. akkoord 2001-2002
+   37   | BRUS HOOFD    | Brussels Hoofdstedelijk Gewest
+   38   | DECRET GR     | Schalen decretale graden
+   39   | VLGEM 2009    | Vlaamse Gemeenschap 01/01/2009
+   40   | SA 08-13      | Sectoraal akkoord 2008-2013
+   41   | BRUS HFD 2    | Brussels Hoofdstedelijk Gewest 2
+   42   | BRUS HFD 3    | Brussels Hoofdstedelijk Gewest Wettelijke Graden
+   43   | AG            | Autonome Gemeentebesturen
+   44   | HULPVERLZN    | Hulpverleningszone
+   45   | AG_2          | Autonome Gemeentebesturen 2
+   46   | DEC_LOK_BE    | Decreet lokaal bestuur
+   47   | PROVINCIE     | Provincie
+   48   | RPR_2023      | RPR (01.01.2023)
+   49   | VLGEM 2023    | Vlaamse Gemeenschap 01/01/2023
+   50   | PAR COMITE    | Paritaire Comités
+   51   | VL_PUB_ZRG    | Vlaamse Publieke Zorg (IFIC)
+   52   | VL_PRI_ZRG    | Vlaamse Privé Zorg (IFIC)
+   53   | VL_PUB_HYB    | Vlaamse Publieke Zorg Hybride (IFIC)
+   90   | MANDATARIS    | Mandatarissen
+   97   | AenS          | AenS
+
+B. Schaalverhogingssysteem.java (GROEPID=47)
+   Het systeem dat de trapverhogingen berekent:
+
+   Code | Naam          | Omschrijving
+   -----|---------------|----------------------------
+    1   | SEK & ONTV    | Secretaris & Ontvanger
+    2   | VOOR CAO94    | Vóór CAO van 1994
+    3   | RIJK          | Rijksregeling
+    4   | ONDERWIJS     | Onderwijssysteem
+    5   | NA CAO 94     | Na CAO van 1994
+
+C. SchaalKoppelingStatus.java (GROEPID=450)
+   Status van de CAPELO-schaalkoppeling:
+
+   Code | Status              | Omschrijving
+   -----|---------------------|------------------------------
+    1   | AUTO                | Automatisch gekoppeld
+    2   | TODO                | Nog te koppelen
+    3   | ONTKOPPELD          | Ontkoppeld
+    4   | KLAAR               | Klaar voor verzending
+    5   | BEZIG               | Wordt verwerkt
+    6   | VERZONDEN           | Verzonden naar CAPELO
+    7   | TICKETNR            | Ticket Nummer ontvangen
+    8   | DMFACODE            | DMFA Code ontvangen
+    9   | ERROR               | Error ontvangen
+   10   | IDENTIEK            | Identieke schaal in aanvraag
+
+D. SchaalKoppelingOorsprong.java (GROEPID=458)
+   Herkomst van de schaalkoppeling:
+
+   Code | Omschrijving
+   -----|-------------------------------------------
+    1   | Actief in weddebepaling
+    2   | Toegevoegd via sogid (SchaalOvergangsGroepID)
+
+E. SchaalancWijzig.java (GROEPID=360)
+   Mogelijke aanpassingen aan schaalanciènniteit:
+
+   Code | Omschrijving
+   -----|-------------------------------------
+    0   | NVT - Niet van toepassing
+    1   | VERSNEL - Schaalanciènniteit versnellen
+    2   | VERTRAAG - Schaalanciènniteit vertragen
+
+
+================================================================================
+5. DATABASETABELLEN (SQL-SCHEMA)
+================================================================================
+
+A. lo-schema.sql (LO = Loonpakket Operationeel database)
+   Locatie: BI/datamarts/datamarts-schema/src/db/lo-schema.sql
+
+   Tabel: lo_basisjaarwedde
+   - bjwid         : primaire sleutel
+   - jaarwedde     : decimal(10,2) - jaarbedrag
+   - jw_nota       : char(60) - nota
+   - rszppo_niveau : char(2) - RSZ-PPO niveau
+   - afwk_index    : float - afwerkingsindex
+   - info_gea_maanden, info_gea_datum : anciënniteitsinfo
+
+   Tabel: lo_bjw_old (historisch)
+   - bjwid         : primaire sleutel
+   - weddebepaling : integer - FK naar weddebepaling
+   - internnr      : char(6) - interne schaalcode
+   - volgnr        : char(2)
+   - trap          : integer - huidige loonstrap
+   - trapdatum     : date - datum trap bereikt
+   - indiensttreding : integer
+   - ancien_ritme  : integer - anciënniteitsritme
+   - jaarwedde     : integer - jaarbedrag
+   - schaalniveau  : char(2) - niveau (A/B/C/D/E)
+   - afwk_graad    : char(60) - afwerking graad
+   - afwk_index    : float
+
+   Tabel: lo_wedde_uitw (wedde uitwerking)
+   - bjwid         : primaire sleutel
+   - begindatum    : date
+   - einddatum     : date
+   - schaalwedde   : integer - schaalweddebedrag
+   - trap          : integer - loonstrap
+   - schaalversie  : integer - FK naar schaalversie
+
+   Tabel: lo_weddebepaling
+   - pid, opid     : persoon + opdracht ID (samengestelde sleutel)
+   - begindatum    : date
+   - einddatum     : date
+   - sogid         : integer - schaalovergangsgroep ID
+   - internnr      : char - intern schaalnummer
+   - versie        : integer - schaalversie
+   - graadid       : integer - FK graad
+   - personeelsgroep : integer
+   - dienststaat   : integer
+   - gea_ritme, gea_maanden, gea_datum, gea_ovor : geldelijke anciënniteit
+   - sca_ritme, sca_maanden, sca_datum           : schaalanciènniteit
+   - dia_ritme, dia_maanden, dia_datum           : dienstanciènniteit
+   - nia_ritme, nia_maanden, nia_datum           : niveauanciènniteit
+   - gra_ritme, gra_maanden, gra_datum           : graadanciènniteit
+   - bevordexa     : integer - bevorderingsexamen
+   - diplbestuursw : integer - diploma bestuurswetenschappen
+   - inschakel_sogid : integer - inschakelings-SOGID
+   - synchronisatie : integer
+   - bron_beslissing : integer
+   - principefl    : integer - principe functionele loopbaan
+   - inschakelschaal : char(8) - inschakelschaalcode
+   - sca_wijzig    : integer - schaalanciènniteitswijziging
+   - sca_wijz_mnd  : integer - wijziging maanden
+   - sca_wijz_reden : integer - reden wijziging
+   - sca_wijz_datum : date - datum wijziging
+   - sca_wijz_nr   : integer - wijzigingsnummer
+   - functieid     : integer - functie ID
+   Indexen: lo_weddebpl2 (pid, opid, begindatum), lo_weddebpl3 (sogid, personeelsgroep)
+
+   Tabel: lo_weddeberekening
+   - wbrkid        : primaire sleutel
+   - rekengroep    : integer
+   - rekenbron     : integer
+   - rekenwijze    : integer
+   - u_noemer      : integer - uurnoemer
+   - m_jaar2maand  : integer - maand-naar-jaar-omzetting
+   - m_verwerking  : integer - maandverwerking
+   - pvh_vorming   : integer - prestatieverhoudingvorming
+   - teller_pvh    : double - teller prestatieverhouding
+   - noemer_pvh    : double - noemer prestatieverhouding
+   - rsz_dagenstelsel : integer
+   - arbc_id       : integer - arbeidscyclus ID
+   - arb_ref_datum : date
+   - arb_begindag  : integer
+
+   Tabel: lo_weddef_uitw (weddefiche uitwerking)
+   - wfuwid        : primaire sleutel
+   - regelid       : integer
+   - dienststaat   : integer
+   - werkdienst_bd : date
+   - ga_jaren, ga_maanden : geldelijke anciënniteit
+   Indexen: lo_weddef_uitw_1 (regelid, werkdienst_bd), lo_weddef_uitw_2 (regelid, dienststaat, werkdienst_bd)
+
+B. ga-schema.sql (GA = Gemeentelijke Administratie / BI datamart)
+   Locatie: BI/datamarts/datamarts-schema/src/db/ga-schema.sql
+
+   Bevat per personeelslid/opdracht:
+   - baremawedde     : char(9) - barema/weddeschaalcode
+   - weddeschaal     : char(5) - weddeschaalreferentie
+   - pct_weddeschaal : char(3) - percentage weddeschaal
+   - anc_datum       : char(6) - anciënniteitsdatum
+   - datum_volg_bienn : char(6) - datum volgende biënnale
+   - baremawedde_vrij : char(9) - vrije barema
+   - schaal_vrijwar  : char(5) - vrijwaaringsschaal
+   - pct_schaal_vrijw : char(3) - percentage vrijwaaringsschaal
+
+
+================================================================================
+6. C/NLP TABELSTRUCTUREN (LIBTABLES)
+================================================================================
+
+Locatie: nlp/nlproot/src/libtables/
+
+De C-structuren komen overeen met de databasetabellen:
+
+A. struct s_weddebepaling (t_weddebepal.h) - 41 velden
+   Identiek aan lo_weddebepaling. Bevat alle anciënniteitstypes,
+   graad, schaalovergangsgroep, bevorderingsexamen, inschakelschaal.
+
+B. struct s_weddebepaal_slice (t_weddebepaa.h) - 41 velden
+   Bitemporale slice-versie van weddebepaling voor historiekbeheer.
+   Heeft 'actualfrom', 'actualto', 'recordfrom', 'recordto' ipv begin/einddatum.
+
+C. struct s_weddeberekening (t_weddeberek.h) - 14 velden
+   Berekeningsparameters: rekenwijze, jaar/maand-omzetting, prestatieverhouding,
+   RSZ-dagenstelsel, arbeidscyclus.
+
+D. struct s_wedde_uitw (t_wedde_uitw.h) - 8 velden
+   Uitwerking per tijdsperiode: schaalwedde, trap, schaalversie.
+
+E. struct s_weddebijslag_fout (t_weddebijsl.h) - 4 velden
+   Fout-registratie voor weddebijslagen: kwartaal, jaar, persoonid.
+
+F. struct s_weddebijslag_koppeling (t_weddebijsl.h) - 11 velden
+   Koppeling weddebijslag ↔ DMFA: tijdperk, aard, code, bedrag, percentage.
+
+G. struct s_gl_weddebijslag_koppeling (t_weddebijsl.h) - 7 velden
+   Globale weddebijslagkoppeling: ake_id, dmfa_code, bedrag, percentage.
+
+C-bronbestanden voor rekenlogica:
+   - src/reken/sou/weddebijslag_list.C    : lijst van weddebijslagen
+   - src/libnlp/sou/weddebijslag_service.C : service voor weddebijslagen
+   - src/libnlp/sou/cweddeuitw.C          : uitwerking wedde
+   - src/support/sou/zkWeddeTrap.C        : zoek weddebijslag voor trap
+   - src/support/sou/convPolWedde.C       : conversie politiewedde
+   - src/loon/sou/f_weddebepaling.C       : weddebepaling formulier
+   - src/loon/sou/f_weddebrk.C           : weddeberekening formulier
+
+
+================================================================================
+7. REST-ENDPOINTS
+================================================================================
+
+A. /capeloWeddeschalen (CapeloWeddeschalenResource.java)
+   Rollen: ROLE_DMFA_GEBRUIKER, ROLE_DMFA_ADMIN
+
+   GET  /findSchaalKoppelingByStatusAndOorsprong/{adminId}/{statusId}/{oorsprongId}
+        → Geeft lijst van schaalkoppelingen gefilterd op status en oorsprong
+
+   GET  /findCapeloSalaryScaleDetailZonderSchaalkoppeling/{adminId}
+        → Geeft CAPELO-schalen zonder NLP-koppeling
+
+   GET  /getSchaalKoppelingen/{adminId}
+        → Alle schaalkoppelingen (NLP + CAPELO)
+
+   GET  /getSchaalVerhogingenByInternnrVersie/{adminId}/{internnr}/{versie}
+        → Trappenstructuur voor schaal+versie
+
+   GET  /getSchaalVerhogingen/{adminId}/{capeloSalaryScaleDetailId}
+        → CAPELO trappenstructuur op capeloSalaryScaleDetailId
+
+   GET  /getSchaalUitwerkingenByInternnrVersie/{adminId}/{internnr}/{versie}/{minbedrag}
+        → Berekende bedragen per trap (startend van minbedrag)
+
+   GET  /getSchaalUitwerkingenByCapeloSalaryScaleDetailId/{adminId}/{...}/{minbedrag}
+        → Berekende bedragen per trap voor CAPELO-schaal
+
+   GET  /getWeddeschaalPdf/{adminId}/{bestandsnaam}
+        → PDF-download van alle weddeschalen
+
+   GET  /getUitwerkingPdf/{adminId}/{naam}/{schaalnr}/{internnr}/{versie}/...
+        → PDF-download van uitwerking van één schaal
+
+   POST /naarNogTeKoppelen/{adminId}      → Status → NOG_TE_KOPPELEN
+   POST /ontkoppelSchaalKoppeling/{adminId} → Koppeling verwijderen
+   POST /aanvragen/{adminId}              → Schaal aanvragen bij PDOS
+   POST /aanvragenZonderDoorsturen/{adminId} → Aanvragen zonder doorsturen
+   POST /wissen/{adminId}                 → Schaalkoppeling wissen
+   POST /update/{adminId}                 → Schaalkoppeling updaten
+
+
+================================================================================
+8. FRONTEND (ANGULAR / TYPESCRIPT)
+================================================================================
+
+A. AngularJS (lima-ria) - CAPELO/DMFA module
+   Locatie: spring/lima/capelo-dhg-ria/ en spring/lima/dmfa-ria/
+
+   Controller: CapeloWeddeschalenCtrl (dmfa/capeloWeddeschalen.js)
+   - Tabbladen: "gegevensSchaal" en "uitwerkingSchaal"
+   - Grid-kolommen: schaalnr, internnr, versie, klasse, capelonaam,
+                    dmfaCode, status, oorsprong
+   - Filter op status (groep 450) en oorsprong (groep 458)
+   - Speciale optie: "Overige weddeschalen PDOS" (niet-gekoppelde CAPELO-schalen)
+   - Double-click → open schaaldetail
+
+   Views:
+   - baremiekeWeddes.html / baremiekeWeddeDialog.html
+     : barema-weddes voor CAPELO (DHG-module)
+   - weddeBijslagen.html / weddeBijslagDialog.html
+     : weddebijslagen beheer
+   - capeloWeddeschalen.html
+     : overzicht CAPELO weddeschalen
+
+B. Angular 2+ (lima-ria2) - HR module
+   Locatie: spring/lima/lima-ria2/
+
+   - weddesoort.ts / wedde-soort.enum.ts : enum voor weddesoorten
+   - hr-wedde.model.ts                   : TypeScript model voor HR-wedde
+   - hr-graad-weddescherm.model.ts       : model graad-weddescherm
+   - hr-wedde.component.ts               : component wedde tonen/bewerken
+   - weddeberekenig.service.ts           : service voor weddeberekening
+   - personeelwijziging-weddeberekenig.mapper.ts : mapper begroting
+
+C. Loonsimulator frontend
+   Locatie: spring/lima/loonsimulator-ria/
+
+   - berekeningWeddeDlg.html : dialoog voor wedde-berekening simulatie
+
+
+================================================================================
+9. LOONSIMULATOR
+================================================================================
+
+Locatie: spring/lima/lima-server/src/main/java/be/schaubroeck/lpb/loonsimulator/
+
+De loonsimulator berekent het nettoloon op basis van de loonschaal.
+
+Klasse: Weddeschaal.java
+  Methoden:
+  - berekenTrap(internnr, trap, service)
+    → Berekent het bruto maandbedrag voor een bepaalde trap
+    → Gebruikt SchaalVersie (minBedrag) + SchaalVerhogingen (trappenstructuur)
+
+  - berekenTrap(schaalversie, schaalVerhogingen, trap)
+    → Kernalgoritme:
+      1. Start met schaalversie.minBedrag
+      2. Loop door alle SchaalVerhoging-lijnen
+      3. Per lijn: "aantal" iteraties van "periode" maanden
+      4. Na elke periode → bedrag += verhoging.bedrag (afgerond op 2 decimalen)
+      5. Stop bij trap N
+
+Simulatiecomponenten (Chain of Responsibility patroon):
+  - SimuleerBrutoLoon.java           : bruto jaarwedde
+  - SimuleerRSZBijdrage.java         : RSZ-bijdrage werknemer
+  - SimuleerBijzondereBijdrageSZ.java : BBSZ
+  - SimuleerBedrijfsvoorheffing.java : bedrijfsvoorheffing
+  - SimuleerVlaamseKorting.java      : Vlaamse korting
+  - SimuleerNettoLoon.java           : nettoloon
+  - SimuleerTotaalBelastBaar.java    : totaal belastbaar
+  - SimuleerVakantieGeld.java        : vakantiegeld
+  - SimuleerEindejaarstoelage.java   : eindejaarspremie
+  - SimuleerAttractiviteitsPremie.java : attractiviteitspremie
+  - SimuleerWerkbonusLageLonen.java  : werkbonus lage lonen
+  - SimuleerTotaleLoonKost.java      : totale loonkost werkgever
+  - SimuleerFietsLeaseChain.java     : fietsleaseberekening
+
+
+================================================================================
+10. CAPELO / DMFA-INTEGRATIE
+================================================================================
+
+CAPELO = Carrièregegevens en Pensioenen van Lokale en Provinciale besturen
+DMFA   = DéclarationMultifonctionnelle / Multifunctionele Aangifte (RSZ)
+
+Concept: elke interne NLP-loonschaal moet worden gekoppeld aan een
+officiële CAPELO/PDOS-schaaldefinitie zodat pensioenberekeningen correct zijn.
+
+Klassen:
+  - CapeloWeddeschaal       : externe CAPELO-schaaldefinitie
+  - CapeloSalaryScale       : CAPELO salarisschaal
+  - CapeloSalaryScaleDetail : detail (startdatum, trappenstructuur)
+  - CapeloSchaalVerhoging   : CAPELO trapverhoging
+  - SchaalKoppeling         : NLP-schaal ↔ CAPELO-schaal koppeling
+
+Workflow:
+  1. NLP-beheerder signaleert nieuwe/gewijzigde schaal → status NOG_TE_KOPPELEN
+  2. DMFA-admin koppelt aan bestaande CAPELO-schaal OF vraagt nieuwe aan
+  3. Aanvraag gaat naar PDOS (Pensioendienst voor de Overheidssector)
+  4. PDOS geeft ticket terug → status TICKETNR_ONTVANGEN
+  5. PDOS verwerkt → geeft DMFA-code → status DMFACODE_ONTVANGEN
+  6. Koppeling is volledig → status AUTOMATISCH_GEKOPPELD of bevestigd
+
+PDF-rapporten:
+  - Weddeschalen PDF : overzicht alle schaalkoppelingen (SchaalKoppelingPDF)
+  - Uitwerking PDF   : trappenuitwerking van één schaal (UitwerkingPDF)
+
+
+================================================================================
+11. MANDATARISSEN
+================================================================================
+
+Mandatarissen (burgemeester, schepenen, raadsleden) hebben een apart
+loonschalensysteem via MandatarisBarema.
+
+Kenmerken:
+  - Aparte schaalversie: code 90 "MANDATARIS"
+  - Klasseverheffing: begin- en einddatum voor verhoogd tarief
+  - Normale pensioenberekening: aparte begin/einddatum voor gemeente/OCMW
+  - Verminderde wedde: periode met verlaagd weddepercentage
+  - MandatarisBaremaDetail: detailgegevens per mandatarisfunctie
+
+Bestanden:
+  - MandatarisBarema.java
+  - MandatarisBaremaDetail.java (referenced)
+  - spring/lima/capelo-dhg-ria/app/views/capelo-dhg/baremiekeWeddes.html
+
+
+================================================================================
+12. BESTANDSOVERZICHT - LOONSCHAAL-GERELATEERDE BESTANDEN
+================================================================================
+
+JAVA API (lpb-tools-api):
+  tools/SchaalDefinitie.java
+  tools/SchaalVersie.java
+  tools/SchaalVerhoging.java
+  tools/SchaalKoppeling.java
+  tools/WeddeBepaling.java
+  tools/WeddeBerekening.java
+  tools/MandatarisBarema.java
+  tools/CapeloWeddeschaal.java
+  tools/HrWedde.java
+  tools/BasisJaarWedde.java
+  tools/WeddebijslagKoppeling.java
+  tools/CapeloWeddebijslag.java
+  tools/DhgWeddebijslag.java
+  tools/DmfaWeddebijslag.java
+  tools/enumtypes/Schaalversie.java
+  tools/enumtypes/Schaalverhogingssysteem.java
+  tools/enumtypes/SchaalKoppelingStatus.java
+  tools/enumtypes/SchaalKoppelingOorsprong.java
+  tools/enumtypes/SchaalancWijzig.java
+  tools/enumtypes/LoonsimSoortSchaalomschrijving.java
+  tools/jpa/lo/WeddeBepalingsRecordPO.java (JPA)
+  tools/jpa/lo/WeddeBerekening*.java (JPA)
+  tools/jpa/lo/Weddebijslag*.java (JPA)
+  tools/jpa/lo/DhgWeddebijslag*.java (JPA)
+  tools/jpa/lo/DmfaWeddebijslag*.java (JPA)
+  tools/jpa/cl/HrWeddePO.java (JPA)
+  tools/service/HrWeddeService.java
+  tools/service/WeddeBepaling*.java
+  tools/service/WeddeBerekening*.java
+  tools/service/Weddebijslag*.java
+  tools/service/DhgWeddebijslagService.java
+  tools/comparator/WeddeComparator.java
+
+JAVA SERVER (lima-server):
+  loonsimulator/Weddeschaal.java
+  loonsimulator/Simul*.java (15 componenten)
+  loonsimulator/LoonElementFactory.java
+  loonsimulator/LoonSimulatorCorehrRestTemplate.java
+  corehr/service/weddeberekening/ (service laag)
+
+REST API (lima-rest):
+  rest/dmfa/CapeloWeddeschalenResource.java
+
+DTO'S (lima-api):
+  rkm/artikel/dto/WeddeBepalingDTO.java
+  rkm/artikel/dto/WeddeBerekening*.java
+  rkm/ejt/model/dto/WeddeSleutelDTO.java
+  rkm/fietslease/dto/WeddeSlaagDTO.java
+  capelo/dhg/util/web/WeddebijslagResource.java
+  dmfa/dto/SchaalKoppelingDTO.java
+  dmfa/dto/SchaalVerhogingDTO.java
+  dmfa/dto/SchaalUitwerkingDTO.java
+
+FRONTEND ANGULAR (lima-ria):
+  capelo-dhg-ria/app/scripts/controllers/capelo-dhg/baremiekeWeddes.js
+  capelo-dhg-ria/app/scripts/controllers/capelo-dhg/weddeBijslagen.js
+  capelo-dhg-ria/app/scripts/controllers/capelo-dhg/baremiekeWeddeDialog.js
+  capelo-dhg-ria/app/scripts/controllers/capelo-dhg/weddeBijslagDialog.js
+  capelo-dhg-ria/app/scripts/controllers/capelo-dhg/weddeBijslagKoppeling.js
+  dmfa-ria/app/scripts/controllers/dmfa/capeloWeddeschalen.js
+  capelo-dhg-ria/app/attesten/attest1/tw1/opdracht2/baremiekeWeddes.js
+  capelo-dhg-ria/app/attesten/attest1/tw1/opdracht2/weddeBijslagen.js
+
+FRONTEND ANGULAR2 (lima-ria2):
+  app/begroting/enums/weddesoort.ts
+  app/begroting/mappers/personeelwijziging-weddeberekening.mapper.ts
+  app/begroting/services/personeelswijzigingen/weddeberekening.service.ts
+  app/persoon/overeenkomst-wrapper/wedde/hr-wedde.component.ts
+  app/persoon/overeenkomst-wrapper/weddeberekening/hr-weddeberekening.component.ts
+  app/shared/enums/wedde-soort.enum.ts
+  app/shared/models/hr-wedde.model.ts
+  app/shared/models/hr-graad-weddescherm.model.ts
+  app/user/hr-user-downloads/components/anci-weddes-zonder-aansturing.component.ts
+
+C/NLP LIBTABLES (nlproot):
+  src/libtables/incl/t_weddebepal.h  + .C
+  src/libtables/incl/t_weddebepaa.h  + .C   (bitemporaal)
+  src/libtables/incl/t_weddeberek.h  + .C
+  src/libtables/incl/t_wedde_uitw.h  + .C
+  src/libtables/incl/t_weddebijsl.h  + .C
+  src/libtables/incl/t_weddef_uit.h  + .C
+  src/libtables/incl/t_dhg_weddeb.h  + .C
+  src/libtables/incl/t_dmfaweddeb.h  + .C
+
+C/NLP REKENLOGICA:
+  src/loon/sou/f_weddebepaling.C     : weddebepaling-formulier
+  src/loon/sou/f_weddebrk.C          : weddeberekening-formulier
+  src/reken/sou/weddebijslag_list.C  : bijslagenlijst
+  src/libnlp/sou/weddebijslag_service.C
+  src/libnlp/sou/cweddeuitw.C
+  src/support/sou/zkWeddeTrap.C
+  src/support/sou/convPolWedde.C
+  src/local/sou/mod_wedde_int.C      : wedde-integratie module
+  src/local/sou/po_wedde_int.C       : politie wedde-integratie
+  src/prt/sou/prt_weddebepaling.C    : print weddebepaling
+  src/prt/sou/prt_weddeuitw.C        : print weddeuitwerking
+  src/prt/sou/prt_jaarwedde.C        : print jaarwedde
+
+DATABASE SQL:
+  BI/datamarts/datamarts-schema/src/db/lo-schema.sql  : LO-datamart tabellen
+  BI/datamarts/datamarts-schema/src/db/ga-schema.sql  : GA-datamart tabellen
+
+FORMS / SCHERMEN (NLP):
+  nlp/nlproot/prg/loon/etc/f_weddebepal.fms  : weddebepaling-scherm
+  nlp/nlproot/prg/loon/etc/f_weddebrk.fms    : weddeberekening-scherm
+  nlp/nlproot/prg/prt/etc/f_prtweddeb.fms    : print wedde bijlagen
+  nlp/nlproot/prg/prt/etc/f_prtweddeu.fms    : print wedde uitwerking
+
+SCRIPTS:
+  nlp/nlproot/prg/scripts_linux/weddebijslagKoppelingen.sh
+  nlp/nlproot/prg/scripts_linux/conversieCapeloWeddebijslagen.sh
+  nlp/nlproot/prg/scripts_linux/report/weddebijslagFout.sh
+
+DOCUMENTEN:
+  spring/lima/lima-rest/src/main/resources/documentgeneratie/weddefiche.docx
+  spring/lima/lima-rest/src/main/resources/documentgeneratie/weddefiche_withContr.docx
+  spring/lima/lima-rest/src/main/resources/batchimport/templates/import_wedde.xlsx
+  spring/jasper/jasper-reports/src/main/java/jaarbundels/subJaarWedde.jrxml
+
+BI / WQM:
+  BI/wqm/wqm-extern-java/src/main/java/be/schaubroeck/wqm/beslissing/Weddefiche.java
+  BI/wqm/wqm-extern-java/src/main/java/be/schaubroeck/wqm/rp00112/WeddeMerge.java
+
+
+================================================================================
+13. MANDATARIS BAREMA - CONCRETE BEDRAGEN & DATAFLOW
+================================================================================
+
+A. Databasetabellen (SQL uit alterJGL-0.2.11_001.sql)
+
+   Tabel: gl__mandataris_barema
+   - id                                  : INTEGER PK
+   - version                             : INTEGER (optimistische vergrendeling)
+   - omschrijving                        : VARCHAR(40) bv. "Barema 01.07.2009 (post 2001)"
+   - bd/ed_normale_pensioenberekening    : DATE begin/einddatum pensioenbasis
+   - bd/ed_normale_pensioenberekening_ocmw : DATE (OCMW-variant)
+   - bd/ed_verminderde_wedde             : DATE periode verminderd inkomen
+   - bd/ed_klasseverheffing             : DATE
+   - bd/ed_klasseverheffing_ocmw        : DATE
+
+   Tabel: gl__mandataris_barema_detail
+   - id                                             : INTEGER PK
+   - mandataris_barema_id                           : INTEGER FK → mandataris_barema
+   - groep_klasse                                   : INTEGER (inwonersklasse 1-156)
+   - inwoners_ondergrens / inwoners_bovengrens      : INTEGER
+   - basisjaarwedde_burgemeester                    : DECIMAL(10,2)
+   - basisjaarwedde_schepenen_ocmw_voorzitter       : DECIMAL(10,2)
+   - basisjaarwedde_ocmw_ondervoorzitter            : DECIMAL(10,2)
+
+   Synoniem (cross-db toegang):
+     gl__mandataris_barema       → ${gl.jdbc.dbname}:mandataris_barema
+     gl__mandataris_barema_detail → ${gl.jdbc.dbname}:mandataris_barema_detail
+
+B. Barema-ID's en beschrijvingen (historiek)
+
+   ID | Beschrijving                          | Van         | Tot
+   ---|---------------------------------------|-------------|-------------
+    1 | Barema 01.01.1990 (pré 2001)         | 01.01.1990  | 31.10.1990
+    2 | Barema 01.11.1990 (pré 2001)         | 01.11.1990  | 31.10.1991
+    3 | Barema 01.11.1991 (pré 2001)         | 01.11.1991  | 31.10.1992
+    4 | Barema 01.11.1992 (pré 2001)         | 01.11.1992  | 30.06.1993
+    5 | Barema 01.07.1993 (pré 2001)         | 01.07.1993  | 31.12.2000
+    6 | Barema 01.01.2001                    | 01.01.2001  | 31.12.2006
+    7 | Barema 01.06.2002 (pré 2001)         | Speciale overgangsperiode
+   8-16 | Barema 01.01.2007 - 01.06.2009     | 2007 - 2009
+   17 | Barema 01.07.2009 (post 2001) [HUIDIG] | 01.07.2009 | 31.12.2200
+
+C. Concrete bedragen Barema 17 (01.07.2009 - huidig, uit GL-1155.sql)
+
+   Klasse | Inwoners      | Burgemeester   | Schepen/OCMW-vz  | OCMW Ondervz
+   -------|---------------|----------------|------------------|-------------
+    1     | 1 - 2.000     | €  13.848,00   | €   8.314,40     | €  6.259,10
+    2     | 2.001- 2.100  | €  14.239,94   | €   8.565,28     | €  6.425,04
+    3     | 2.101- 2.200  | €  14.631,88   | €   8.816,16     | €  6.590,98
+    4     | 2.201- 2.300  | €  15.023,82   | €   9.067,04     | €  6.756,92
+    5     | 2.301- 2.400  | €  15.415,76   | €   9.317,92     | €  6.922,86
+   ...    | ...           | ...            | ...              | ...
+   153    | 50.001-65.000  | €  58.608,67   | €  37.264,88     | € 28.029,23
+   154    | 65.001-80.000  | €  67.954,27   | €  45.404,11     | € 36.606,20
+   155    | 80.001-130.000 | €  77.299,87   | €  51.617,10     | € 43.976,25
+   156    | 130.001-999.000| € 117.949,80   | €  78.934,95     | € 70.475,44
+
+   Opslag voor hoofdplaatsen (Mandaat.java):
+   - Kantonhoofdplaats          : +10%
+   - Arrondissementshoofdplaats : +15%
+   - Provinciehoofdplaats       : +30%
+   - Berekening: verhoogdeBasisjaarwedde = basisjaarwedde × (100 + opslag%) / 100
+
+D. JPA-klassen (mandataris barema)
+
+   - MandatarisBaremaPO.java        : @Entity op gl__mandataris_barema
+   - MandatarisBaremaDetailPO.java  : @Entity op gl__mandataris_barema_detail
+
+   Services:
+   - MandatarisBaremaDetailService.java (interface in lpb-tools-api)
+   - StandaardMandatarisBaremaDetailService.java (impl, extends StandaardAlService)
+
+   Jackson JSON:
+   - MixInMandatarisBarema.java : lazy-loading-velden uitsluiten uit JSON
+
+E. Bedrijfsvoorheffing (BV) berekening op basis van barema
+
+   BerekenBvGewoon.java → methode berekenBVGewoneBezoldigingBarema():
+   1. Bereken jaarbedrag (belastbaar × 12)
+   2. Trek forfaitaire BV af (voor niet-gepensioneerden)
+   3. Pas belastingschalen toe (oud = pré-2001 / nieuw = post-2001)
+   4. Verminderingen voor gezinstoestand + kinderenTenLaste
+   5. Pensioenvrijstelling + jobkorting + ZAO-vermindering
+   6. Pas crisis-tax-coëfficiënt toe
+   7. Deel door 12 → maandelijkse BV (afronding: vóór 2023 = naar beneden)
+
+   BerekenBvAchterstal.java → methode berekenBVAchterstalBarema():
+   - 18 inkomstengroepen met percentages (5% - 32%)
+   - Kindervrijstelling op basis van jaarinkomen vs. grensVrijstelling
+   - Formule: BV = (belastbaar − vrijstelling) × percentage × crisisTax
+
+F. Pensioenintegratie (pensmand module)
+
+   Mandaat.java → velden:
+   - mandatarisBaremaDetail  : MandatarisBaremaDetail
+   - groep / klasse          : inwonersklassering
+   - basisjaarwedde          : opgehaald uit barema detail
+   - verhogingspercentage    : opslag hoofdplaats
+   - verhoogdeBasisjaarwedde : basisjaarwedde × opslag
+
+   VerminderdeWedde.java (pensioenrechten bij verminderd inkomen):
+   - omzettingsverhouding = (verminderdeWedde / toepasselijkeIndex) / weddeBarema
+   - omgezetteMaanden     = omzettingsverhouding × volledigeMaanden
+
+G. Fiscale constanten voor barema-grenzen (FiscaleConstant in DB/XML)
+
+   Gewone bezoldiging:
+   - getGrensForfaitaireBV(i)         : 5 grenzen voor forfaitaire BV
+   - getPercentageForfaitaireBV(i)    : % per grens
+   - getGrenzenBelastingSchaal(oud)   : inkomstenbreukgrenzen
+   - getPercentagesBelastingSchaal(oud): % per schijf
+   - getVerminderingAlleenstaande()   : bedrag in €
+   - getVerminderingAlleenstaandeOuder()
+   - getVerminderingPersoonInvalide()
+   - getGrensJobkorting(i)
+
+   Achterstal:
+   - getGrensAchterstalBv(grensNr)    : 18 inkomstengroepen
+   - getPercentageAchterstalBv(grensNr): 5% – 32% per groep
+   - getGrensVerminderingAchterstalKinderenTenLaste(aantal): oplopend per kind
+
+H. BI/Datamart (ga-schema.sql) — barema-velden per personeelslid
+
+   - baremawedde        : CHAR(9)  — barema/weddeschaalcode
+   - baremawedde_vrij   : CHAR(9)  — vrije barema
+   - barema_wed_h_fc    : CHAR(9)  — barema wedde (FC formaat)
+
+
+================================================================================
+SAMENVATTING
+================================================================================
+
+Het lpbunified-master project bevat een volledig uitgewerkt loonschalensysteem
+voor Belgische lokale besturen met:
+
+1. 53+ schaalversies (CAO's, bestuursniveaus, sectoren)
+2. Bitemporaal databeheer (historiek van wijzigingen)
+3. 5 anciënniteitstypes per personeelslid (GEA/SCA/DIA/NIA/GRA)
+4. Koppeling met CAPELO/PDOS voor pensioenberekeningen
+5. DMFA-integratie voor sociale zekerheidsaangiften
+6. Loonsimulator (bruto → netto berekening)
+7. PDF-generatie van weddeschalen en uitwerkingen
+8. Import/export via Excel-templates
+
+================================================================================
+Einde document
+================================================================================

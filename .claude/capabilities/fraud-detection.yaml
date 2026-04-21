@@ -1,0 +1,41 @@
+name: fraud-detection
+version: "2.0"
+description: "Detecteert frauduleuze orders via risk scoring en patroonherkenning"
+lane: advisory
+audience: risk-team
+risk: high
+
+maturity:
+  level: L3
+  label: team-production
+  eval_required: true
+  human_approval_required: conditional
+  min_first_pass_score: 0.85
+
+assurance:
+  min_schema_validation_rate: 0.95
+  max_false_positive_rate: 0.05
+
+operational:
+  owner: team-ai-platform
+  sla_tier: gold
+  cost_budget_monthly_eur: 100.0
+  preferred_model: llama3
+  escalation_model: "llama3.1:70b"
+
+release:
+  rollout_ring: ring-2
+  feature_flag: "ai.capability.fraud-detection.v2"
+
+agents:
+  - fraud-advisor
+
+contract: FraudAssessmentContract
+chain: prc-decision-support
+
+eval_metrics:
+  target_success_rate: 0.95
+  target_avg_score: 0.85
+  target_latency_ms: 2000
+  alert_threshold_score: 0.70
+  review_interval_days: 7

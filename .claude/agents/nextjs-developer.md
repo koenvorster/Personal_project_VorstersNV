@@ -5,9 +5,9 @@ description: >
   implementing Server/Client Components, adding Tailwind CSS styling, creating API routes,
   adding data-testid attributes for testing, or debugging hydration/SSR issues.
   Triggers: "next.js", "app router", "react component", "frontend page", "tailwind", "typescript error"
-model: sonnet
-permissionMode: auto
-maxTurns: 25
+model: claude-sonnet-4-5
+permissionMode: allow
+maxTurns: 20
 memory: project
 tools:
   - view

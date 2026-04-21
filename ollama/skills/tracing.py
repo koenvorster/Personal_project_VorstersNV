@@ -10,25 +10,37 @@ Registreert per agent call:
 - correlation_id voor request tracing
 
 Schrijft naar het standaard logging systeem in JSON-formaat.
-Optionele integratie met OpenTelemetry indien geïnstalleerd.
+Optionele integratie met OpenTelemetry GenAI Semantic Conventions 2025
+(https://opentelemetry.io/docs/specs/semconv/gen-ai/) indien geïnstalleerd.
 """
+from __future__ import annotations
+
 import functools
 import logging
+import os
+import re
 import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Callable
 
 logger = logging.getLogger("vorstersNV.tracing")
 
-# Singleton OpenTelemetry tracer (None als OTEL niet geïnstalleerd)
+# Singleton legacy OpenTelemetry tracer (None als OTEL niet geïnstalleerd)
 _otel_tracer: Any = None
+
+# True als OTEL export is ingeschakeld via env var
+OTEL_EXPORT_ENABLED: bool = os.getenv("OTEL_EXPORT_ENABLED", "false").lower() in ("1", "true", "yes")
 
 
 def _init_otel() -> None:
-    """Initialiseer OpenTelemetry tracer indien beschikbaar."""
+    """Initialiseer OpenTelemetry tracer indien beschikbaar en export enabled."""
     global _otel_tracer
+    if not OTEL_EXPORT_ENABLED:
+        logger.debug("OTEL_EXPORT_ENABLED=false — alleen in-memory tracing actief.")
+        return
     try:
         from opentelemetry import trace  # type: ignore[import]
         _otel_tracer = trace.get_tracer("vorstersNV.agents", "1.0.0")
@@ -42,6 +54,30 @@ def _init_otel() -> None:
 
 _init_otel()
 
+# ─────────────────────────────────────────────────────────
+# Agent group helper
+# ─────────────────────────────────────────────────────────
+
+_GROUP_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"^(fraude|fraud)_", re.IGNORECASE), "RISK_DECISION"),
+    (re.compile(r"^(test|unit|integratie)_", re.IGNORECASE), "TEST_INTELLIGENCE"),
+    (re.compile(r"^(developer|architect)_", re.IGNORECASE), "DEV_INTELLIGENCE"),
+    (re.compile(r"^(klantenservice|customer)_", re.IGNORECASE), "EXPLANATION"),
+    (re.compile(r"^audit_", re.IGNORECASE), "AUDIT"),
+]
+
+
+def get_agent_group(agent_name: str) -> str:
+    """Bepaal de agent group op basis van de agent naam."""
+    for pattern, group in _GROUP_PATTERNS:
+        if pattern.match(agent_name):
+            return group
+    return "DEV_INTELLIGENCE"
+
+
+# ─────────────────────────────────────────────────────────
+# AgentSpan — uitgebreid met events
+# ─────────────────────────────────────────────────────────
 
 @dataclass
 class AgentSpan:
@@ -58,6 +94,7 @@ class AgentSpan:
     output_length: int = 0
     cached: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
+    events: list[tuple[str, dict[str, Any], datetime]] = field(default_factory=list)
 
     def finish(self, output: str = "", error: str | None = None) -> None:
         """Sluit de span af en bereken latency."""
@@ -67,6 +104,10 @@ class AgentSpan:
         if error:
             self.success = False
             self.error = error
+
+    def add_event(self, name: str, attributes: dict[str, Any] | None = None) -> None:
+        """Voeg een span event toe."""
+        self.events.append((name, attributes or {}, datetime.now(timezone.utc)))
 
     def to_log_dict(self) -> dict[str, Any]:
         """Converteer naar een dict voor JSON logging."""
@@ -84,6 +125,10 @@ class AgentSpan:
             **self.metadata,
         }
 
+
+# ─────────────────────────────────────────────────────────
+# AgentTracer — backward compatible
+# ─────────────────────────────────────────────────────────
 
 class AgentTracer:
     """
@@ -161,6 +206,192 @@ class AgentTracer:
                     pass
 
 
+# ─────────────────────────────────────────────────────────
+# OtelAgentTracer — GenAI Semantic Conventions 2025
+# ─────────────────────────────────────────────────────────
+
+@dataclass
+class OtelSpanContext:
+    """In-memory span context voor OtelAgentTracer."""
+    span: AgentSpan
+    capability: str
+    lane: str
+    risk_score: int
+    maturity: str
+    agent_group: str
+    temperature: float | None
+    max_tokens: int | None
+    _otel_span: Any = field(default=None, repr=False)
+
+    def add_event(self, name: str, attributes: dict[str, Any] | None = None) -> None:
+        """Voeg event toe aan de onderliggende AgentSpan én OTEL span."""
+        self.span.add_event(name, attributes)
+        if self._otel_span is not None:
+            try:
+                self._otel_span.add_event(name, attributes or {})
+            except Exception:
+                pass
+
+    def set_fallback_triggered(self, original_model: str, fallback_model: str) -> None:
+        """Log FALLBACK_TRIGGERED event."""
+        self.add_event("FALLBACK_TRIGGERED", {
+            "original_model": original_model,
+            "fallback_model": fallback_model,
+        })
+
+    def set_hitl_escalation(self, reason: str, risk_score: int) -> None:
+        """Log HITL_ESCALATION event."""
+        self.add_event("HITL_ESCALATION", {
+            "reason": reason,
+            "risk_score": risk_score,
+        })
+
+    def set_quality_gate_failed(self, gate_id: str, verdict: str) -> None:
+        """Log QUALITY_GATE_FAILED event."""
+        self.add_event("QUALITY_GATE_FAILED", {
+            "gate_id": gate_id,
+            "verdict": verdict,
+        })
+
+
+class OtelAgentTracer:
+    """
+    Uitgebreide tracer conform OpenTelemetry GenAI Semantic Conventions 2025.
+
+    Voegt gen_ai.* en agent.* attributes toe per span.
+    Als OTEL_EXPORT_ENABLED=false (default) worden spans in-memory opgeslagen.
+    """
+
+    def new_trace_id(self) -> str:
+        return str(uuid.uuid4())
+
+    @asynccontextmanager
+    async def span(
+        self,
+        agent_name: str,
+        model: str = "",
+        trace_id: str | None = None,
+        capability: str = "",
+        lane: str = "",
+        risk_score: int = 0,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        maturity: str = "L1",
+        selection_reason: str = "",
+        policy_violations: str = "",
+    ) -> AsyncIterator[OtelSpanContext]:
+        """
+        Async context manager voor GenAI-gecompliantie tracing.
+
+        Gebruik:
+            async with otel_tracer.span("fraud_agent", model="llama3",
+                                         capability="fraud-detection") as ctx:
+                ctx.span.input_length = len(prompt)
+                response = await agent.run(prompt)
+                ctx.span.finish(output=response)
+        """
+        current_trace_id = trace_id or self.new_trace_id()
+        agent_group = get_agent_group(agent_name)
+
+        agent_span = AgentSpan(
+            trace_id=current_trace_id,
+            agent_name=agent_name,
+            model=model,
+            metadata={
+                "gen_ai.system": "ollama",
+                "gen_ai.request.model": model,
+                "gen_ai.conversation.id": current_trace_id,
+                "agent.name": agent_name,
+                "agent.group": agent_group,
+                "agent.capability": capability,
+                "agent.lane": lane,
+                "agent.maturity": maturity,
+                "agent.risk_score": risk_score,
+                "agent.selection.reason": selection_reason,
+                "policy.violations": policy_violations,
+            },
+        )
+        if temperature is not None:
+            agent_span.metadata["gen_ai.request.temperature"] = temperature
+        if max_tokens is not None:
+            agent_span.metadata["gen_ai.request.max_tokens"] = max_tokens
+
+        # Log system message event bij start
+        agent_span.add_event("gen_ai.system.message", {
+            "agent": agent_name,
+            "model": model,
+            "capability": capability,
+        })
+
+        otel_span = None
+        if _otel_tracer is not None:
+            try:
+                otel_span = _otel_tracer.start_span(f"gen_ai/{agent_name}")
+                for key, val in agent_span.metadata.items():
+                    otel_span.set_attribute(key, val)
+            except Exception:
+                pass
+
+        ctx = OtelSpanContext(
+            span=agent_span,
+            capability=capability,
+            lane=lane,
+            risk_score=risk_score,
+            maturity=maturity,
+            agent_group=agent_group,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            _otel_span=otel_span,
+        )
+
+        try:
+            yield ctx
+        except Exception as exc:
+            agent_span.finish(error=str(exc))
+            agent_span.metadata["gen_ai.response.finish_reason"] = "error"
+            if otel_span:
+                try:
+                    from opentelemetry.trace import StatusCode  # type: ignore[import]
+                    otel_span.set_status(StatusCode.ERROR, str(exc))
+                except Exception:
+                    pass
+            raise
+        finally:
+            if agent_span.end_time is None:
+                agent_span.finish()
+
+            # Estimate token usage: 1 token ≈ 4 chars
+            prompt_tokens = max(1, agent_span.input_length // 4)
+            completion_tokens = max(0, agent_span.output_length // 4)
+            agent_span.metadata["gen_ai.usage.prompt_tokens"] = prompt_tokens
+            agent_span.metadata["gen_ai.usage.completion_tokens"] = completion_tokens
+
+            if "gen_ai.response.finish_reason" not in agent_span.metadata:
+                agent_span.metadata["gen_ai.response.finish_reason"] = "stop"
+
+            log_data = agent_span.to_log_dict()
+            if agent_span.success:
+                logger.info("OtelAgent span voltooid: %s", log_data)
+            else:
+                logger.error("OtelAgent span mislukt: %s", log_data)
+
+            if otel_span:
+                try:
+                    otel_span.set_attribute("gen_ai.usage.prompt_tokens", prompt_tokens)
+                    otel_span.set_attribute("gen_ai.usage.completion_tokens", completion_tokens)
+                    otel_span.set_attribute(
+                        "gen_ai.response.finish_reason",
+                        agent_span.metadata.get("gen_ai.response.finish_reason", "stop"),
+                    )
+                    otel_span.end()
+                except Exception:
+                    pass
+
+
+# ─────────────────────────────────────────────────────────
+# Decorator
+# ─────────────────────────────────────────────────────────
+
 def traced_agent_call(agent_name: str, model: str = "") -> Callable:
     """
     Decorator voor het automatisch tracen van agent-aanroepen.
@@ -193,8 +424,12 @@ def traced_agent_call(agent_name: str, model: str = "") -> Callable:
     return decorator
 
 
-# Singleton tracer
+# ─────────────────────────────────────────────────────────
+# Singletons
+# ─────────────────────────────────────────────────────────
+
 _tracer: AgentTracer | None = None
+_otel_agent_tracer: OtelAgentTracer | None = None
 
 
 def get_tracer() -> AgentTracer:
@@ -203,3 +438,11 @@ def get_tracer() -> AgentTracer:
     if _tracer is None:
         _tracer = AgentTracer()
     return _tracer
+
+
+def get_otel_tracer() -> OtelAgentTracer:
+    """Geef de singleton OtelAgentTracer terug."""
+    global _otel_agent_tracer
+    if _otel_agent_tracer is None:
+        _otel_agent_tracer = OtelAgentTracer()
+    return _otel_agent_tracer

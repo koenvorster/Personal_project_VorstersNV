@@ -2,39 +2,37 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Code2, ShoppingCart, LogOut } from 'lucide-react'
+import { Menu, X, Code2, ShoppingCart, LogOut, LogIn, LayoutDashboard, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/lib/cartStore'
+import { useSession, signIn, signOut } from 'next-auth/react'
 
-const links = [
+const publicLinks = [
   { href: '/', label: 'Home' },
   { href: '/projecten', label: 'Projecten' },
-  { href: '/shop', label: 'Shop', admin: true },
-  { href: '/over-mij', label: 'Over mij' },
+  { href: '/diensten', label: 'Diensten' },
+  { href: '/ai-lab', label: 'AI Lab' },
   { href: '/blog', label: 'Blog' },
-  { href: '/dashboard', label: 'Dashboard', admin: true },
+  { href: '/how-tos', label: "How-to's" },
+  { href: '/uses', label: 'Uses' },
   { href: '/contact', label: 'Contact' },
+]
+
+const adminLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/shop', label: 'Shop', icon: null },
 ]
 
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const { data: session, status } = useSession()
   const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.aantal, 0))
 
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    setIsAdmin(!!token)
-  }, [])
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken')
-    setIsAdmin(false)
-  }
-
-  const visibleLinks = links.filter(link => !link.admin || isAdmin)
+  const isAdmin = session?.user?.rol === 'admin' || session?.user?.rol === 'tester'
+  const visibleLinks = [...publicLinks, ...(isAdmin ? adminLinks : [])]
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -55,13 +53,13 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center space-x-1">
-            {links.map((link) => (
+            {publicLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 aria-current={isActive(link.href) ? 'page' : undefined}
                 className={cn(
-                  'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                  'px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                   isActive(link.href)
                     ? 'bg-green-500/20 text-green-400'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -71,11 +69,29 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Cart icon */}
+            {/* Admin links */}
+            {isAdmin && adminLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                className={cn(
+                  'px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
+                  isActive(link.href)
+                    ? 'bg-violet-500/20 text-violet-400'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                )}
+              >
+                {link.icon && <link.icon className="w-3.5 h-3.5" />}
+                {link.label}
+              </Link>
+            ))}
+
+            {/* Cart */}
             <Link
               href="/winkelwagen"
               aria-label="Winkelwagen"
-              className="relative ml-2 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="relative ml-1 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
@@ -84,6 +100,45 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+
+            {/* Auth area */}
+            {status === 'loading' ? (
+              <div className="ml-1 w-8 h-8 rounded-full bg-white/5 animate-pulse" />
+            ) : session ? (
+              <div className="ml-2 flex items-center gap-2">
+                <Link href="/dashboard" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="text-sm text-white font-medium max-w-[100px] truncate">
+                    {session.user?.name?.split(' ')[0] ?? 'Koen'}
+                  </span>
+                  <span className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
+                    session.user?.rol === 'admin' ? 'bg-violet-500/20 text-violet-400' :
+                    session.user?.rol === 'tester' ? 'bg-blue-500/20 text-blue-400' :
+                    'bg-slate-500/20 text-slate-400'
+                  )}>
+                    {session.user?.rol ?? 'viewer'}
+                  </span>
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                  aria-label="Uitloggen"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => signIn('keycloak', { callbackUrl: '/dashboard' })}
+                className="ml-2 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </button>
+            )}
           </div>
 
           {/* Mobile: cart + hamburger */}
@@ -123,7 +178,7 @@ export default function Navbar() {
             className="md:hidden border-t border-white/10 bg-slate-950/95 overflow-hidden"
           >
             <div className="px-4 py-4 space-y-1">
-              {links.map((link) => (
+              {visibleLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -139,6 +194,34 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              <div className="pt-2 border-t border-white/10">
+                {session ? (
+                  <div className="space-y-1">
+                    <div className="px-4 py-2 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium">{session.user?.name ?? 'Koen'}</p>
+                        <p className="text-slate-500 text-xs">{session.user?.rol ?? 'viewer'}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setMobileOpen(false); signOut({ callbackUrl: '/' }) }}
+                      className="w-full flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" /> Uitloggen
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setMobileOpen(false); signIn('keycloak', { callbackUrl: '/dashboard' }) }}
+                    className="w-full flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    <LogIn className="w-4 h-4" /> Aanmelden met Keycloak
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

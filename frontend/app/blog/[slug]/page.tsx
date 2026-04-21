@@ -46,6 +46,64 @@ function ContentRenderer({ block }: { block: ContentBlock }) {
           <p className="text-slate-400 italic leading-relaxed">{block.text}</p>
         </blockquote>
       )
+    case 'image':
+      return (
+        <div className="mb-8">
+          <div className="rounded-xl overflow-hidden border border-white/10">
+            <Image
+              src={block.src}
+              alt={block.alt}
+              width={1000}
+              height={600}
+              className="w-full h-auto"
+              priority
+            />
+          </div>
+          {block.caption && (
+            <p className="text-center text-xs text-slate-500 mt-2 italic">{block.caption}</p>
+          )}
+        </div>
+      )
+    case 'infobox':
+      return (
+        <div className={`mb-6 rounded-xl border p-5 ${block.color ?? 'border-blue-500/30 bg-blue-500/5'}`}>
+          <div className="flex items-start gap-3">
+            {block.icon && <span className="text-2xl shrink-0">{block.icon}</span>}
+            <div>
+              {block.title && <p className="font-semibold text-white mb-1">{block.title}</p>}
+              <p className="text-slate-300 text-sm leading-relaxed">{block.text}</p>
+            </div>
+          </div>
+        </div>
+      )
+    case 'grid2':
+      return (
+        <div className="mb-6 grid sm:grid-cols-2 gap-4">
+          {block.items.map((item, i) => (
+            <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              {item.icon && <div className="text-2xl mb-2">{item.icon}</div>}
+              <p className="text-white font-semibold text-sm mb-1">{item.title}</p>
+              <p className="text-slate-400 text-sm leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      )
+    case 'steps':
+      return (
+        <div className="mb-6 space-y-3">
+          {block.items.map((item, i) => (
+            <div key={i} className="flex gap-4 items-start rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center text-green-400 font-bold text-sm">
+                {i + 1}
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm mb-0.5">{item.title}</p>
+                <p className="text-slate-400 text-sm leading-relaxed">{item.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
     default:
       return null
   }

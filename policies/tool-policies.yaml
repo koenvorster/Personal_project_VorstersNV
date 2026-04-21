@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VorstersNV — Tool Access Policies
+# Revisie 4 — Policy-as-Code laag
+#
+# Elke capability heeft een whitelist (allow_tools) en blacklist (deny_tools).
+# deny_tools heeft altijd voorrang op allow_tools.
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "1.0"
+updated: "2026-04-21"
+category: tool_access
+
+rules:
+  - id: TOOL-001
+    name: "Fraude detectie — alleen read-only tools"
+    severity: BLOCKER
+    capability: fraud-detection
+    allow_tools:
+      - mollie-api-readonly
+      - order-db-readonly
+      - customer-db-readonly
+      - fraud-signal-lookup
+    deny_tools:
+      - backoffice-write
+      - order-db-write
+      - customer-db-write
+      - payment-initiate
+    message: "Tool '{tool}' is niet toegestaan voor capability 'fraud-detection'"
+    audit: true
+
+  - id: TOOL-002
+    name: "Order validatie — beperkte schrijftoegang"
+    severity: BLOCKER
+    capability: order-validation
+    allow_tools:
+      - order-db-readonly
+      - inventory-db-readonly
+      - schema-validator
+    deny_tools:
+      - payment-initiate
+      - backoffice-write
+      - customer-db-write
+    message: "Tool '{tool}' is niet toegestaan voor capability 'order-validation'"
+    audit: true
+
+  - id: TOOL-003
+    name: "Order blokkeren — schrijfacties vereisen HITL"
+    severity: BLOCKER
+    capability: order-blocking
+    require_hitl: true
+    allow_tools:
+      - order-db-write
+      - notification-send
+      - audit-log-write
+    deny_tools:
+      - payment-initiate
+      - customer-db-write
+      - backoffice-admin
+    message: "Tool '{tool}' is niet toegestaan voor capability 'order-blocking'"
+    audit: true
+
+  - id: TOOL-004
+    name: "Product content — alleen content tools"
+    severity: BLOCKER
+    capability: product-content
+    allow_tools:
+      - product-db-readonly
+      - seo-analyzer
+      - translation-api
+    deny_tools:
+      - order-db-write
+      - order-db-readonly
+      - payment-initiate
+      - backoffice-write
+    message: "Tool '{tool}' is niet toegestaan voor capability 'product-content'"
+    audit: true
+
+  - id: TOOL-005
+    name: "Architectuur review — geen productie schrijftoegang"
+    severity: BLOCKER
+    capability: architecture-review
+    allow_tools:
+      - code-search
+      - file-reader
+      - dependency-analyzer
+    deny_tools:
+      - order-db-write
+      - payment-initiate
+      - backoffice-write
+      - customer-db-write
+    message: "Tool '{tool}' is niet toegestaan voor capability 'architecture-review'"
+    audit: true

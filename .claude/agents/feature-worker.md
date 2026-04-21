@@ -5,9 +5,9 @@ description: >
   Next.js frontend + database migration + tests), working on a feature in isolation without
   affecting the main branch, or when parallel feature development is needed.
   Triggers: "implementeer feature", "bouw dit end-to-end", "nieuwe feature", "full-stack implementatie"
-model: sonnet
-permissionMode: auto
-maxTurns: 40
+model: claude-sonnet-4-5
+permissionMode: allow
+maxTurns: 30
 memory: project
 isolation: worktree
 tools:

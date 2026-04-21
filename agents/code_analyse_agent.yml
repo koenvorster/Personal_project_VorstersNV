@@ -1,0 +1,97 @@
+name: code_analyse_agent
+version: "1.0"
+type: standalone_agent
+description: "Agent voor het analyseren van broncode en genereren van leesbare documentatie voor klantprojecten"
+model: gpt-oss:20b
+temperature: 0.1
+max_tokens: 512
+language: nl
+
+system_prompt_ref: "prompts/system/code_analyse_v1.txt"
+preprompt_ref: "prompts/preprompt/code_analyse_v1.yml"
+
+capabilities:
+  - architectuuroverzicht_genereren
+  - business_rules_extraheren
+  - technische_schuld_identificeren
+  - aanbevelingen_formuleren
+  - glossarium_aanmaken
+
+input_schema:
+  type: object
+  properties:
+    code_fragment:
+      type: string
+      description: "Te analyseren code of codefragment"
+    taal:
+      type: string
+      enum: [java, python, csharp, php, javascript, typescript, other]
+    context:
+      type: string
+      description: "Business context: wat doet dit systeem?"
+    analyse_type:
+      type: string
+      enum: [architectuur, business_rules, kwaliteit, volledig]
+    doelgroep:
+      type: string
+      enum: [directie, it_team, business_analist]
+      default: it_team
+
+output_schema:
+  type: object
+  properties:
+    samenvatting:
+      type: string
+      description: "Korte samenvatting in gewone taal"
+    architectuur:
+      type: object
+      properties:
+        lagen:
+          type: array
+        componenten:
+          type: array
+        diagram_tekst:
+          type: string
+    business_rules:
+      type: array
+      items:
+        type: object
+        properties:
+          id: {type: string}
+          omschrijving: {type: string}
+          code_locatie: {type: string}
+          prioriteit: {type: string, enum: [hoog, middel, laag]}
+    aanbevelingen:
+      type: array
+      items:
+        type: object
+        properties:
+          titel: {type: string}
+          beschrijving: {type: string}
+          impact: {type: string}
+          inspanning: {type: string}
+    glossarium:
+      type: array
+      items:
+        type: object
+        properties:
+          term: {type: string}
+          definitie: {type: string}
+
+tools:
+  - name: zoek_in_codebase
+    description: "Zoek naar patronen of klassen in de codebase"
+    endpoint: "/api/analyse/zoek"
+  - name: sla_analyse_op
+    description: "Sla de analyse op als documentatie"
+    endpoint: "/api/analyse/opslaan"
+
+evaluation:
+  metrics:
+    - volledigheid_score
+    - leesbaarheid_score
+    - business_relevantie_score
+  feedback_loop: true
+  log_dir: "logs/code_analyse"
+
+iteration_log: "prompts/preprompt/code_analyse_iterations.yml"

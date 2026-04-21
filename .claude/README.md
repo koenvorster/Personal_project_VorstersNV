@@ -36,14 +36,6 @@ Complete overview van alle Claude agents, skills en scripts voor dit project.
 ```
 → `mr-reviewer` agent
 
-### Bij CI-problemen
-```
-"De GitHub Actions build is rood"
-"pytest faalt in CI maar niet lokaal"
-"TypeScript errors in de pipeline"
-```
-→ `ci-debugger` agent
-
 ### Voor AI-agent ontwerp
 ```
 "Verbeter de system prompt van de developer agent"
@@ -52,22 +44,76 @@ Complete overview van alle Claude agents, skills en scripts voor dit project.
 ```
 → `ai-architect` agent (meta) of `ollama-agent-designer`
 
+### Bij CI-problemen
+```
+"De GitHub Actions build is rood"
+"pytest faalt in CI maar niet lokaal"
+"TypeScript errors in de pipeline"
+```
+→ `ci-debugger` agent
+
+### Als IT/AI consultant (freelance opdrachten) 🆕
+```
+"Analyseer deze Java codebase voor een klant"
+"Breng dit bedrijfsproces in kaart"
+"Schrijf een voorstel voor AI-automatisering"
+"Genereer een klantrapport op basis van deze bevindingen"
+```
+→ `code-analyzer` / `business-process-advisor` / `it-consultant` agents
+
+---
+
+## Claude Rules (`.claude/rules/`)
+
+Path-gebaseerde regels die automatisch laden op basis van welke bestanden open zijn in de editor.
+Claude Code laadt de relevante rule-bestanden automatisch als context bij de corresponderende bestandstypen.
+
+> **Setup vereist:** Draai eenmalig `.claude\scripts\setup-rules.ps1` om de directory-structuur
+> en rule-bestanden aan te maken (PowerShell, vanuit project root).
+
+| Rule | Locatie | Wanneer actief | Beschrijving |
+|------|---------|----------------|-------------|
+| `python-fastapi.md` | `rules/backend/` | Bij elk `*.py` bestand | Async/await, SQLAlchemy 2.x, Pydantic v2, logging, guard clauses, type hints |
+| `alembic-migrations.md` | `rules/backend/` | Bij `db/migrations/**/*.py` en `alembic.ini` | Verplichte upgrade+downgrade, migration message, test-cyclus |
+| `nextjs-app-router.md` | `rules/frontend/` | Bij `frontend/**/*.tsx` en `.ts` | Server Components, `"use client"`, data-testid, TypeScript strict, Tailwind |
+| `git-commits.md` | `rules/general/` | Altijd actief | Nederlandstalig, imperativus, max 72 chars, type prefix |
+| `project-context.md` | `rules/general/` | Altijd actief | VorstersNV architectuuroverzicht, bounded contexts, tech stack samenvatting |
+| `docker.md` | `rules/tools/` | Bij `docker-compose.yml` en `Dockerfile*` | Vaste poorten, verplichte health checks, geen secrets in Dockerfile |
+
 ---
 
 ## Claude Agents (`.claude/agents/`)
 
+### Platform-ontwikkeling
 | Agent | Model | Doel | permissionMode |
 |-------|-------|------|----------------|
-| `fastapi-developer` | sonnet | FastAPI endpoints, SQLAlchemy async, DDD, Alembic | auto |
-| `ollama-agent-designer` | sonnet | Ollama YAML agents ontwerpen en verbeteren | auto |
-| `nextjs-developer` | sonnet | Next.js 14 + App Router + TypeScript + Tailwind | auto |
-| `test-orchestrator` | sonnet | pytest + httpx API-tests coördineren | auto |
-| `mr-reviewer` | sonnet | Code review (FastAPI, Next.js, security) | plan |
-| `ci-debugger` | haiku | GitHub Actions falen analyseren | plan |
-| `ai-architect` | opus | Meta-agent: AI ecosystem beheer | plan |
-| `feature-worker` | sonnet | Parallelle feature-ontwikkeling in git worktrees | auto (isolation: worktree) |
-| `gdpr-advisor` | sonnet | GDPR compliance: anonimisatie, bewaartermijnen, Art.17 | plan |
-| `db-explorer` | haiku | Database-analyse: schema, queries, 3-mode safety | plan |
+| `fastapi-developer` | claude-sonnet-4-5 | FastAPI endpoints, SQLAlchemy async, DDD, Alembic | allow |
+| `ollama-agent-designer` | claude-sonnet-4-5 | Ollama YAML agents ontwerpen en verbeteren | allow |
+| `nextjs-developer` | claude-sonnet-4-5 | Next.js 14 + App Router + TypeScript + Tailwind | allow |
+| `test-orchestrator` | claude-sonnet-4-5 | pytest + httpx API-tests coördineren | allow |
+| `mr-reviewer` | claude-sonnet-4-5 | Code review (FastAPI, Next.js, security) | default |
+| `ci-debugger` | claude-haiku-4-5 | GitHub Actions falen analyseren | default |
+| `ai-architect` | claude-opus-4-5 | Meta-agent: AI ecosystem beheer | default |
+| `feature-worker` | claude-sonnet-4-5 | Parallelle feature-ontwikkeling in git worktrees | allow |
+
+### Domein & Compliance
+| Agent | Model | Doel | permissionMode |
+|-------|-------|------|----------------|
+| `gdpr-advisor` | claude-sonnet-4-5 | GDPR compliance: anonimisatie, bewaartermijnen, Art.17 | default |
+| `db-explorer` | claude-sonnet-4-5 | Database-analyse: schema, queries, 3-mode safety | allow |
+| `fraud-advisor` | claude-haiku-4-5 | Fraude assessment interpreteren, risicoscore advies, HITL | allow |
+| `klantenservice-coach` | claude-sonnet-4-5 | Klantenservice antwoorden, klachten, retour, escalaties | allow |
+| `audit-reporter` | claude-haiku-4-5 | Auditlogs genereren, GDPR decision-journal rapporten | allow |
+| `order-analyst` | claude-haiku-4-5 | Order compliance Belgisch recht, BTW, Mollie validatie | allow |
+| `product-writer` | claude-sonnet-4-5 | SEO productbeschrijvingen NL/FR, metateksten | allow |
+| `lead-orchestrator` | claude-sonnet-4-5 | Multi-agent workflow orkestratie, agent routing | default |
+
+### Freelance IT/AI Consultancy 🆕
+| Agent | Model | Doel | permissionMode |
+|-------|-------|------|----------------|
+| `code-analyzer` | claude-sonnet-4-5 | Bestaande codebases analyseren, business logic extraheren, documentatie genereren | allow |
+| `business-process-advisor` | claude-sonnet-4-5 | Bedrijfsprocessen mappen, automatiseringskansen identificeren, ROI inschatten | allow |
+| `it-consultant` | claude-sonnet-4-5 | IT/AI strategie, klantvoorstellen, rapporten en presentaties genereren | allow |
 
 ---
 
@@ -84,19 +130,31 @@ Skills worden automatisch getriggerd op basis van context-keywords.
 | `alembic-migrations` | `skills/alembic-migrations/` | "migration", "alembic", "schema", "kolom toevoegen" |
 | `gdpr-privacy` | `skills/gdpr-privacy/` | "gdpr", "anonimisatie", "bewaartermijn", "recht op vergetelheid", "verwerkingsregister" |
 | `database-explorer` | `skills/database-explorer/` | "schema analyseren", "query genereren", "db structuur", "tabel overzicht" |
+| `ddd-patterns` | `skills/ddd-patterns/` | "aggregate", "bounded context", "domain event", "value object", "repository pattern" |
+| `belgian-commerce` | `skills/belgian-commerce/` | "btw", "belgisch recht", "intracom", "taalwetgeving", "consumentenwet", "factuur" |
+| `mollie-payments` | `skills/mollie-payments/` | "mollie", "betaling", "webhook", "refund", "bancontact", "payment status" |
+| `order-lifecycle` | `skills/order-lifecycle/` | "order state", "lifecycle", "retour", "sla", "order timeout", "state machine" |
+| `payroll-validation` | `skills/payroll-validation/` | "rsz", "loon", "bedrijfsvoorheffing", "vakantiegeld", "maaltijdcheques", "prc" |
+| `fraud-patterns` | `skills/fraud-patterns/` | "fraud", "risicoscore", "velocity check", "fraude detectie", "device fingerprint" |
+| `project-explainer` | `skills/project-explainer/` | "project uitleggen", "codebase overzicht", "waar beginnen", "nieuwe developer", "onboarding" |
+| `env-audit` | `skills/env-audit/` | "env ontbreekt", "environment variabele", ".env controleren", "onboarding", "secrets controleren" |
+| `agent-performance` | `skills/agent-performance/` | "agent presteert slecht", "prompt verbeteren", "agent score", "valideer agents", "lage score" |
+| `mollie-checkout-validator` | `skills/mollie-checkout-validator/` | "mollie checkout", "hmac verificatie", "webhook signature", "checkout valideren", "mollie security" |
+| `frontend-component-auditor` | `skills/frontend-component-auditor/` | "component auditen", "data-testid ontbreekt", "server component audit", "typescript strict", "use client" |
 
 ---
 
 ## GitHub Copilot Agents (`.github/agents/`)
 
-21 gespecialiseerde agents — aanroepen via `@agent-naam` in GitHub Copilot Chat:
+23 gespecialiseerde agents — aanroepen via `@agent-naam` in GitHub Copilot Chat:
 
 | Categorie | Agents |
 |-----------|--------|
 | Architecture | `@architect`, `@ddd-modeler`, `@domain-validator` |
-| Development | `@developer`, `@frontend-specialist`, `@clean-code-reviewer`, `@security-permissions`, `@devops-engineer`, `@database-expert`, `@mollie-expert`, `@performance-optimizer` |
+| Development | `@developer`, `@frontend-specialist`, `@clean-code-reviewer`, `@security-permissions`, `@devops-engineer`, `@database-expert`, `@mollie-expert`, `@performance-optimizer`, `@performance-profiler` |
 | Domain | `@klantenservice-expert`, `@product-content`, `@seo-specialist`, `@order-expert`, `@prompt-engineer` |
 | Testing | `@automation-cypress`, `@playwright-mcp`, `@regression-selector`, `@test-data-designer`, `@test-orchestrator` |
+| Database | `@data-migrator` |
 
 ---
 
@@ -163,10 +221,12 @@ Geregistreerde capabilities die Claude kan uitvoeren via `/capability run <naam>
 |--------|---------|
 | `check-env.mjs` | Valideert `.env` vs `.env.example` — meldt ontbrekende variabelen |
 | `validate-agents.mjs` | Valideert alle Claude agents op correcte YAML frontmatter |
+| `analyse-agent-performance.mjs` | Scoort alle agents op 5 dimensies (0–1.0), genereert JSON rapport |
 
 ```bash
 node .claude/scripts/check-env.mjs
 node .claude/scripts/validate-agents.mjs
+node .claude/scripts/analyse-agent-performance.mjs
 ```
 
 ---

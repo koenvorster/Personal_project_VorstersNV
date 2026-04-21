@@ -7,9 +7,9 @@ description: >
   cookie consent, or preparing a data processing register.
   Triggers: "GDPR", "AVG", "persoonsgegevens", "privacy", "recht op vergetelheid",
   "datalekken", "verwerkingsregister", "cookie consent", "Mollie PSD2 data"
-model: sonnet
-permissionMode: plan
-maxTurns: 35
+model: claude-sonnet-4-5
+permissionMode: default
+maxTurns: 20
 memory: project
 tools:
   - view

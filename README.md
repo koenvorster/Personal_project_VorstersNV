@@ -467,6 +467,20 @@ alembic upgrade head
 
 ---
 
+## 📚 Documentatie
+
+Alle projectdocumentatie is georganiseerd in `documentatie/`:
+
+| Map | Inhoud |
+|-----|--------|
+| [`documentatie/`](documentatie/README.md) | **📋 Index** — startpunt voor alle docs |
+| [`documentatie/architectuur/`](documentatie/architectuur/) | Systeemarchitectuur, AI-platform design, agent-orchestratie |
+| [`documentatie/ontwikkeling/`](documentatie/ontwikkeling/) | Projectplan, developer how-to's, prompt-gids |
+| [`documentatie/analyse/`](documentatie/analyse/) | Externe analyses (loonschalen) |
+| [`documentatie/archief/`](documentatie/archief/) | Verouderde documenten ter referentie |
+
+---
+
 ## 🚀 Snel starten
 
 ### Vereisten
@@ -636,7 +650,13 @@ Personal_project_VorstersNV/
 │   ├── system/              # System prompts per agent
 │   └── preprompt/            # Pre-prompts + iteratie-logs
 ├── tests/                   # Pytest test suite (28 tests)
-├── documentatie/            # Projectdocumentatie
+├── documentatie/            # Projectdocumentatie (zie documentatie/README.md)
+│   ├── README.md            # 📚 Documentatie-index (startpunt)
+│   ├── architectuur/        # Architectuur, AI-design, agent-orchestratie
+│   ├── ontwikkeling/        # Developer guides, how-to's, projectplan
+│   ├── analyse/             # Externe analyses (loonschalen, etc.)
+│   ├── marketing/           # Externe communicatie
+│   └── archief/             # Verouderde documentatie
 ├── docker-compose.yml       # PostgreSQL + Spring Boot + Next.js
 ├── pyproject.toml           # Ruff + mypy + pytest configuratie
 └── CLAUDE.md                # Claude Code instructies voor dit project

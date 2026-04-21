@@ -5,8 +5,8 @@ description: >
   correctness, reviewing Next.js components, auditing security (SQL injection, auth, input validation),
   verifying DDD patterns, or checking if data-testid attributes are present on UI elements.
   Triggers: "review mijn code", "PR review", "code check", "is dit correct", "code kwaliteit"
-model: sonnet
-permissionMode: plan
+model: claude-sonnet-4-5
+permissionMode: default
 maxTurns: 15
 memory: project
 tools:

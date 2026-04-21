@@ -1,0 +1,741 @@
+================================================================================
+  VorstersNV AI ARCHITECTUUR — ITERATIEF OPTIMALISATIEPLAN
+  Revisie 4 — AI Control Platform met Governance, Evaluatie en Schaalbaarheid
+  Datum: 2026-04-21
+================================================================================
+
+BRONNEN VERWERKT
+─────────────────
+1. phr-globalconfig-develop (lokale referentiearchitectuur)
+2. ChatGPT V3 architectuurinsichten (event-driven skill chains)
+3. Multi-agent AI orchestration best practices 2025
+4. Claude subagents / .claude/agents best practices 2025
+5. AI Quality Gates + Review Loops + Typed Contracts patterns 2025
+6. LangGraph state machines + HITL + checkpointing 2025
+7. LLM-as-judge / Evals automated testing best practices 2025
+8. MCP (Model Context Protocol) tool registry best practices 2025
+9. OpenTelemetry GenAI semantic conventions 2025
+10. AI Control Plane / Capability Maturity Model (Revisie 4)
+11. Policy-as-Code governance patterns 2025
+12. Workflow Lanes, Deployment Rings, Decision Journal patterns
+
+
+================================================================================
+ SECTIE 1: DEFINITIEVE POSITIONERING
+================================================================================
+
+VorstersNV evolueert van een multi-agent systeem naar een:
+
+      AI PLATFORM met Control Plane, Capability Plane en Trust Plane
+
+  DOEL:
+    Niet enkel AI laten werken
+    Maar AI bestuurbaar, schaalbaar en auditbaar maken
+
+  VROEGER:           verzameling van losse agents en scripts
+  NU (Revisie 3):    event-driven skill chain orchestratie
+  DOEL (Revisie 4):  AI CONTROLLED PLATFORM met governance, maturity en rollout
+
+  ✅ een AI CONTROLLED PLATFORM
+  ✅ met governance, evaluatie en schaalbaarheid
+  ✅ op niveau van enterprise spelers — met moderne AI-laag
+
+
+================================================================================
+ SECTIE 2: DEFINITIEVE ARCHITECTUUR (REVISIE 4)
+================================================================================
+
+PLANVLAKKEN (4 planes)
+────────────────────────
+  [CONTROL PLANE]         ← routing, policy, budget, rollout rings, HITL beslissing
+          ↓
+  [CAPABILITY PLANE]      ← wat kan het systeem? (maturity, assurance, ownership)
+          ↓
+  [EXECUTION PLANE]       ← agents, tools, models, skill chains, workflow lanes
+          ↓
+  [TRUST PLANE]           ← evals, QG, audit, observability, decision journal
+
+LAGENDIAGRAM (volledig)
+────────────────────────
+  [Business Rules Engine]             ← fraude rules, BTW, stock thresholds
+          ↓
+  [Typed Event Bus]                   ← EventType taxonomy, idempotent handlers
+          ↓
+  [Data Layer]                        ← PostgreSQL, Mollie webhooks, order events
+          ↓
+  ─────────────────────────────────────────────────────────────────
+  [CONTROL PLANE]                     ← ollama/control_plane.py (KRITIEK NIEUW)
+    select_capability(event)
+    select_execution_path(capability, context)
+    enforce_policy(capability, context)
+    check_budget(capability, usage)
+    determine_rollout_ring(context)
+    requires_human_approval(capability, risk)
+  ─────────────────────────────────────────────────────────────────
+          ↓
+  ─────────────────────────────────────────────────────────────────
+  [CAPABILITY PLANE]                  ← .claude/capabilities/ + maturity model
+    Capability Maturity: L1 → L4
+    Policy enforcement: /policies/*.yml
+    Cost & model governance
+  ─────────────────────────────────────────────────────────────────
+          ↓
+  ─────────────────────────────────────────────────────────────────
+  [EXECUTION PLANE]
+    ├── WORKFLOW LANES
+    │     A. DETERMINISTIC  ← schema validatie, contract mapping
+    │     B. ADVISORY       ← fraude detectie, impact analyse
+    │     C. GENERATIVE     ← content, e-mails, klantenservice
+    │     D. ACTION         ← order blokkeren, tool calls (HITL)
+    │
+    ├── DEV INTELLIGENCE LAYER     (GROUP 1+2)
+    ├── E-COMMERCE INTELLIGENCE    (GROUP 3+4+5)
+    └── V3 SKILL CHAIN ORCHESTRATOR
+  ─────────────────────────────────────────────────────────────────
+          ↓
+  ─────────────────────────────────────────────────────────────────
+  [TRUST PLANE]
+    ├── Quality Gate Layer (QG-xx, verdict loop)
+    ├── Evaluation Hierarchy (L1 Unit → L4 Business)
+    ├── Decision Journal
+    └── Observability (N1 Request / N2 Agent / N3 Business)
+  ─────────────────────────────────────────────────────────────────
+          ↓
+  [BACKOFFICE / MERCHANT INTERFACE]   ← dashboard, notifications, HITL UI
+          ↓
+  [AUDIT LAYER]                       ← OpenTelemetry GenAI spans, GDPR log
+
+
+================================================================================
+ SECTIE 3: CONTROL PLANE — KERN VAN HET PLATFORM
+================================================================================
+
+OLLAMA/CONTROL_PLANE.PY — ROUTING CRITERIA
+────────────────────────────────────────────
+  Control plane beslist NIET enkel op event.type
+  Maar op 8 dimensies tegelijk:
+
+  Dimensie           Bron
+  ─────────────────────────────────────────────
+  event.type         EventType enum (orders.py)
+  environment        dev | test | prod
+  risk_level         0-100 (fraude score, order waarde)
+  cost_budget        capability YAML: cost_budget_monthly_eur
+  latency_budget     SLA tier (bronze/silver/gold)
+  capability_maturity L1-L4
+  model_availability ollama health check
+  policy_rules       /policies/*.yml
+
+ROUTING LOGICA
+───────────────
+  select_capability(event)
+    → zoekt in capability registry op event.type + context
+    → controleert maturity level (L1 = enkel in dev)
+    → controleert feature flag (rollout ring)
+
+  select_execution_path(capability, context)
+    → kiest workflow lane (DETERMINISTIC/ADVISORY/GENERATIVE/ACTION)
+    → kiest agent(s) uit fleet
+    → kiest model (cheap → premium bij escalatie)
+
+  enforce_policy(capability, context)
+    → laadt /policies/*.yml
+    → blokkeert bij policy violation
+    → logt violation naar audit trail
+
+  check_budget(capability, usage)
+    → vergelijkt maandelijks verbruik met cost_budget_monthly_eur
+    → bij overschrijding: fallback naar cheap model of HITL
+
+  determine_rollout_ring(context)
+    → Ring 0: lokaal, Ring 1: AI team, Ring 2: intern, Ring 3: beperkt, Ring 4: full
+
+  requires_human_approval(capability, risk)
+    → HITL-001: environment=prod + bepaalde capabilities
+    → HITL-002: risk_score >= 75
+    → HITL-003: ring < 2 + business-critical capability
+
+
+================================================================================
+ SECTIE 4: CAPABILITY MATURITY MODEL
+================================================================================
+
+Elke capability YAML krijgt 4 nieuwe secties:
+
+  maturity:
+    level: L2                        # L1=experimental, L2=internal-beta,
+    levels:                          # L3=team-production, L4=business-critical
+      L1: experimental
+      L2: internal-beta
+      L3: team-production
+      L4: business-critical
+
+  assurance:
+    eval_required: true
+    human_approval_required: conditional   # always | conditional | never
+    min_schema_validation_rate: 0.95
+    min_first_pass_score: 0.85
+
+  operational:
+    owner: team-ai-platform
+    sla_tier: bronze                 # bronze | silver | gold
+    cost_budget_monthly_eur: 150
+
+  release:
+    rollout_ring: ring-1             # ring-0..ring-4
+    feature_flag: ai.capability.order-validation.v4
+
+MATURITY GATES (capability gaat pas naar volgend level als):
+  L1 → L2: unit evals > 80%, schema validation rate > 90%
+  L2 → L3: capability evals > 85%, 1 week stabiel in AI team
+  L3 → L4: chain + business evals OK, rollback getest, observability actief
+  L4:       continu gemonitord, SLA gegarandeerd, alerting actief
+
+
+================================================================================
+ SECTIE 5: POLICY-AS-CODE LAAG
+================================================================================
+
+MAP: /policies/
+
+HITL POLICIES (/policies/hitl-policies.yml)
+─────────────────────────────────────────────
+  rules:
+    - id: HITL-001
+      description: Productie capabilities vereisen menselijke goedkeuring
+      when:
+        environment: prod
+        capability: [create-service-account, bulk-order-cancel, fraud-block]
+      require: human_approval
+
+    - id: HITL-002
+      description: Hoge risicodrempel vereist menselijke review
+      when:
+        risk_score_gte: 75
+      require: human_approval
+
+    - id: HITL-003
+      description: Business-critical capabilities in vroege rings
+      when:
+        maturity_level: L4
+        rollout_ring_lte: ring-1
+      require: human_approval
+
+TOOL POLICIES (/policies/tool-policies.yml)
+─────────────────────────────────────────────
+  rules:
+    - id: TOOL-001
+      capability: fraud-detection
+      allow_tools: [mollie-api, order-db-readonly, customer-history-readonly]
+      deny_tools:  [backoffice-write, payment-refund, account-delete]
+
+    - id: TOOL-002
+      capability: order-processing
+      allow_tools: [order-db-readwrite, inventory-check, notification-send]
+      deny_tools:  [payment-charge, account-modify]
+
+COST POLICIES (/policies/cost-policies.yml)
+─────────────────────────────────────────────
+  rules:
+    - id: COST-001
+      description: Goedkoop model verplicht tenzij escalatie
+      default_model: haiku
+      escalation_trigger: [confidence < 0.6, retry_count > 1, risk_level > 70]
+      escalation_model: sonnet
+
+    - id: COST-002
+      description: Maandbudget per capability bewaken
+      action_on_budget_exceeded: fallback_to_cheap | notify_owner | block
+
+
+================================================================================
+ SECTIE 6: WORKFLOW LANES
+================================================================================
+
+4 LANES — elke step declareert zijn lane:
+
+  A. DETERMINISTIC LANE
+     Doel:     schema validatie, contract mapping, data normalisatie
+     Kenmerken: temperature=0.0, strict schema, geen creativiteit, snel
+     Agents:   schema_validator, contract_mapper, data_normalizer
+     QG:       schema compliance = 100% (hard gate)
+
+  B. ADVISORY LANE
+     Doel:     impact analyse, architectuur advies, fraude detectie
+     Kenmerken: explainability verplicht, confidence score (0-100), reviewbaar
+     Agents:   fraud-advisor, order-analyst, risk-classifier, architect_agent
+     QG:       confidence score >= 60, rationale aanwezig
+
+  C. GENERATIVE LANE
+     Doel:     content generatie, e-mails, klantenservice reacties
+     Kenmerken: stijlregels actief, SEO checks, review loop (max 2 iteraties)
+     Agents:   product-content-agent, email_template, klantenservice-advisor
+     QG:       QG-CONTENT-01 (SEO), QG-STYLE-01 (tone of voice)
+
+  D. ACTION LANE
+     Doel:     tool calls uitvoeren, order blokkeren, account aanmaken
+     Kenmerken: HITL verplicht (indien policy), audit logging, idempotent
+     Agents:   order_verwerking, retour_verwerking, fraude_actie
+     QG:       idempotency check, HITL cleared, audit logged
+
+
+================================================================================
+ SECTIE 7: CONTEXT ENGINEERING MODEL
+================================================================================
+
+NIEUWE CONTEXT STRUCTUUR (geordend):
+──────────────────────────────────────
+  [SYSTEM_POLICY]          ← actieve policy regels voor deze capability
+  [PROJECT_CONTEXT vX.Y]   ← vorstersnv-context.yaml (versioned, timestamped)
+  [DOMAIN_RULES]           ← BTW, herroepingstermijn, Mollie statussen
+  [CAPABILITY_CONTRACT]    ← InputContract voor deze specifieke aanroep
+  [TASK_INPUT]             ← de eigenlijke taak (schoon, gefilterd)
+  [TOOL_RESULTS]           ← via schema + filter (NOOIT raw tool output)
+  [MEMORY_SUMMARY]         ← auto-summary bij sessies > 10 turns
+  [OUTPUT_CONTRACT]        ← verwacht output formaat (Pydantic schema)
+
+REGELS:
+  - Tool output nooit raw injecteren → altijd via schema + filter
+  - Context altijd versioned: timestamp + version in header
+  - Delimiter isolatie: [MEMORY] [TOOL_RESULT] [DOMAIN_RULES]
+  - Context decay: stale context (> 8 uur) wordt automatisch vernieuwd
+  - Hierarchical: main context + task-specific snippets (niet alles altijd)
+
+
+================================================================================
+ SECTIE 8: CONTRACT MODEL (UITGEBREID)
+================================================================================
+
+3 CONTRACT TYPES:
+
+  InputContract    ← wat gaat er IN de agent
+  WorkingContract  ← tussenstand tijdens chain (agent-naar-agent)
+  DecisionContract ← finale beslissing met rationale
+
+VOORBEELD FraudDecisionContract:
+──────────────────────────────────
+  class FraudDecisionContract(BaseModel):
+      order_id:            str
+      risk_score:          int            # 0-100
+      risk_level:          str            # LOW | MEDIUM | HIGH | CRITICAL
+      rationale:           list[str]      # verklarende redenen
+      recommended_action:  str            # ALLOW | REVIEW | BLOCK
+      requires_human:      bool           # HITL trigger
+      confidence:          float          # 0.0-1.0
+      trace_id:            str
+      timestamp:           datetime
+      agent_name:          str
+      model_used:          str
+
+ALLE CONTRACTS: to_prompt_input() + from_agent_output() + validate()
+Implementatie: Pydantic v2 (contract-first pattern 2025)
+
+
+================================================================================
+ SECTIE 9: EVALUATION HIERARCHY (4 LEVELS)
+================================================================================
+
+  LEVEL 1 — UNIT EVAL (per agent aanroep)
+    Vraag:  Is de output valid?
+    Checks: schema correct, geen empty output, geen hallucination signalen
+    Trigger: elke aanroep (automatisch via schema_validator.py)
+    Tool:   ollama/schema_validator.py
+
+  LEVEL 2 — CAPABILITY EVAL (per capability run)
+    Vraag:  Is de juiste output gegeven? Juiste tool gekozen?
+    Checks: output matches expected (evals dataset), tool calls correct
+    Trigger: bij elke prompt-versiewijziging (CI)
+    Tool:   ollama/evals/judge.py (LLM-as-judge)
+
+  LEVEL 3 — CHAIN EVAL (per workflow run)
+    Vraag:  Is de juiste flow gevolgd? Werkt checkpoint recovery?
+    Checks: state transitions correct, HITL triggered correct, no silent failures
+    Trigger: bij elke chain configuratie wijziging
+    Tool:   ollama/evals/hierarchy.py (chain evaluator)
+
+  LEVEL 4 — BUSINESS EVAL (productie monitoring)
+    Vraag:  Zijn de beslissingen correct? Hoeveel false positives?
+    Checks: fraud_accuracy, human_escalation_rate, cost_per_outcome, customer impact
+    Trigger: dagelijks rapport + alert bij regressie
+    Tool:   ollama/quality_monitor.py + Grafana N3 dashboard
+
+RESULTAAT: niet enkel score > 0.8, maar het systeem werkt correct end-to-end
+
+
+================================================================================
+ SECTIE 10: DEPLOYMENT RINGS
+================================================================================
+
+  Ring 0 → lokaal (developer machine, geen data)
+  Ring 1 → AI team (team review, test data)
+  Ring 2 → interne users (medewerkers, staging data)
+  Ring 3 → beperkte productie (5-10% traffic, real data)
+  Ring 4 → full productie (100% traffic)
+
+CAPABILITY GAAT PAS DOOR NAAR VOLGEND RING ALS:
+  ✓ Eval suite van huidig level geslaagd
+  ✓ Policy violations = 0 in vorige ring
+  ✓ Observability actief (alle 3 lagen)
+  ✓ Rollback succesvol getest
+  ✓ Owner heeft akkoord gegeven
+
+FEATURE FLAGS: capability YAML bevat release.feature_flag
+  Control plane controleert ring voor elke capability aanroep
+
+
+================================================================================
+ SECTIE 11: DECISION JOURNAL
+================================================================================
+
+OPSLAG: PostgreSQL tabel decision_journal + ollama/decision_journal.py
+
+VELDEN:
+  trace_id          ← koppeling met OpenTelemetry
+  capability        ← welke capability werd gebruikt
+  agent             ← welke agent deed het werk
+  model             ← welk model (haiku/sonnet/opus)
+  tools             ← welke tools werden aangeroepen
+  selection_reason  ← waarom deze agent/model gekozen (keuzereden)
+  alternatives      ← welke alternatieven overwogen maar niet gekozen
+  human_override    ← was er menselijke interventie?
+  verdict           ← APPROVED | CHANGES_REQUESTED | NEEDS_DISCUSSION
+  timestamp
+
+DOEL:
+  - Explainability: waarom deze beslissing?
+  - Debugging: wat ging er mis?
+  - Audits: compliance/GDPR bewijs
+  - Retrospectives: patroonanalyse voor verbetering
+
+
+================================================================================
+ SECTIE 12: COST & MODEL GOVERNANCE
+================================================================================
+
+PER CAPABILITY YAML:
+  cost:
+    max_input_tokens:   12000
+    max_output_tokens:  1500
+    preferred_model:    haiku       # altijd eerst proberen
+    escalation_model:   sonnet      # bij retry, lage confidence, hoog risico
+    max_tool_calls:     3
+
+LOGICA:
+  1. Probeer altijd preferred_model (goedkoop)
+  2. Escaleer naar escalation_model bij:
+     - confidence < 0.6
+     - retry_count > 1
+     - risk_level > 70
+     - schema validation failed
+  3. Fallback bij timeout (max_latency_ms overschreden)
+  4. Blokkeer bij budget overschrijding (COST-002 policy)
+
+RAPPORT: cost per capability per dag → Grafana N3 dashboard
+
+
+================================================================================
+ SECTIE 13: OBSERVABILITY — 3 LAGEN MODEL
+================================================================================
+
+  N1 — REQUEST (per LLM aanroep)
+     tokens: prompt_tokens, completion_tokens
+     latency: time_to_first_token, total_ms
+     model: gen_ai.request.model, gen_ai.response.finish_reason
+     OTel: gen_ai.* semantic conventions
+
+  N2 — AGENT (per agent run)
+     agent.name, agent.group (G1..G6)
+     capability: welke capability
+     fallback: was er een fallback model?
+     verdict: APPROVED | CHANGES_REQUESTED
+     selection_reason: waarom deze agent?
+     OTel: agent.* custom attributes
+
+  N3 — BUSINESS (dagelijks rapport)
+     fraud_accuracy: % correcte fraude detecties
+     onboarding_success_rate: % orders correct verwerkt
+     human_escalation_rate: % HITL triggers
+     cost_per_outcome: EUR per succesvolle transactie
+     false_positive_rate: % onterecht geblokeerde orders
+     OTel → Grafana dashboard: business KPIs
+
+EXPORT: configureerbaar (Jaeger | Grafana Cloud | Azure Monitor)
+
+
+================================================================================
+ SECTIE 14: COMPLETE TODO LIJST — 5 WAVES
+================================================================================
+
+────────────────────────────────────────────────────────────────────
+WAVE 1 — TRUST FOUNDATION (typed contracts, events, policy, validation)
+────────────────────────────────────────────────────────────────────
+  F1-01 ✅  Fix preprompt_ref bug
+  F1-02 ✅  ParallelStep implementeren
+  F1-03 ✅  schema_validator.py + 3-tuple return
+  F1-04 ✅  Tracing integreren in run_workflow
+
+  F2-05     .claude/preprompts/vorstersnv-context.yaml
+  F2-07     Typed event taxonomy / EventBus (ollama/events.py)
+  F2-01     Typed domain contracts — Pydantic v2 (ollama/contracts.py)
+  F2-02     Quality gates + review_loop.py
+  W1-01 🆕  Control plane (ollama/control_plane.py) ← KRITIEK
+  W1-02 🆕  Policy-as-Code (/policies/)
+  W1-03 🆕  Decision journal (ollama/decision_journal.py)
+  W1-04 🆕  Capability maturity model toevoegen aan capability YAMLs
+
+────────────────────────────────────────────────────────────────────
+WAVE 2 — CONTROL PLANE (routing, HITL, rollout rings)
+────────────────────────────────────────────────────────────────────
+  F2-06     State machine + HITL checkpointing (ollama/state_machine.py)
+  F2-03     YAML workflow configs + capability structuur
+  F2-04     Event-driven skill chain orchestrator V3
+  W2-01 🆕  Workflow lanes implementeren (4 lanes)
+  W2-02 🆕  Deployment rings in control plane
+  W3-02 🆕  Cost & model governance per capability
+
+────────────────────────────────────────────────────────────────────
+WAVE 3 — EXECUTION (agents, tools, workflows, context)
+────────────────────────────────────────────────────────────────────
+  F3-01     Capability registry uitbreiden
+  F3-02     Domein-skills als SKILL.md folders
+  F3-03     Tool executor (ollama/tool_executor.py)
+  F3-04     Agent taxonomie — 6 skill groepen
+  F3-05     ARCHITECTURE.md bijwerken
+  F3-06     Claude agent fleet (5 agents in .claude/agents/) ← KRITIEK
+  F3-07     validate-agents.mjs
+  F3-09     Memory management + versioned context injection
+
+────────────────────────────────────────────────────────────────────
+WAVE 4 — LEARNING (evals, A/B testing, anomaly detection)
+────────────────────────────────────────────────────────────────────
+  F3-08     LLM-as-judge evaluation pipeline (ollama/evals/judge.py)
+  W3-01 🆕  4-level evaluation hierarchy (ollama/evals/hierarchy.py)
+  F4-01     Automated prompt A/B testing (ollama/ab_tester.py)
+  F4-02     Agent performance analyse (.claude/scripts/*.mjs)
+  F4-03     Quality monitor + evaluation metrics in 26 agent YAMLs
+  F4-04     OpenTelemetry GenAI semantic conventions upgrade
+  W4-01 🆕  Observability N3 — Business metrics + Grafana dashboard
+
+────────────────────────────────────────────────────────────────────
+WAVE 5 — PRODUCT (dashboard, UI, role-based flows)
+────────────────────────────────────────────────────────────────────
+  F4-05     MCP tool registry YAML + metadata verrijking
+  [FUTURE]  Backoffice HITL dashboard (React component)
+  [FUTURE]  Merchant notification center
+  [FUTURE]  Role-based capability access (merchant vs. admin vs. AI team)
+
+
+================================================================================
+ SECTIE 15: GAP REFERENTIE (VOLLEDIG — REVISIE 4)
+================================================================================
+
+GAP  | BESCHRIJVING                              | SEVERITY | WAVE | STATUS
+─────|───────────────────────────────────────────|──────────|──────|────────
+G-01 | preprompt_ref bug                         | KRITIEK  | W1   | ✅ DONE
+G-02 | ParallelStep nooit gebruikt               | HOOG     | W1   | ✅ DONE
+G-03 | output schema niet gevalideerd            | HOOG     | W1   | ✅ DONE
+G-04 | tracing niet gebruikt                     | HOOG     | W1   | ✅ DONE
+G-05 | geen typed domain contracts               | HOOG     | W1   | pending
+G-06 | geen Quality Gate systeem                 | HOOG     | W1   | pending
+G-07 | pipelines hardcoded in Python             | HOOG     | W2   | pending
+G-08 | geen event-driven orchestrator            | HOOG     | W2   | pending
+G-09 | geen project context preprompt            | MEDIUM   | W1   | pending
+G-10 | .claude/agents/ vrijwel leeg              | HOOG     | W3   | pending
+G-11 | skill files zijn flat .md (geen folder)   | MEDIUM   | W3   | pending
+G-12 | capability YAML mist structuur            | MEDIUM   | W3   | pending
+G-13 | agent tools nooit aangeroepen             | HOOG     | W3   | pending
+G-14 | geen agent validatiescript                | MEDIUM   | W3   | pending
+G-15 | geen evaluation metrics in agent YAML     | MEDIUM   | W4   | pending
+G-16 | geen A/B testing                          | MEDIUM   | W4   | pending
+G-17 | geen LLM-as-judge evaluatiepipeline       | HOOG     | W4   | pending
+G-18 | geen state machine checkpointing/HITL     | HOOG     | W2   | pending
+G-19 | geen typed event taxonomy                 | HOOG     | W1   | pending
+G-20 | geen memory summarization/versioned ctx   | MEDIUM   | W3   | pending
+G-21 | MCP tool registry zonder metadata         | MEDIUM   | W5   | pending
+G-22 | tracing niet conform OTel GenAI convs     | MEDIUM   | W4   | pending
+─────────────────── NIEUW REVISIE 4 ──────────────────────────────────────────
+G-23 | geen Control Plane                        | KRITIEK  | W1   | pending
+G-24 | geen Policy-as-Code governance            | HOOG     | W1   | pending
+G-25 | geen Decision Journal                     | HOOG     | W1   | pending
+G-26 | capability YAML heeft geen maturity model | HOOG     | W1   | pending
+G-27 | geen workflow lanes                       | HOOG     | W2   | pending
+G-28 | geen deployment rings                     | HOOG     | W2   | pending
+G-29 | geen evaluation hierarchy (4 levels)      | HOOG     | W4   | pending
+G-30 | geen cost & model governance              | MEDIUM   | W2   | pending
+G-31 | observability mist business metrics (N3)  | MEDIUM   | W4   | pending
+
+
+================================================================================
+ SECTIE 16: BESTANDS-STRUCTUUR NA VOLLEDIGE IMPLEMENTATIE
+================================================================================
+
+VorstersNV/
+├── ollama/
+│   ├── agent_runner.py               ← GEWIJZIGD: 3-tuple, context assembly
+│   ├── orchestrator.py               ← GEWIJZIGD: ParallelStep, tracing
+│   ├── schema_validator.py           ← ✅ AANGEMAAKT F1-03
+│   ├── control_plane.py              ← 🆕 W1-01 KRITIEK
+│   ├── contracts.py                  ← 🆕 F2-01: Pydantic v2 contracts
+│   ├── events.py                     ← 🆕 F2-07: typed event taxonomy
+│   ├── quality_gates.py              ← 🆕 F2-02
+│   ├── review_loop.py                ← 🆕 F2-02
+│   ├── state_machine.py              ← 🆕 F2-06: HITL + checkpointing
+│   ├── workflow_loader.py            ← 🆕 F2-03
+│   ├── workflow_lanes.py             ← 🆕 W2-01: 4 lanes
+│   ├── skill_chain_orchestrator.py   ← 🆕 F2-04: V3 orchestrator
+│   ├── decision_journal.py           ← 🆕 W1-03
+│   ├── tool_executor.py              ← 🆕 F3-03
+│   ├── agent_registry.py             ← 🆕 F3-04
+│   ├── quality_monitor.py            ← 🆕 F4-03
+│   ├── ab_tester.py                  ← 🆕 F4-01
+│   ├── workflows/
+│   │   ├── order_pipeline.yml        ← 🆕 F2-03
+│   │   ├── product_pipeline.yml      ← 🆕 F2-03
+│   │   ├── klantenservice_pipeline.yml ← 🆕 F2-03
+│   │   └── chains/
+│   │       ├── order_validation.yml  ← 🆕 F2-04
+│   │       ├── payment_recovery.yml  ← 🆕 F2-04
+│   │       └── dev_intelligence.yml  ← 🆕 F2-04
+│   ├── evals/
+│   │   ├── judge.py                  ← 🆕 F3-08: LLM-as-judge
+│   │   └── hierarchy.py             ← 🆕 W3-01: 4-level eval
+│   └── skills/
+│       └── tracing.py               ← GEWIJZIGD F4-04: OTel GenAI
+│
+├── policies/                         ← 🆕 W1-02
+│   ├── hitl-policies.yml
+│   ├── tool-policies.yml
+│   └── cost-policies.yml
+│
+├── .claude/
+│   ├── agents/
+│   │   ├── lead-orchestrator.md     ← 🆕 F3-06 KRITIEK
+│   │   ├── fraud-advisor.md         ← 🆕 F3-06
+│   │   ├── order-analyst.md         ← 🆕 F3-06
+│   │   ├── product-content-agent.md ← 🆕 F3-06
+│   │   └── klantenservice-advisor.md ← 🆕 F3-06
+│   ├── capabilities/
+│   │   ├── index.yaml               ← UITGEBREID F3-01 + W1-04
+│   │   ├── fraud-detection.yaml     ← 🆕 F3-01 + maturity W1-04
+│   │   ├── order-processing.yaml    ← 🆕 F3-01 + maturity W1-04
+│   │   ├── customer-service.yaml    ← 🆕 F3-01 + maturity W1-04
+│   │   └── product-content.yaml     ← 🆕 F3-01 + maturity W1-04
+│   ├── preprompts/
+│   │   └── vorstersnv-context.yaml  ← 🆕 F2-05
+│   ├── skills/
+│   │   ├── mollie-payments/SKILL.md ← 🆕 F3-02
+│   │   ├── fraud-patterns/SKILL.md  ← 🆕 F3-02
+│   │   ├── belgian-commerce/SKILL.md ← 🆕 F3-02
+│   │   └── ddd-patterns/SKILL.md   ← 🆕 F3-02
+│   ├── scripts/
+│   │   ├── validate-agents.mjs      ← 🆕 F3-07
+│   │   └── analyse-agent-performance.mjs ← 🆕 F4-02
+│   └── tool-registry.yaml           ← 🆕 F4-05
+│
+├── tests/
+│   └── evals/
+│       ├── fraude_detectie_agent.jsonl ← 🆕 F3-08
+│       ├── order_verwerking_agent.jsonl ← 🆕 F3-08
+│       └── product_beschrijving_agent.jsonl ← 🆕 F3-08
+│
+├── documentatie/
+│   └── AI_OPTIMALISATIEPLAN.TXT     ← dit bestand
+│
+└── ARCHITECTURE.md                  ← BIJGEWERKT F3-05
+
+
+================================================================================
+ SECTIE 17: SUCCESS CRITERIA — REVISIE 4
+================================================================================
+
+WAVE 1 ✓
+  Control plane beslist correct agent + model op basis van 8 dimensies
+  Policy violations zijn ONMOGELIJK zonder logging
+  Decision journal logt elke beslissing volledig
+  Capability maturity zichtbaar en enforced in control plane
+
+WAVE 2 ✓
+  Nieuwe pipeline toevoegen vereist ALLEEN een YAML bestand
+  HITL werkt in productie: workflow pauzeert en wacht op menselijke input
+  Rollout ring correct: L1 capability nooit in prod
+  Cost governance: geen capability overschrijdt maandbudget
+
+WAVE 3 ✓
+  .claude/agents/ bevat 5 werkende Claude agents
+  validate-agents.mjs keurt alle agents goed
+  fraude_detectie_agent ontvangt verrijkte context vóór LLM call
+  Memory summarization actief bij sessies > 10 turns
+
+WAVE 4 ✓
+  LLM-as-judge geeft consistent score > 0.8 op eval dataset (L2)
+  Chain eval detecteert checkpoint failures (L3)
+  Business eval rapport actief: fraud_accuracy, cost_per_outcome (L4)
+  OpenTelemetry GenAI spans zichtbaar in Grafana
+  Schema failure rate > 20% triggert WARNING
+
+WAVE 5 ✓
+  Tool fallback routing werkt bij gesimuleerde tool-failure
+  [FUTURE] Backoffice HITL dashboard operationeel
+
+
+================================================================================
+ SECTIE 18: TECHNISCHE BESLISSINGEN & CONSTRAINTS
+================================================================================
+
+TAALSTACK:
+  Python 3.11+ voor alle ollama/ bestanden
+  Pydantic v2    voor typed contracts (contract-first pattern 2025)
+  Node.js .mjs   voor .claude/scripts/ (conform phr-globalconfig)
+  YAML           voor workflow configs, policies, capabilities
+
+MODELLEN:
+  haiku   → snelle agents: fraud-advisor, order-analyst (preferred_model)
+  sonnet  → complexe redenering: lead-orchestrator, content-agent (escalation)
+  opus    → uitsluitend HITL escalatie of kritieke architectuurtaken
+
+BACKWARDS COMPATIBILITY:
+  3-tuple return (response, interaction_id, validated_dict) behouden
+  Bestaande 26 YAML agent bestanden: UITBREIDEN, nooit vervangen
+  tracing.py: backward compatible (extra attributes, geen breaking change)
+
+DATABASE:
+  PostgreSQL → workflow_checkpoints, decision_journal tabellen
+  SQLite     → automatische fallback voor lokale dev/test
+  GDPR:      persoonsdata geanonimiseerd (order_id ipv naam+adres)
+             retention policy: decision_journal max 2 jaar
+
+SECURITY:
+  Least privilege: elke agent heeft enkel tools die hij nodig heeft
+  Context isolatie: agents krijgen nooit elkaars volledige context
+  Audit trail: alle decisies gelogd met trace_id + agent_name + timestamp
+  Policy enforcement: control_plane.enforce_policy() bij elke aanroep
+
+
+================================================================================
+ SECTIE 19: REFERENTIES
+================================================================================
+
+LOKALE BESTANDEN:
+  C:\Users\kvo\Desktop\phr-globalconfig-develop\.claude\agents\lead-orchestrator.md
+  C:\Users\kvo\Desktop\phr-globalconfig-develop\.claude\agents\review-agent.md
+  C:\Users\kvo\Desktop\phr-globalconfig-develop\.claude\capabilities\index.yaml
+  C:\Users\kvo\Desktop\phr-globalconfig-develop\.claude\preprompts\globalconfig-context.yaml
+  C:\Users\kvo\Desktop\phr-globalconfig-develop\.claude\scripts\validate-agents.mjs
+
+EXTERNE REFERENTIES (2025):
+  OpenTelemetry GenAI Semantic Conventions:
+    https://opentelemetry.io/blog/2025/ai-agent-observability/
+  LangGraph HITL + Checkpointing:
+    https://langchain-ai.github.io/langgraph/human-in-the-loop/
+  Azure AI Foundry Multi-Agent Observability:
+    https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/...
+  AI Agent Observability Practical Guide:
+    https://iterathon.tech/blog/ai-agent-observability-production-2025
+  Pydantic v2 contract-first patterns:
+    https://docs.pydantic.dev/latest/
+  NIST AI RMF — policy as code, explainability:
+    https://www.nist.gov/itl/ai-risk-management-framework
+
+================================================================================
+ EINDE — REVISIE 4: VorstersNV AI CONTROLLED PLATFORM
+================================================================================

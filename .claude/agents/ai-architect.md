@@ -5,8 +5,8 @@ description: >
   reviewing the current AI ecosystem, improving agent descriptions or system prompts,
   auditing agent frontmatter, planning which agents to create for new use cases,
   or asked "welk agent gebruik ik", "maak nieuw agent", "AI setup review", "verbeter dit agent".
-model: opus
-permissionMode: plan
+model: claude-opus-4-5
+permissionMode: default
 maxTurns: 20
 memory: project
 tools:

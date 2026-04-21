@@ -1,0 +1,23 @@
+name: product-content-pipeline
+version: "1.0"
+capability: content-generation
+audience: marketing
+risk: low
+lane: generative
+inputs:
+  - product_id: str
+  - language: str
+outputs:
+  - contract: ContentGenerationContract
+steps:
+  - id: generate-description
+    skill: content_generation
+    required: true
+  - id: seo-check
+    skill: seo_validation
+    required: false
+    depends_on: [generate-description]
+  - id: style-review
+    skill: style_check
+    required: false
+    depends_on: [generate-description]

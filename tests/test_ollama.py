@@ -58,7 +58,7 @@ class TestAgentRunner:
         mock_client = AsyncMock()
         mock_client.generate = AsyncMock(return_value="Test antwoord van de agent")
 
-        result, interaction_id = await runner.run_agent(
+        result, interaction_id, _ = await runner.run_agent(
             "klantenservice_agent",
             "Waar is mijn bestelling?",
             client=mock_client,  # Gebruik mock client
@@ -131,7 +131,7 @@ class TestAgent:
             "vraag_categorie": "algemeen",
             "klant_vraag": "Wat zijn uw openingstijden?",
         }
-        result, interaction_id = await agent.run("test input", context=context, client=mock_client)
+        result, interaction_id, _ = await agent.run("test input", context=context, client=mock_client)
         assert result == "Hallo klant!"
         assert isinstance(interaction_id, str)
         mock_client.generate.assert_called_once()

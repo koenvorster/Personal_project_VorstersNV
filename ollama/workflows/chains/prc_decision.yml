@@ -1,0 +1,19 @@
+name: prc-decision-support
+version: "1.0"
+trigger: anomaly_detected
+description: "Chain 3: PRC Decision Support"
+steps:
+  - skill: detect_salary_anomalies
+    output_key: anomalies
+  - skill: classify_payroll_risk
+    input_from: anomalies
+    output_key: risk_class
+  - skill: explain_salary_difference
+    input_from: risk_class
+    output_key: explanation
+  - skill: suggest_prc_actions
+    input_from: explanation
+    output_key: actions
+on_high_risk:
+  - audit_trace_generator
+  - decision_logging

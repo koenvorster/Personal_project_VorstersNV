@@ -1,0 +1,41 @@
+name: content-generation
+version: "1.2"
+description: "Genereert productbeschrijvingen, SEO content en e-mails"
+lane: generative
+audience: marketing
+risk: low
+
+maturity:
+  level: L2
+  label: internal-beta
+  eval_required: true
+  human_approval_required: false
+  min_first_pass_score: 0.80
+
+assurance:
+  min_schema_validation_rate: 0.90
+  style_review_required: true
+
+operational:
+  owner: team-marketing
+  sla_tier: bronze
+  cost_budget_monthly_eur: 150.0
+  preferred_model: llama3.1
+  escalation_model: "llama3.1:70b"
+
+release:
+  rollout_ring: ring-1
+  feature_flag: "ai.capability.content-generation.v1"
+
+agents:
+  - product-writer
+
+contract: ContentGenerationContract
+chain: null
+
+eval_metrics:
+  target_success_rate: 0.85
+  target_avg_score: 0.85
+  target_latency_ms: 4000
+  alert_threshold_score: 0.70
+  review_interval_days: 7

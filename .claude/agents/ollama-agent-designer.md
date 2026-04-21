@@ -5,8 +5,8 @@ description: >
   tuning system prompts for llama3/mistral/codellama, adding new specialist agents,
   reviewing agent input/output schemas, or debugging agent_runner.py behaviour.
   Triggers: "improve agent", "new agent", "tune prompt", "ollama", "agent yaml", "system prompt"
-model: sonnet
-permissionMode: auto
+model: claude-sonnet-4-5
+permissionMode: allow
 maxTurns: 20
 memory: project
 tools:

@@ -1,0 +1,92 @@
+name: bedrijfsproces_agent
+version: "1.0"
+type: standalone_agent
+description: "Agent voor het in kaart brengen van bedrijfsprocessen en identificeren van automatiseringskansen"
+model: llama3.2
+temperature: 0.3
+max_tokens: 1536
+language: nl
+
+system_prompt_ref: "prompts/system/bedrijfsproces_v1.txt"
+preprompt_ref: "prompts/preprompt/bedrijfsproces_v1.yml"
+
+capabilities:
+  - proces_documenteren
+  - automatiseringskansen_scoren
+  - swimlane_diagram_genereren
+  - roi_inschatten
+  - to_be_ontwerpen
+
+input_schema:
+  type: object
+  properties:
+    proces_beschrijving:
+      type: string
+      description: "Beschrijving van het huidige proces (kan ongestructureerd zijn)"
+    sector:
+      type: string
+      enum: [hr_payroll, boekhouding, klantenservice, operations, it, overig]
+    aantal_medewerkers_betrokken:
+      type: integer
+    geschat_uren_per_week:
+      type: number
+      description: "Geschatte manuele uren per week voor dit proces"
+    prioriteit_focus:
+      type: string
+      enum: [tijdsbesparing, kwaliteitsverbetering, kostenbesparing, alle_drie]
+      default: alle_drie
+
+output_schema:
+  type: object
+  properties:
+    proces_naam:
+      type: string
+    samenvatting:
+      type: string
+    as_is_stappen:
+      type: array
+      items:
+        type: object
+        properties:
+          stap_nr: {type: integer}
+          beschrijving: {type: string}
+          rol: {type: string}
+          duur_minuten: {type: number}
+          automatisering_score: {type: integer, minimum: 3, maximum: 12}
+          pijnpunt: {type: boolean}
+    totale_automatisering_score:
+      type: number
+    aanbevolen_aanpak:
+      type: string
+      enum: [volledig_automatiseren, deels_automatiseren, ai_assistentie, handmatig_optimaliseren]
+    roi_inschatting:
+      type: object
+      properties:
+        tijdwinst_percentage: {type: number}
+        maandelijkse_besparing_euro: {type: number}
+        terugverdientijd_maanden: {type: integer}
+    to_be_voorstel:
+      type: string
+      description: "Beschrijving van het geautomatiseerde proces"
+    volgende_stappen:
+      type: array
+      items:
+        type: string
+
+tools:
+  - name: sla_procesanalyse_op
+    description: "Bewaar de procesanalyse als rapport"
+    endpoint: "/api/rapporten/opslaan"
+  - name: vergelijk_met_sector
+    description: "Vergelijk met typische benchmarks in dezelfde sector"
+    endpoint: "/api/analyse/benchmark"
+
+evaluation:
+  metrics:
+    - bruikbaarheid_score
+    - nauwkeurigheid_roi
+    - klant_tevredenheid
+  feedback_loop: true
+  log_dir: "logs/bedrijfsproces"
+
+iteration_log: "prompts/preprompt/bedrijfsproces_iterations.yml"

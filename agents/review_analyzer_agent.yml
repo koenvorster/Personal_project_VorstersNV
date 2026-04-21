@@ -1,0 +1,84 @@
+name: review_analyzer_agent
+version: "1.0"
+model: mistral
+temperature: 0.3
+max_tokens: 1000
+system_prompt_ref: prompts/system/review_analyzer_system.txt
+preprompt_ref: prompts/preprompt/review_analyzer_v1.yml
+capabilities:
+  - sentiment_analysis
+  - theme_extraction
+  - improvement_suggestions
+  - competitive_intelligence
+input_schema:
+  type: object
+  properties:
+    reviews:
+      type: array
+      items:
+        type: string
+      description: "Lijst van klantreviews (platte tekst)"
+      minItems: 1
+      maxItems: 50
+    product_name:
+      type: string
+      description: "Naam van het product waarvoor reviews zijn"
+    product_category:
+      type: string
+      description: "Categorie van het product (optioneel voor contextuele analyse)"
+    language:
+      type: string
+      enum: [nl, fr, en]
+      default: nl
+      description: "Taal van de reviews (standaard Nederlands)"
+  required:
+    - reviews
+output_schema:
+  type: object
+  properties:
+    sentiment:
+      type: string
+      enum: [positief, neutraal, negatief, gemengd]
+    score:
+      type: number
+      minimum: 0
+      maximum: 10
+      description: "Gemiddelde klanttevredenheidscore (0-10)"
+    themes:
+      type: array
+      items:
+        type: string
+      description: "Terugkerende thema's in de reviews"
+    strengths:
+      type: array
+      items:
+        type: string
+      description: "Wat klanten positief beoordelen"
+    improvements:
+      type: array
+      items:
+        type: string
+      description: "Verbeterpunten op basis van klachtpatronen"
+    keywords:
+      type: array
+      items:
+        type: string
+      description: "Frequente zoekwoorden voor SEO-gebruik"
+    summary:
+      type: string
+      description: "Beknopte samenvatting in 2-3 zinnen"
+    review_count:
+      type: integer
+      description: "Aantal geanalyseerde reviews"
+evaluation:
+  metrics:
+    - accuracy_score
+    - actionability_score
+    - coverage_score
+  feedback_loop: true
+  min_score_threshold: 0.60
+tags:
+  - sentiment
+  - reviews
+  - klantfeedback
+  - analytics

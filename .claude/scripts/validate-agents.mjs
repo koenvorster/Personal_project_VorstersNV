@@ -1,184 +1,254 @@
 #!/usr/bin/env node
+// .claude/scripts/validate-agents.mjs
+import { readFileSync, readdirSync, writeFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const AGENTS_DIR = join(__dirname, '..', 'agents');
+
+const VALID_MODELS = [
+  'claude-haiku-4-5', 'claude-sonnet-4-5', 'claude-opus-4-5',
+  'claude-haiku-4-6', 'claude-sonnet-4-6', 'claude-opus-4-6',
+  'claude-haiku-4', 'claude-sonnet-4',
+];
+
+const POSSIBLY_OUTDATED = ['claude-haiku-4', 'claude-sonnet-4'];
+
+const REQUIRED_FIELDS = ['name', 'description', 'model', 'permissionMode'];
+// 'allow' = full tool access (code-writing agents), 'default' = read/plan agents, 'restricted' = safest
+const VALID_PERMISSION_MODES = ['default', 'restricted', 'allow'];
+
+const COLORS = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  bold: '\x1b[1m',
+};
+
+const quiet = process.argv.includes('--quiet');
+const fix = process.argv.includes('--fix');
+
+function colorize(text, color) {
+  return `${COLORS[color]}${text}${COLORS.reset}`;
+}
+
 /**
- * validate-agents.mjs — VorstersNV
- *
- * Valideert alle .claude/agents/*.md bestanden op correcte Claude Code frontmatter.
- * Controleert: verplichte velden aanwezig, ongeldige velden afwezig, waarden geldig.
- *
- * Gebruik:
- *   node .claude/scripts/validate-agents.mjs
- *   node .claude/scripts/validate-agents.mjs --fix    # Toont suggesties
- *   node .claude/scripts/validate-agents.mjs --quiet  # Alleen fouten
+ * Parses YAML frontmatter from markdown content.
+ * Handles: simple key:value, folded scalars (>), literal blocks (|), block lists.
+ * No external dependencies — stdlib only.
  */
+function parseFrontmatter(content) {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return { raw: null, fields: {} };
 
-import { readdirSync, readFileSync } from 'fs'
-import { join, relative } from 'path'
+  const raw = match[1];
+  const fields = {};
+  const lines = raw.split(/\r?\n/);
+  let i = 0;
 
-const args = process.argv.slice(2)
-const FIX_MODE = args.includes('--fix')
-const QUIET = args.includes('--quiet')
+  while (i < lines.length) {
+    const line = lines[i];
+    const keyMatch = line.match(/^([\w][\w-]*)\s*:\s*(.*)/);
+    if (!keyMatch) { i++; continue; }
 
-// Claude Code spec — alleen deze velden zijn geldig in frontmatter
-const VALID_FIELDS = new Set(['name', 'description', 'model', 'permissionMode', 'maxTurns', 'memory', 'tools', 'isolation'])
+    const key = keyMatch[1];
+    const value = keyMatch[2].trim();
 
-// Velden die vroeger gebruikt werden maar nu ongeldig zijn
-const INVALID_FIELDS = new Set(['type', 'version', 'audience', 'role', 'language', 'user_invocable', 'capability', 'platforms', 'risk', 'category'])
+    if (value === '>') {
+      // Folded scalar: join continuation lines with spaces
+      const parts = [];
+      i++;
+      while (i < lines.length && (lines[i].startsWith('  ') || lines[i] === '')) {
+        parts.push(lines[i].trim());
+        i++;
+      }
+      fields[key] = parts.filter(Boolean).join(' ').trim();
+    } else if (value === '|') {
+      // Literal block scalar
+      const parts = [];
+      i++;
+      while (i < lines.length && (lines[i].startsWith('  ') || lines[i] === '')) {
+        parts.push(lines[i].startsWith('  ') ? lines[i].slice(2) : '');
+        i++;
+      }
+      fields[key] = parts.join('\n').trim();
+    } else if (value === '') {
+      // Possible block sequence (list with leading - )
+      const items = [];
+      i++;
+      while (i < lines.length && /^\s+-\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s+-\s+/, '').trim());
+        i++;
+      }
+      fields[key] = items.length > 0 ? items : null;
+    } else {
+      // Plain or quoted scalar
+      fields[key] = value.replace(/^['"]|['"]$/g, '');
+      i++;
+    }
+  }
 
-const VALID_MODELS = ['haiku', 'sonnet', 'opus', 'claude-haiku-4-5', 'claude-sonnet-4-5', 'claude-opus-4-5']
-const VALID_PERMISSION_MODES = ['auto', 'plan', 'default']
-const VALID_MEMORY = ['project', 'none']
-const VALID_ISOLATION = ['worktree', 'none']
+  return { raw, fields };
+}
 
-const AGENTS_DIR = join(process.cwd(), '.claude', 'agents')
-const ROOT = process.cwd()
+/** Validates one agent file. Returns { errors, warnings, fields, content }. */
+function validateAgent(filePath) {
+  const content = readFileSync(filePath, 'utf8');
+  const { raw, fields } = parseFrontmatter(content);
 
-let files
+  const errors = [];
+  const warnings = [];
+
+  if (raw === null) {
+    errors.push('No frontmatter found (missing --- delimiters)');
+    return { errors, warnings, fields, content };
+  }
+
+  // Required fields
+  for (const field of REQUIRED_FIELDS) {
+    const val = fields[field];
+    if (val === undefined || val === null || val === '') {
+      errors.push(`Missing required field: ${field}`);
+    }
+  }
+
+  // Valid model
+  const model = fields.model;
+  if (model !== undefined && model !== null && model !== '') {
+    if (!VALID_MODELS.includes(model)) {
+      errors.push(`Invalid model: '${model}'. Valid models: ${VALID_MODELS.join(', ')}`);
+    } else if (POSSIBLY_OUTDATED.includes(model)) {
+      warnings.push(`model '${model}' may be outdated`);
+    }
+  }
+
+  // Description prefix
+  const desc = fields.description;
+  if (desc && typeof desc === 'string' && !desc.startsWith('Delegate to this agent when:')) {
+    errors.push('description must start with "Delegate to this agent when:"');
+  }
+
+  // Valid permissionMode
+  const pm = fields.permissionMode;
+  if (pm !== undefined && pm !== null && pm !== '') {
+    if (!VALID_PERMISSION_MODES.includes(pm)) {
+      errors.push(`Invalid permissionMode: '${pm}'. Valid values: ${VALID_PERMISSION_MODES.join(', ')}`);
+    }
+  }
+
+  return { errors, warnings, fields, content };
+}
+
+/** Applies --fix: corrects invalid values and adds missing required fields. */
+function fixAgent(filePath, fileName, fields, content) {
+  const { raw } = parseFrontmatter(content);
+  const baseName = fileName.replace(/\.md$/, '');
+
+  if (raw === null) {
+    const fm = buildMinimalFrontmatter(baseName);
+    writeFileSync(filePath, `---\n${fm}\n---\n\n${content}`, 'utf8');
+    return;
+  }
+
+  let updated = raw;
+
+  // Replace invalid model value
+  if (fields.model !== undefined && fields.model !== null && fields.model !== '' &&
+      !VALID_MODELS.includes(fields.model)) {
+    updated = updated.replace(/^model:.*$/m, 'model: claude-haiku-4-5');
+  }
+
+  // Replace invalid permissionMode value
+  if (fields.permissionMode !== undefined && fields.permissionMode !== null &&
+      fields.permissionMode !== '' && !VALID_PERMISSION_MODES.includes(fields.permissionMode)) {
+    updated = updated.replace(/^permissionMode:.*$/m, 'permissionMode: default');
+  }
+
+  // Add missing fields
+  if (!fields.name || fields.name === '') {
+    updated += `\nname: ${baseName}`;
+  }
+  if (!fields.description || fields.description === '') {
+    updated += `\ndescription: 'Delegate to this agent when: [TODO - add description]'`;
+  }
+  if (!fields.model || fields.model === '') {
+    if (!/^model:/m.test(updated)) updated += `\nmodel: claude-haiku-4-5`;
+  }
+  if (!fields.permissionMode || fields.permissionMode === '') {
+    if (!/^permissionMode:/m.test(updated)) updated += `\npermissionMode: default`;
+  }
+
+  const newContent = content.replace(/^---\r?\n[\s\S]*?\r?\n---/, `---\n${updated}\n---`);
+  writeFileSync(filePath, newContent, 'utf8');
+}
+
+function buildMinimalFrontmatter(name) {
+  return [
+    `name: ${name}`,
+    `description: 'Delegate to this agent when: [TODO - add description]'`,
+    `model: claude-haiku-4-5`,
+    `permissionMode: default`,
+  ].join('\n');
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
+
+let files;
 try {
-  files = readdirSync(AGENTS_DIR).filter(f => f.endsWith('.md'))
-} catch {
-  console.error(`❌ Map niet gevonden: ${AGENTS_DIR}`)
-  process.exit(1)
+  files = readdirSync(AGENTS_DIR).filter(f => f.endsWith('.md') && f.toLowerCase() !== 'readme.md').sort();
+} catch (err) {
+  console.error(colorize(`❌ Cannot read agents directory: ${AGENTS_DIR}`, 'red'));
+  process.exit(1);
 }
 
-let totalErrors = 0
-let totalWarnings = 0
-const results = []
-
-for (const file of files) {
-  const filePath = join(AGENTS_DIR, file)
-  const relPath = relative(ROOT, filePath)
-  const content = readFileSync(filePath, 'utf8')
-  const errors = []
-  const warnings = []
-
-  // Normalize line endings (Windows CRLF → LF)
-  const normalizedContent = content.replace(/\r\n/g, '\n')
-
-  // Parse frontmatter
-  const fmMatch = normalizedContent.match(/^---\n([\s\S]*?)\n---/)
-  if (!fmMatch) {
-    errors.push('Geen frontmatter gevonden (verwacht: --- ... ---)')
-    results.push({ file: relPath, errors, warnings, hasFrontmatter: false })
-    totalErrors++
-    continue
-  }
-
-  const fmRaw = fmMatch[1]
-  const fields = {}
-
-  // Simpele YAML-parser voor key: value (geen nested objects voor validatie)
-  for (const line of fmRaw.split('\n')) {
-    const m = line.match(/^(\w+)\s*:\s*(.*)$/)
-    if (m) fields[m[1].trim()] = m[2].trim()
-  }
-
-  // Controleer ongeldige velden
-  for (const key of Object.keys(fields)) {
-    if (INVALID_FIELDS.has(key)) {
-      errors.push(`Ongeldig veld: '${key}' — niet ondersteund door Claude Code spec`)
-    } else if (!VALID_FIELDS.has(key)) {
-      warnings.push(`Onbekend veld: '${key}' — controleer de Claude Code spec`)
-    }
-  }
-
-  // Verplicht: name
-  if (!fields.name) {
-    errors.push("Verplicht veld ontbreekt: 'name'")
-  }
-
-  // Verplicht: description (moet "Use when:" of "Delegate" bevatten)
-  if (!fields.description) {
-    errors.push("Verplicht veld ontbreekt: 'description'")
-  } else {
-    const descBlock = fmRaw.match(/description:\s*>([\s\S]*?)(?=\n\w|\n---)/)?.[1] || fields.description
-    if (!descBlock.toLowerCase().includes('use when') && !descBlock.toLowerCase().includes('delegate')) {
-      warnings.push("'description' zou een 'Use when:' of 'Delegate to this agent when:' clausule moeten bevatten")
-    }
-  }
-
-  // Verplicht: model
-  if (!fields.model) {
-    warnings.push("'model' ontbreekt — Claude zal standaard model gebruiken")
-  } else if (!VALID_MODELS.some(m => fields.model.includes(m))) {
-    warnings.push(`Onbekend model: '${fields.model}' — geldig: ${VALID_MODELS.join(', ')}`)
-  }
-
-  // permissionMode
-  if (fields.permissionMode && !VALID_PERMISSION_MODES.includes(fields.permissionMode)) {
-    errors.push(`Ongeldige permissionMode: '${fields.permissionMode}' — geldig: ${VALID_PERMISSION_MODES.join(', ')}`)
-  }
-
-  // maxTurns
-  if (!fields.maxTurns) {
-    warnings.push("'maxTurns' ontbreekt — zonder limiet kan agent oneindig lopen")
-  } else if (isNaN(Number(fields.maxTurns)) || Number(fields.maxTurns) < 1 || Number(fields.maxTurns) > 100) {
-    warnings.push(`'maxTurns: ${fields.maxTurns}' — verwacht getal tussen 1-100`)
-  }
-
-  // memory
-  if (fields.memory && !VALID_MEMORY.includes(fields.memory)) {
-    warnings.push(`Onbekende memory waarde: '${fields.memory}' — geldig: ${VALID_MEMORY.join(', ')}`)
-  }
-
-  // isolation
-  if (fields.isolation && !VALID_ISOLATION.includes(fields.isolation)) {
-    errors.push(`Ongeldige isolation waarde: '${fields.isolation}' — geldig: ${VALID_ISOLATION.join(', ')}`)
-  }
-
-  results.push({ file: relPath, fields, errors, warnings, hasFrontmatter: true })
-  totalErrors += errors.length
-  totalWarnings += warnings.length
+if (!quiet) {
+  console.log(`\nValidating ${files.length} agents in .claude/agents/\n`);
 }
 
-// Output
-console.log(`\n🔍 Agent Validatie — VorstersNV\n${'─'.repeat(50)}`)
-console.log(`   Bestanden gevonden: ${files.length}`)
-console.log(`   Fouten: ${totalErrors}  Waarschuwingen: ${totalWarnings}\n`)
+let totalOk = 0;
+let totalErrors = 0;
+let totalWarnings = 0;
 
-let passCount = 0
-let failCount = 0
+for (const fileName of files) {
+  const filePath = join(AGENTS_DIR, fileName);
+  const { errors, warnings, fields, content } = validateAgent(filePath);
 
-for (const { file, errors, warnings } of results) {
-  const ok = errors.length === 0
-  if (ok) passCount++
-  else failCount++
-
-  if (QUIET && ok) continue
-
-  const icon = ok ? '✅' : '❌'
-  const warnIcon = warnings.length > 0 ? ` ⚠️ ${warnings.length}` : ''
-  console.log(`${icon} ${file}${warnIcon}`)
-
-  for (const err of errors) {
-    console.log(`     🔴 ${err}`)
-  }
-
-  if (!QUIET || errors.length > 0) {
+  if (errors.length === 0 && warnings.length === 0) {
+    totalOk++;
+    if (!quiet) {
+      const model = fields.model || 'unknown';
+      console.log(colorize(`✅ ${fileName} — OK (${model})`, 'green'));
+    }
+  } else if (errors.length > 0) {
+    totalErrors++;
+    console.log(colorize(`❌ ${fileName} — ERRORS:`, 'red'));
+    for (const err of errors) {
+      console.log(colorize(`   - ${err}`, 'red'));
+    }
     for (const warn of warnings) {
-      console.log(`     🟡 ${warn}`)
+      console.log(colorize(`   ⚠️  ${warn}`, 'yellow'));
+    }
+    if (fix) {
+      fixAgent(filePath, fileName, fields, content);
+      console.log(colorize(`   → Fixed`, 'green'));
+    }
+  } else {
+    // Warnings only, no errors
+    totalWarnings++;
+    if (!quiet) {
+      console.log(colorize(`⚠️  ${fileName} — WARNINGS:`, 'yellow'));
+      for (const warn of warnings) {
+        console.log(colorize(`   - ${warn}`, 'yellow'));
+      }
     }
   }
-
-  if (FIX_MODE && errors.length > 0) {
-    console.log(`\n     💡 Suggestie — correcte frontmatter:`)
-    console.log(`     ---`)
-    console.log(`     name: ${file.replace('.claude/agents/', '').replace('.md', '')}`)
-    console.log(`     description: >`)
-    console.log(`       Use when: [beschrijf hier wanneer deze agent te gebruiken]`)
-    console.log(`     model: sonnet`)
-    console.log(`     permissionMode: plan`)
-    console.log(`     maxTurns: 20`)
-    console.log(`     ---\n`)
-  }
 }
 
-console.log(`\n${'─'.repeat(50)}`)
-console.log(`   ✅ ${passCount} geslaagd  |  ❌ ${failCount} gefaald  |  ⚠️ ${totalWarnings} waarschuwingen`)
+const errWord = totalErrors !== 1 ? 'errors' : 'error';
+const warnWord = totalWarnings !== 1 ? 'warnings' : 'warning';
+const summary = `Summary: ${totalOk} OK, ${totalErrors} ${errWord}, ${totalWarnings} ${warnWord}`;
+console.log(`\n${colorize(summary, 'bold')}\n`);
 
-if (totalErrors > 0) {
-  console.log(`\n   ℹ️  Gebruik --fix voor herstelsugesties`)
-  console.log(`   ℹ️  Claude Code spec: https://docs.anthropic.com/claude-code/agents\n`)
-  process.exit(1)
-} else {
-  console.log(`\n   🎉 Alle agents zijn valide!\n`)
-}
+process.exit(totalErrors > 0 ? 1 : 0);

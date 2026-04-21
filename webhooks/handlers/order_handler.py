@@ -3,6 +3,7 @@ import logging
 from typing import Any
 
 from ollama.agent_runner import get_runner
+from ollama.event_bridge import get_event_bridge
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,11 @@ async def handle_order_created(payload: dict[str, Any]) -> dict[str, Any]:
     )
 
     logger.info("Order %s verwerkt. Agent response: %d tekens", order_id, len(agent_bericht))
+
+    try:
+        await get_event_bridge().emit_order_created(payload)
+    except Exception:
+        logger.exception("EventBridge emit_order_created failed (non-critical)")
 
     return {
         "status": "verwerkt",
@@ -74,6 +80,11 @@ async def handle_order_shipped(payload: dict[str, Any]) -> dict[str, Any]:
         },
     )
 
+    try:
+        await get_event_bridge().emit_order_shipped(payload)
+    except Exception:
+        logger.exception("EventBridge emit_order_shipped failed (non-critical)")
+
     return {
         "status": "verwerkt",
         "order_id": order_id,
@@ -109,6 +120,11 @@ async def handle_order_returned(payload: dict[str, Any]) -> dict[str, Any]:
             "klant_naam": klant_naam,
         },
     )
+
+    try:
+        await get_event_bridge().emit_order_returned(payload)
+    except Exception:
+        logger.exception("EventBridge emit_order_returned failed (non-critical)")
 
     return {
         "status": "verwerkt",

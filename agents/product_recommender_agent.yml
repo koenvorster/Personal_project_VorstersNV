@@ -1,0 +1,69 @@
+name: product_recommender_agent
+version: "1.0"
+model: llama3
+temperature: 0.4
+max_tokens: 800
+system_prompt_ref: prompts/system/product_recommender_system.txt
+preprompt_ref: prompts/preprompt/product_recommender_v1.yml
+capabilities:
+  - product_affinity_analysis
+  - cross_sell_recommendation
+  - upsell_suggestion
+input_schema:
+  type: object
+  properties:
+    current_product_id:
+      type: string
+      description: "ID van het huidige bekeken product"
+    current_product_name:
+      type: string
+      description: "Naam van het huidige product"
+    current_product_category:
+      type: string
+      description: "Categorie van het huidige product"
+    customer_history:
+      type: array
+      items:
+        type: string
+      description: "Lijst van eerder bekeken of gekochte productIDs"
+    customer_budget:
+      type: number
+      description: "Optioneel: maximaal budget van de klant"
+  required:
+    - current_product_id
+    - current_product_name
+output_schema:
+  type: object
+  properties:
+    recommendations:
+      type: array
+      items:
+        type: object
+        properties:
+          product_id:
+            type: string
+          product_naam:
+            type: string
+          type:
+            type: string
+            enum: [cross_sell, upsell, accessoire]
+          reden:
+            type: string
+    reasoning:
+      type: string
+      description: "Uitleg van de aanbevelingslogica"
+    confidence_score:
+      type: number
+      minimum: 0
+      maximum: 1
+evaluation:
+  metrics:
+    - relevance_score
+    - click_through_rate
+    - conversion_rate
+  feedback_loop: true
+  min_score_threshold: 0.65
+tags:
+  - recommendation
+  - e-commerce
+  - personalisatie

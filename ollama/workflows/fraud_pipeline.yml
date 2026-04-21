@@ -1,0 +1,26 @@
+name: fraud-detection-pipeline
+version: "1.0"
+capability: fraud-detection
+audience: risk-team
+risk: high
+lane: advisory
+inputs:
+  - order_id: str
+  - amount: float
+  - customer_history: dict
+outputs:
+  - contract: FraudAssessmentContract
+steps:
+  - id: anomaly-scan
+    skill: detect_salary_anomalies
+    required: true
+  - id: risk-classify
+    skill: classify_payroll_risk
+    required: true
+    depends_on: [anomaly-scan]
+  - id: explain
+    skill: explain_salary_difference
+    required: false
+    depends_on: [risk-classify]
+chains:
+  on_high_risk: [classify_payroll_risk, explain_salary_difference, suggest_prc_actions]

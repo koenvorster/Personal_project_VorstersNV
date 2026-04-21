@@ -1,0 +1,68 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VorstersNV — HITL Policies (Human-in-the-Loop)
+# Revisie 4 — Policy-as-Code laag
+#
+# Regels worden geladen door ollama/policy_engine.py en geëvalueerd bij elke
+# capability uitvoering door ControlPlane.enforce_policy().
+#
+# Severity:
+#   BLOCKER  → uitvoering stopt, PolicyViolationError wordt gegooid
+#   WARNING  → uitvoering gaat door, violation wordt gelogd
+#   INFO     → alleen logging, geen actie
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "1.0"
+updated: "2026-04-21"
+category: hitl
+
+rules:
+  - id: HITL-001
+    name: "ACTION capability vereist menselijke goedkeuring in productie"
+    severity: BLOCKER
+    when:
+      lane: action
+      environment: prod
+      hitl_approved: false
+    require: human_approval
+    message: "Capability '{capability}' is ACTION lane in productie — menselijke goedkeuring vereist"
+    audit: true
+
+  - id: HITL-002
+    name: "Hoog risico vereist menselijke review"
+    severity: BLOCKER
+    when:
+      risk_score_gte: 75
+      hitl_approved: false
+    require: human_approval
+    message: "Risicoscore {risk_score} >= 75 — menselijke review verplicht (HITL-002)"
+    audit: true
+
+  - id: HITL-003
+    name: "CRITICAL risico — onmiddellijk escaleren"
+    severity: BLOCKER
+    when:
+      risk_score_gte: 90
+      hitl_approved: false
+    require: human_approval
+    message: "CRITICAL risico (score {risk_score}) — onmiddellijke escalatie vereist"
+    audit: true
+    notify: true
+
+  - id: HITL-004
+    name: "Experimentele capability waarschuwing"
+    severity: WARNING
+    when:
+      maturity_level: L1
+    require: none
+    message: "Capability '{capability}' is L1 experimenteel — verhoogde monitoring actief"
+    audit: true
+
+  - id: HITL-005
+    name: "Nieuwe tenant eerste executie review"
+    severity: WARNING
+    when:
+      first_tenant_execution: true
+      environment: prod
+    require: none
+    message: "Eerste executie voor tenant '{tenant_id}' in productie — monitoring actief"
+    audit: true

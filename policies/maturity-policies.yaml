@@ -1,0 +1,61 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VorstersNV — Capability Maturity Policies
+# Revisie 4 — Policy-as-Code laag
+#
+# Beheert welke maturity levels toegestaan zijn per omgeving
+# en welke deployment ring hoort bij elke combinatie.
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "1.0"
+updated: "2026-04-21"
+category: maturity
+
+rules:
+  - id: MAT-001
+    name: "L1 experimenteel — niet in productie"
+    severity: BLOCKER
+    when:
+      maturity_level: L1
+      environment: prod
+    message: "Capability '{capability}' is L1 experimenteel — niet toegestaan in productie"
+    audit: true
+
+  - id: MAT-002
+    name: "L2 internal beta — niet in productie"
+    severity: BLOCKER
+    when:
+      maturity_level: L2
+      environment: prod
+    message: "Capability '{capability}' is L2 internal beta — niet toegestaan in productie"
+    audit: true
+
+  - id: MAT-003
+    name: "L3 team productie — waarschuwing bij full productie"
+    severity: WARNING
+    when:
+      maturity_level: L3
+      environment: prod
+    message: "Capability '{capability}' is L3 — beperkt productiegebruik, monitoring vereist"
+    audit: true
+
+  - id: MAT-004
+    name: "L1 capability vereist verhoogde monitoring"
+    severity: INFO
+    when:
+      maturity_level: L1
+    message: "L1 capability '{capability}' wordt uitgevoerd — verhoogde observability actief"
+    audit: false
+
+# Maturity → toegestane omgevingen mapping
+maturity_environments:
+  L1: [local]
+  L2: [local, dev]
+  L3: [local, dev, test, staging]
+  L4: [local, dev, test, staging, prod]
+
+# Maturity → deployment ring
+maturity_rings:
+  L1: 0
+  L2: 1
+  L3: 2
+  L4: 4

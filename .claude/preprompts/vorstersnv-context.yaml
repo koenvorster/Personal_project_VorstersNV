@@ -1,0 +1,136 @@
+version: "1.0"
+updated: "2026-04-21"
+
+# VorstersNV Project Context Preprompt
+# Injecteer in Claude agents via: memory: project
+# Conform phr-globalconfig globalconfig-context.yaml patroon
+
+context: |
+  ## VorstersNV Platform
+
+  KMO e-commerce webshop met AI-agent systeem voor fraude, orders en klantenservice.
+
+  ### Tech Stack
+  - Backend:  FastAPI (Python 3.12), SQLAlchemy async, Alembic, PostgreSQL
+  - Frontend: Next.js 14 (App Router), TypeScript, Tailwind CSS
+  - AI:       Ollama (llama3/mistral/codellama), 26 YAML-geconfigureerde agents
+  - Payments: Mollie (iDEAL, Bancontact, creditcard)
+  - Auth:     Keycloak (JWT Bearer tokens)
+  - Infra:    Docker Compose, GitHub Actions CI/CD
+
+  ### Domeinmodel (Bounded Contexts)
+  - **Catalog:**    Product, Category, ProductImage, PriceHistory
+  - **Orders:**     Order, OrderLine, OrderStatus, RetourVerzoek
+  - **Inventory:**  StockItem, StockMutation, LowStockAlert
+  - **Payments:**   Payment (Mollie), WebhookEvent, RefundRequest
+  - **Customers:**  Customer, Address, CustomerHistory, FraudProfile
+  - **Marketing:**  ProductDescription, SEOMetadata, EmailTemplate
+
+  ### Belgisch E-Commerce Domeinregels
+  - BTW: 21% standaard, 6% voor voedsel/boeken/geneesmiddelen
+  - Herroepingstermijn: 14 kalenderdagen (Wet Marktpraktijken)
+  - Verplicht op factuur: BTW-nummer, adres verkoper, orderreferentie
+  - GDPR: persoonsdata max 2 jaar retentie; anonimiseren na verwijderverzoek
+  - Consumentenbescherming: duidelijke prijs incl. BTW, geen verborgen kosten
+
+  ### Mollie Payment Statussen
+  - `open`       → betaling aangemaakt, nog niet betaald
+  - `pending`    → in behandeling (iDEAL SEPA)
+  - `authorized` → geautoriseerd, nog niet gecaptured
+  - `paid`       → succesvol betaald → order activeren
+  - `failed`     → mislukt → retry workflow triggeren
+  - `canceled`   → geannuleerd door klant
+  - `expired`    → verlopen (15 min timeout bij iDEAL)
+  - `refunded`   → terugbetaald
+
+  ### Fraude Drempelwaarden
+  - score 0-39:   LOW    → automatisch goedkeuren
+  - score 40-74:  MEDIUM → extra verificatie vereist
+  - score 75-89:  HIGH   → menselijke review verplicht (HITL-002)
+  - score 90-100: CRITICAL → automatisch blokkeren + notificatie
+
+  ### Fraude Signalen (gewogen)
+  - Hoog gewicht (20+): VPN/proxy, bestellingwaarde > €500, nieuwe account + hoge waarde
+  - Middel gewicht (10-19): afwijkend afleveradres, meerdere orders zelfde dag
+  - Laag gewicht (5-9): eerste bestelling, onbekend e-maildomein
+
+  ### Order Statussen (state machine)
+  - PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
+  - PENDING → CANCELLED (voor betaling)
+  - CONFIRMED → REFUND_REQUESTED → REFUNDED
+
+  ### AI Agent Groepen
+  - G1 DEV INTELLIGENCE:    architect_agent, developer_agent, clean_code_reviewer
+  - G2 TEST INTELLIGENCE:   test_orchestrator, unit_test, integratie_test, e2e_test
+  - G3 E-COMMERCE VALIDATE: fraude_detectie, order_verwerking, voorraad_agent
+  - G4 RISK & DECISION:     fraude_detectie (risk), aanbeveling_agent, retour_verwerking
+  - G5 EXPLANATION:         klantenservice_agent, product_beschrijving, email_template
+  - G6 AUDIT:               audit_trace, decision_logging
+
+  ### Architectuur Principes
+  - DDD: aggregates, value objects, domain events, bounded contexts
+  - Alle backend code: async/await (FastAPI + SQLAlchemy async)
+  - API responses: Pydantic v2 modellen, geen naked dicts
+  - Tests verplicht voor alle nieuwe endpoints (pytest + httpx AsyncClient)
+  - Agents retourneren altijd 3-tuple: (response, interaction_id, validated_dict|None)
+  - Elke beslissing gelogd met trace_id voor audit trail
+
+examples:
+  - description: "Fraude detectie analyse"
+    input: |
+      {
+        "order_id": "ORD-2024-1234",
+        "order_value": 389.00,
+        "customer_age_days": 2,
+        "payment_method": "creditcard",
+        "delivery_country": "BE",
+        "billing_country": "BE",
+        "uses_vpn": false,
+        "previous_orders": 0
+      }
+    expected_output: |
+      {
+        "order_id": "ORD-2024-1234",
+        "risk_score": 52,
+        "risk_level": "MEDIUM",
+        "rationale": ["Nieuwe account (2 dagen oud)", "Eerste bestelling creditcard"],
+        "recommended_action": "REVIEW",
+        "requires_human": false,
+        "confidence": 0.78
+      }
+
+  - description: "Product beschrijving genereren"
+    input: |
+      {
+        "product_name": "Biologische Groene Thee 100g",
+        "category": "voeding",
+        "kenmerken": ["biologisch gecertificeerd", "losse thee", "Japanse oorsprong"],
+        "doelgroep": "gezondheidsgerichte consumenten",
+        "taal": "nl"
+      }
+    expected_output: |
+      {
+        "titel": "Biologische Japanse Groene Thee 100g — Puur & Oorspronkelijk",
+        "beschrijving": "Geniet van de verfijnde smaak van onze biologisch gecertificeerde groene thee...",
+        "seo_keywords": ["biologische groene thee", "Japanse thee kopen", "losse groene thee België"],
+        "btw_categorie": "6%",
+        "voldoet_aan_voedselwet": true
+      }
+
+  - description: "Order verwerking beslissing"
+    input: |
+      {
+        "order_id": "ORD-2024-5678",
+        "payment_status": "paid",
+        "fraud_score": 15,
+        "stock_available": true,
+        "customer_id": "CUST-789"
+      }
+    expected_output: |
+      {
+        "aanbeveling": "BEVESTIGEN",
+        "reden": "Betaling geslaagd, laag frauderisico, voorraad beschikbaar",
+        "volgende_stap": "PROCESSING",
+        "notificeer_klant": true,
+        "trace_id": "auto-generated"
+      }
