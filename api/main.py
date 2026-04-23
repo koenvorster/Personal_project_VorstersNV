@@ -17,6 +17,7 @@ from api.routers import (
     logs,
     notifications,
     orders,
+    portal,
     products,
     streaming,
 )
@@ -74,6 +75,7 @@ app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
 app.include_router(ai_platform.router, prefix="/api/ai", tags=["AI Platform"])
 app.include_router(streaming.router, prefix="/api/analyse", tags=["Streaming & SSE"])
 app.include_router(feedback.router, prefix="/api/portal", tags=["Feedback"])
+app.include_router(portal.router)
 
 
 @app.get("/", tags=["Algemeen"], summary="API Root")

@@ -671,7 +671,7 @@ Grootste klassen (gesplitst):
   GewaarborgdLoonServiceImp          2 chunks (~9.500 tokens)
   RekenResultatenBeheer              2 chunks (~9.200 tokens)
   AbstractBerekenSocialeBijdragen    2 chunks (~9.000 tokens)
-  StandaardRekenmotorWebService      2 chunks (~10.000 tokens)
+1  StandaardRekenmotorWebService      2 chunks (~10.000 tokens)
   MaandTotaalBeheerBasis             2 chunks (~11.500 tokens)
 
 ================================================================================

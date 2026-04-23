@@ -4,18 +4,30 @@ Automatically promotes winning A/B test variants when sufficient evidence exists
 """
 from __future__ import annotations
 
+import logging
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
 from ollama.ab_tester import VariantStatus, get_ab_tester
 from ollama.decision_journal import (
-    JournalEntry,
     VERDICT_APPROVED,
     VERDICT_REVIEW,
+    JournalEntry,
     get_decision_journal,
 )
+
+# ── Optionele FeedbackAnalyzer integratie (Wave 9) ────────────────────────────
+try:
+    from ollama.self_improvement import FeedbackAnalyzer as _FeedbackAnalyzer
+    from ollama.self_improvement import get_feedback_analyzer
+    _FEEDBACK_AVAILABLE = True
+except ImportError:
+    _FEEDBACK_AVAILABLE = False
+    _FeedbackAnalyzer = None  # type: ignore[assignment, misc]
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -47,6 +59,63 @@ class AutoPromoter:
     def __init__(self, config: Optional[PromoterConfig] = None):
         self.config = config or PromoterConfig()
         self._history: list[PromotionDecision] = []
+
+    def _check_feedback_gate(
+        self,
+        agent_name: str,
+        min_feedback_score: float = 4.0,
+        min_runs: int = 50,
+        dry_run: bool = False,
+    ) -> tuple[bool, str]:
+        """
+        Controleer of FeedbackAnalyzer de promotie goedkeurt.
+
+        Args:
+            agent_name:         Naam van de agent die beoordeeld wordt.
+            min_feedback_score: Minimale algehele score (1–5) voor promotie (standaard 4.0).
+            min_runs:           Minimaal aantal feedback-records vereist (standaard 50).
+            dry_run:            Indien True — evalueer maar voer geen blokkering uit.
+
+        Returns:
+            tuple ``(goedgekeurd: bool, reden: str)``.
+        """
+        if not _FEEDBACK_AVAILABLE:
+            return (True, "feedback_gate_overgeslagen")
+
+        analyzer = get_feedback_analyzer()
+        profiel = analyzer.analyseer_agent(agent_name)
+
+        score = profiel.algeheel_gemiddelde
+        trend = profiel.trend
+        runs = profiel.totaal_beoordelingen
+
+        if dry_run:
+            logger.info(
+                "Feedback gate [dry_run] %s — score=%.2f, trend=%s, runs=%d",
+                agent_name, score, trend, runs,
+            )
+
+        # Harde blokkering: score kritiek laag
+        if score < 3.0:
+            reden = f"score_te_laag:{score:.2f}"
+            logger.info("Feedback gate: %s — %s", agent_name, reden)
+            return (False, reden) if not dry_run else (True, f"[dry_run] zou blokkeren: {reden}")
+
+        # Blokkering: negatieve trend én score onder drempel
+        if trend == "dalend" and score < min_feedback_score:
+            reden = f"negatieve_trend:{trend}"
+            logger.info("Feedback gate: %s — %s", agent_name, reden)
+            return (False, reden) if not dry_run else (True, f"[dry_run] zou blokkeren: {reden}")
+
+        # Blokkering: onvoldoende data voor betrouwbare beoordeling
+        if runs < min_runs:
+            reden = f"onvoldoende_data:{runs}"
+            logger.info("Feedback gate: %s — %s", agent_name, reden)
+            return (False, reden) if not dry_run else (True, f"[dry_run] zou blokkeren: {reden}")
+
+        reden = f"feedback_ok:score={score:.2f},trend={trend}"
+        logger.info("Feedback gate: %s — %s", agent_name, reden)
+        return (True, reden)
 
     def evaluate_agent(self, agent_name: str) -> Optional[PromotionDecision]:
         """
@@ -105,18 +174,28 @@ class AutoPromoter:
         timestamp = datetime.now(timezone.utc).isoformat()
 
         if score_delta >= self.config.min_score_delta and winning_score >= self.config.min_winning_score:
-            promoted = self.config.auto_promote
-            reason = (
-                f"Variant {winning_vid} won with score {winning_score:.2%} "
-                f"(delta: {score_delta:.2%})"
-            )
+            # ── Feedback gate (Wave 9) ─────────────────────────────────────────
+            gate_ok, gate_reason = self._check_feedback_gate(agent_name)
+            if not gate_ok:
+                logger.info(
+                    "Promotie geblokkeerd door feedback gate voor '%s': %s",
+                    agent_name, gate_reason,
+                )
+                promoted = False
+                reason = f"Feedback gate geblokkeerd: {gate_reason}"
+            else:
+                promoted = self.config.auto_promote
+                reason = (
+                    f"Variant {winning_vid} won with score {winning_score:.2%} "
+                    f"(delta: {score_delta:.2%})"
+                )
 
-            if self.config.auto_promote:
-                for variant in config.variants:
-                    if variant.variant_id == winning_vid:
-                        variant.status = VariantStatus.WINNER
-                    elif variant.variant_id == losing_vid:
-                        variant.status = VariantStatus.LOSER
+                if self.config.auto_promote:
+                    for variant in config.variants:
+                        if variant.variant_id == winning_vid:
+                            variant.status = VariantStatus.WINNER
+                        elif variant.variant_id == losing_vid:
+                            variant.status = VariantStatus.LOSER
 
             entry = JournalEntry(
                 capability=config.capability,

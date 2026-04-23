@@ -16,6 +16,14 @@ from .client import OllamaClient, get_client
 from .memory import ContextAssembler, get_context_assembler
 from .prompt_iterator import PromptIterator
 
+# Optionele ReasoningLogger — als import mislukt, gewoon doorgaan
+try:
+    from .reasoning_logger import get_reasoning_logger as _get_reasoning_logger
+    _REASONING_LOGGER_AVAILABLE = True
+except Exception as _exc:  # pragma: no cover
+    logger.debug("ReasoningLogger niet beschikbaar: %s", _exc)
+    _REASONING_LOGGER_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 AGENTS_DIR = Path(__file__).parent.parent / "agents"
@@ -67,6 +75,8 @@ class Agent:
         context: dict[str, Any] | None = None,
         client: OllamaClient | None = None,
         session_id: str | None = None,
+        reasoning_logging_enabled: bool = True,
+        project_id: str | None = None,
     ) -> tuple[str, str, dict[str, Any] | None]:
         """
         Voer de agent uit met de gegeven input.
@@ -76,6 +86,8 @@ class Agent:
             context: Extra context-variabelen voor de pre-prompt
             client: Optioneel een aangepaste Ollama client
             session_id: Optioneel sessie-ID voor geheugen en context injectie
+            reasoning_logging_enabled: Sla chain-of-thought reasoning op (standaard True)
+            project_id: Optioneel project-ID voor reasoning-koppeling
 
         Returns:
             Tuple van (antwoord, interaction_id, validated_output)
@@ -122,6 +134,19 @@ class Agent:
         )
 
         logger.info("Agent '%s' klaar. Respons: %d tekens", self.name, len(response))
+
+        # Optioneel: log chain-of-thought reasoning
+        if reasoning_logging_enabled and _REASONING_LOGGER_AVAILABLE:
+            try:
+                _get_reasoning_logger().log_reasoning(
+                    llm_output=response,
+                    agent_name=self.name,
+                    model_name=self.model,
+                    project_id=project_id,
+                    input_tekst=user_input,
+                )
+            except Exception as _rl_exc:
+                logger.debug("ReasoningLogger fout (niet-kritiek): %s", _rl_exc)
 
         # Registreer assistant turn in geheugen indien sessie actief
         if session_id:

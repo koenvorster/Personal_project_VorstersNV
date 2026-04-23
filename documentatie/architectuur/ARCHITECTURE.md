@@ -1,6 +1,6 @@
 # VorstersNV – Projectarchitectuur
 
-> **AI Platform versie:** 5.0 | **Status:** Wave 8 COMPLEET — Revisie 5 volledig geïmplementeerd | **Datum:** April 2026
+> **AI Platform versie:** 5.0 | **Status:** Wave 9 COMPLEET — Revisie 5 volledig geïmplementeerd (alle gaps G-32..G-46 gesloten) | **Datum:** April 2026
 > **AI Masterplan:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (Revisie 5 — Enterprise Consultancy Intelligence Platform)
 
 ---
@@ -908,7 +908,7 @@ WAVE 6 — INTELLIGENCE FOUNDATIONS                      [COMPLEET ✅]
   W6-03 ✅  AdaptiveChunker (G-34)
   W6-04 ✅  EU AI Act classificatie (G-43)
   W6-05 ✅  CostForecaster (G-41)
-  W6-06 —   DiagramRenderer (G-37) — uitgesteld
+  W6-06 ✅  DiagramRenderer (G-37) — geïmplementeerd in Wave 9
   W6-07 ✅  AgentVersioning (G-44) → ollama/agent_versioning.py
 
 WAVE 7 — RAG & KNOWLEDGE GRAPH                         [COMPLEET ✅]
@@ -931,8 +931,32 @@ WAVE 8 — SELF-IMPROVEMENT LOOP                         [COMPLEET ✅]
             REFACTOR/SECURITY/MODERNIZE/PROCESS/COMPLIANCE/TRAINING
   W8-05 ✅  platform_report.py — wekelijks zelf-evaluatierapport (Markdown + JSON)
   W8-06 ✅  ab_tester.py uitgebreid — chi-square p-waarde + auto_beslis_winner()
-  FUTURE    DiagramRenderer (G-37) — uitgesteld naar Wave 9
+
+WAVE 9 — PORTAL, COMPLIANCE & REASONING                [COMPLEET ✅]
+────────────────────────────────────────────────────────────────────
+  W9-01 ✅  diagram_renderer.py — Mermaid/PlantUML rendering (G-37)
+            CLI probe (mmdc/plantuml) + graceful .md fallback
+            Frontend: /portal/projects/[id]/diagrams (Mermaid.js + <pre> fallback)
+  W9-02 ✅  compliance_engine.py — 4-laags GDPR/NIS2/BTW validator (G-46)
+            Laag 1: EU AI Act (HIGH-RISK agents)
+            Laag 2: GDPR (rijksregisternummer, bewaartermijn, PII)
+            Laag 3: NIS2 (incident keywords, CCN2.be meldplicht)
+            Laag 4: Belgian (BTW, herroepingstermijn, taalwetgeving)
+            + policies/nis2-policies.yaml (10 maatregelen, P1-P4 classificatie)
+  W9-03 ✅  api/routers/portal.py — 6 endpoints (POST/GET projects, status,
+            rapport, diagrams, forecasts) + frontend projectlijst/detail
+  W9-04 ✅  reasoning_logger.py — CoT-stap extractie + sessie-persistentie
+            + Alembic migration: agent_reasoning_logs tabel
+            + agent_runner.py update (optionele logging na LLM response)
+  W9-05 ✅  auto_promoter.py — FeedbackAnalyzer feedback gate
+            dry_run veilig, backward-compatible (gate overgeslagen als unavailable)
+  W9-06 ✅  228 nieuwe tests — compliance, diagram, reasoning, portal,
+            recommendation, platform (1649 tests totaal, 0 failures)
+
+  ALLE GAPS G-32..G-46 GESLOTEN — REVISIE 5 VOLLEDIG GEÏMPLEMENTEERD ✅
   FUTURE    CostForecaster v2 ML (scikit-learn) — vereist ≥20 historische projecten
+  FUTURE    GPU server integratie (gaming desktop als Ollama remote endpoint)
+  FUTURE    npm install mermaid (volledige Mermaid.js rendering, nu <pre> fallback)
 ```
 
 ---

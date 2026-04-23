@@ -440,3 +440,62 @@ class FeedbackRecordModel(Base):
         Index("ix_fr_agent_name",   "agent_name"),
         Index("ix_fr_aangemaakt_op","aangemaakt_op"),
     )
+
+
+class ReasoningLogModel(Base):
+    """
+    Persistente opslag van LLM reasoning/chain-of-thought logs (Wave 9+).
+
+    Elke rij bevat de geëxtraheerde reasoning-tekst van één agent-run,
+    met token-tellingen en het aantal chain-of-thought stappen.
+    Gebruikt voor analyse van redeneerpatronen en kwaliteitsmonitoring.
+    """
+    __tablename__ = "agent_reasoning_logs"
+
+    # ── Primaire sleutel (UUID-string, gegenereerd door Python) ──────────
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+
+    # ── Naam van de agent die de reasoning genereerde ────────────────────
+    agent_name: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    # ── Optionele koppeling naar een ClientProject (SET NULL bij verwijder)
+    project_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("client_projects.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    # ── Optioneel sessie-ID voor multi-turn correlatie ───────────────────
+    session_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    # ── De geëxtraheerde reasoning-tekst ────────────────────────────────
+    reasoning_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # ── Token-schattingen (input / reasoning / output) ───────────────────
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    reasoning_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+
+    # ── Model dat de reasoning genereerde ───────────────────────────────
+    model_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    # ── Aantal geïdentificeerde chain-of-thought stappen ─────────────────
+    chain_of_thought_steps: Mapped[int] = mapped_column(Integer, default=0)
+
+    # ── UTC-tijdstempel van aanmaak (auto-ingevuld door DB) ──────────────
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    # ── Tabel-level indexen ──────────────────────────────────────────────
+    __table_args__ = (
+        Index("ix_rl_agent_name", "agent_name"),
+        Index("ix_rl_project_id", "project_id"),
+        Index("ix_rl_created_at", "created_at"),
+    )

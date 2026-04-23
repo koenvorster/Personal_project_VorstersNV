@@ -40,6 +40,7 @@
 | **W6** | **Intelligence foundations** | ✅ COMPLEET | PII Scanner, ClientProjectSpace, AdaptiveChunker, SSE Streaming, EU AI Act, CostForecaster, AgentVersioning |
 | **W7** | **RAG & Knowledge Graph** | ✅ COMPLEET | rag_engine.py, HashEmbedding fallback, KnowledgeGraph (Mermaid), MixtureOfAgents, 9 sector benchmarks |
 | **W8** | **Self-improvement loop** | ✅ COMPLEET | SelfImprovementLoop, feedback API, recommendation_engine.py, platform_report.py, ab_tester chi-square |
+| **W9** | **Portal, Compliance & Reasoning** | ✅ COMPLEET | DiagramRenderer (G-37), ComplianceEngine GDPR/NIS2/BTW (G-46), Portal API (6 endpoints), ReasoningLogger + DB migratie, auto_promoter FeedbackAnalyzer gate, 228 nieuwe tests (1649 totaal) |
 
 ### Revisie 5 — Volledig geïmplementeerde modules
 
@@ -60,21 +61,25 @@
 | `ollama/platform_report.py` | W8 | ✅ |
 | `api/routers/feedback.py` | W8 | ✅ |
 | `api/routers/streaming.py` | G-40 | ✅ |
+| `ollama/diagram_renderer.py` | G-37 | ✅ |
+| `ollama/compliance_engine.py` | G-46 | ✅ |
+| `api/routers/portal.py` | W9 | ✅ |
+| `ollama/reasoning_logger.py` | W9 | ✅ |
+| `ollama/auto_promoter.py` (FeedbackAnalyzer gate) | W9 | ✅ |
+| `policies/nis2-policies.yaml` | W9 | ✅ |
 
-### Openstaande Future Items
+### Alle gaps G-32..G-46 gesloten ✅
 
-- `ollama/diagram_renderer.py` — G-37 (Mermaid/PlantUML rendering) → uitgesteld naar Wave 9
-- `ollama/compliance_engine.py` — G-46 (GDPR/NIS2 auto-validatie) → uitgesteld naar Wave 9
+Revisie 5 is volledig geïmplementeerd. **1649 tests, 0 failures.**
+
+### Future Items (post-Revisie 5)
+
 - `CostForecaster v2 ML` (scikit-learn) — vereist ≥20 historische projecten data
+- **GPU server integratie**: gaming desktop configureren als Ollama remote endpoint (`OLLAMA_BASE_URL=http://<desktop-ip>:11434`)
+- `npm install mermaid` — volledige Mermaid.js rendering in frontend (nu: graceful fallback naar `<pre>`)
+- Cypress E2E tests voor portal frontend (projectlijst, navigatie, detailpagina)
 
 ---
-
-## Volgende stappen (Wave 9 — gepland)
-
-1. **DiagramRenderer** (G-37): Mermaid/PlantUML rendering voor architectuurdiagrammen
-2. **ComplianceEngine** (G-46): GDPR/NIS2 auto-validatie per klantproject
-3. **Tests schrijven** voor Wave 6/7/8 modules (recommendation_engine, self_improvement, platform_report)
-4. **GPU server integratie**: gaming desktop configureren als Ollama remote endpoint
 
 Zie `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` voor volledige spec van alle gaps, modules en beslissingen.
 Gebruik `validate-agents.mjs` voor health checks van de Claude agent fleet.

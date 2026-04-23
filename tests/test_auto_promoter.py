@@ -3,6 +3,7 @@ Tests for ollama/auto_promoter.py — AutoPromoter, PromotionDecision, PromoterC
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -63,6 +64,24 @@ def _make_promoter_with_tester(tester: PromptABTester, config: PromoterConfig | 
     with patch("ollama.auto_promoter.get_ab_tester", return_value=tester):
         pass
     return promoter
+
+
+def _mock_feedback_gate_ok() -> MagicMock:
+    """
+    Maak een mock-FeedbackAnalyzer die de feedback gate altijd goedkeurt.
+
+    Retourneert een analyzer waarvan ``analyseer_agent()`` een profiel teruggeeft
+    met score=4.5 (stijgend), 100 beoordelingen — voldoet aan alle gate-drempels.
+    Gebruik in ``patch("ollama.auto_promoter.get_feedback_analyzer", return_value=mock)``.
+    """
+    mock_profiel = MagicMock()
+    mock_profiel.algeheel_gemiddelde = 4.5
+    mock_profiel.trend = "stabiel"
+    mock_profiel.totaal_beoordelingen = 100
+
+    mock_analyzer = MagicMock()
+    mock_analyzer.analyseer_agent.return_value = mock_profiel
+    return mock_analyzer
 
 
 # ── PromoterConfig defaults ───────────────────────────────────────────────────
@@ -211,6 +230,7 @@ class TestEvaluateAgentClearWinner:
         with (
             patch("ollama.auto_promoter.get_ab_tester", return_value=tester),
             patch("ollama.auto_promoter.get_decision_journal", return_value=journal),
+            patch("ollama.auto_promoter.get_feedback_analyzer", return_value=_mock_feedback_gate_ok()),
         ):
             result = promoter.evaluate_agent("test-agent")
         return result, cfg
@@ -267,6 +287,7 @@ class TestEvaluateAgentClearWinner:
         with (
             patch("ollama.auto_promoter.get_ab_tester", return_value=tester),
             patch("ollama.auto_promoter.get_decision_journal", return_value=journal),
+            patch("ollama.auto_promoter.get_feedback_analyzer", return_value=_mock_feedback_gate_ok()),
         ):
             promoter.evaluate_agent("test-agent")
         variant_a = next(v for v in cfg.variants if v.variant_id == "A")
@@ -441,6 +462,7 @@ class TestDecisionJournalIntegration:
         with (
             patch("ollama.auto_promoter.get_ab_tester", return_value=tester),
             patch("ollama.auto_promoter.get_decision_journal", return_value=journal),
+            patch("ollama.auto_promoter.get_feedback_analyzer", return_value=_mock_feedback_gate_ok()),
         ):
             promoter.evaluate_agent("test-agent")
         entry = list(journal._store.values())[0]
@@ -540,6 +562,7 @@ class TestGetPromotionHistory:
         with (
             patch("ollama.auto_promoter.get_ab_tester", return_value=tester),
             patch("ollama.auto_promoter.get_decision_journal", return_value=journal),
+            patch("ollama.auto_promoter.get_feedback_analyzer", return_value=_mock_feedback_gate_ok()),
         ):
             promoter.evaluate_agent("test-agent")
         history = promoter.get_promotion_history()
@@ -641,6 +664,7 @@ class TestEdgeCases:
         with (
             patch("ollama.auto_promoter.get_ab_tester", return_value=tester),
             patch("ollama.auto_promoter.get_decision_journal", return_value=journal),
+            patch("ollama.auto_promoter.get_feedback_analyzer", return_value=_mock_feedback_gate_ok()),
         ):
             result = promoter.evaluate_agent("test-agent")
         assert result is not None
