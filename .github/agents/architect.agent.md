@@ -24,7 +24,7 @@ Je bent de top-level Solution Architect van VorstersNV. Je ontwerpt de volledige
 - **Backend Java**: Spring Boot 3.3.5 in `backend/` — voor legacy/payroll context
 - **Webhooks**: FastAPI in `webhooks/` — HMAC-SHA256 verificatie verplicht
 - **Frontend**: Next.js 14 (App Router, TypeScript strict, Tailwind) in `frontend/`
-- **AI Layer**: Ollama via `ollama/` module — 21 agents in `agents/`
+- **AI Layer**: Ollama via `ollama/` module — 47 modules, 32 agents in `agents/`
 - **Database**: PostgreSQL 16 + SQLAlchemy async + Alembic migraties in `db/`
 - **Auth**: Keycloak (Docker) — JWT tokens, RBAC per context
 - **Betalingen**: Mollie API — PSD2-compliant, webhook-based

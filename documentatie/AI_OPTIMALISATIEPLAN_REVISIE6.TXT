@@ -1,0 +1,388 @@
+================================================================================
+VORSTERSNV AI CONSULTANCY INTELLIGENCE PLATFORM
+OPTIMALISATIEPLAN — REVISIE 6
+================================================================================
+Datum:      2026-04-23
+Auteur:     Solution Architect (AI)
+Basis:      Revisie 5 volledig (Waves W1-W9, gaps G-32..G-46 gesloten)
+            1649 tests, 0 failures
+Status:     ACTIEF — W10 gepland
+================================================================================
+
+1. REVISIE 6 VISIE
+──────────────────
+Revisie 5 bouwde de intelligentie-fabriek: alle AI-modules, RAG, compliance en
+portal-API zijn aanwezig maar alleen op localhost bruikbaar. Revisie 6 maakt het
+platform ÉCHT klantklaar: een beveiligde, multi-tenant portal die een klant zelf
+kan openen, zijn project live ziet analyseren, het rapport ontvangt per email én
+kan downloaden — terwijl de backend automatisch deployt naar Google Cloud Run bij
+elke commit op `main`. Het doel is één betalende klant te kunnen bedienen vóór
+einde Wave W11, met W12 als differentiatie-laag.
+
+================================================================================
+2. GAP ANALYSE — G-47..G-58
+================================================================================
+
+ID     Naam                                    Klasse          Prioriteit
+──────────────────────────────────────────────────────────────────────────
+G-47   Portal Authentication Gate ontbreekt   Auth/Security   BLOCKER
+       /portal/* routes zijn publiek toegankelijk. middleware.ts ontbreekt.
+       Elke gebruiker ziet alle projecten.
+
+G-48   Geen multi-tenant isolatie in Portal    Data/Privacy    BLOCKER
+       portal.py retourneert ALLE ClientProject-rijen zonder
+       WHERE tenant_id = current_user. GDPR-risico multi-klant.
+
+G-49   FastAPI niet gedeployd in CI/CD         Deployment      BLOCKER
+       deploy.yml deployt Java backend + webhooks + frontend maar
+       NIET Dockerfile.api (FastAPI). Het brein is niet live.
+
+G-50   Mermaid.js niet geïnstalleerd           Frontend        HIGH
+       diagram_renderer.py genereert Mermaid-syntax.
+       Frontend rendert als <pre> code. Professionele presentatie vereist visuals.
+
+G-51   Notificaties niet geïmplementeerd       Integratie      HIGH
+       notifications router geregistreerd, SMTP-config aanwezig,
+       maar geen implementatie. Klant weet niet dat rapport klaar is.
+
+G-52   Klant self-service project aanmaken     Frontend/UX     HIGH
+       API-endpoint POST /api/portal/projects bestaat maar geen frontend-form.
+       Klant kan geen project starten zonder directe API-call.
+
+G-53   Portal rapport-pagina ontbreekt         Frontend        HIGH
+       Navigatiekaart "Analyserapport" linkt naar /portal/projects/{id}/rapport
+       maar de pagina bestaat niet. Rapport API heeft data maar geen UI.
+
+G-54   Secrets management voor Cloud Run       Deployment      HIGH
+       .env files werken niet op Cloud Run. Secrets moeten via
+       Google Secret Manager. Deploy faalt zonder correct geconfigureerde secrets.
+
+G-55   GPU server integratie                   Performance     MEDIUM
+       OLLAMA_BASE_URL config bestaat. Gaming desktop beschikbaar.
+       ~290s/chunk op CPU → ~15s/chunk op GPU = 19× sneller.
+
+G-56   Rapport export / PDF download           Frontend/Value  MEDIUM
+       Klant wil rapport meenemen. Geen download-knop, geen PDF-export.
+
+G-57   Keycloak productie-setup                Auth            MEDIUM
+       Keycloak draait lokaal in Docker. Niet schaalbaar op Cloud Run.
+       Auth-strategie voor productie niet gedefinieerd.
+
+G-58   CostForecaster v2 ML                    AI/Intelligence LOW
+       Gemarkeerd in PLAN.md. Vereist ≥20 historische projecten.
+       Bewust uitgesteld tot voldoende data beschikbaar is.
+
+================================================================================
+3. WAVE W10 — PRODUCTION FOUNDATION
+================================================================================
+Thema:  Van localhost naar live demo
+Doel:   Eén echte klant kan het platform bereiken, inloggen en project-status zien
+
+W10.1 — Portal Auth Middleware (G-47)  [HOOGSTE PRIORITEIT]
+────────────────────────────────────
+Deliverable: frontend/middleware.ts
+  - export { default } from 'next-auth/middleware'
+  - config: { matcher: ['/portal/:path*', '/dashboard/:path*'] }
+  - Ongeauthenticeerd → redirect naar /login?callbackUrl=...
+
+Auth-strategie:
+  - Admin:  Keycloak SSO (al geïmplementeerd)
+  - Klant:  NextAuth EmailProvider (nodemailer, SMTP config bestaat al)
+  - Dev:    NextAuth dev-login (al geïmplementeerd)
+
+W10.2 — Multi-Tenant Portal Isolatie (G-48)
+────────────────────────────────────────────
+Deliverable: Alembic migration
+  - ALTER TABLE client_projects ADD COLUMN tenant_id VARCHAR(255)
+  - DEFAULT = klant_email (bestaande data backfill)
+  - INDEX op tenant_id voor performance
+
+Deliverable: portal.py update
+  - GET /api/portal/projects        → WHERE tenant_id = current_user.email
+  - POST /api/portal/projects       → set tenant_id = current_user.email
+  - GET /api/portal/projects/{id}/* → validate tenant_id == current_user.email
+
+W10.3 — FastAPI Deploy naar Cloud Run (G-49)
+─────────────────────────────────────────────
+Deliverable: .github/workflows/deploy.yml update
+  - Voeg job deploy-api toe (parallel aan deploy-backend)
+  - Build Dockerfile.api → push naar Artifact Registry
+  - gcloud run deploy vorstersNV-api
+  - Set-env-vars: DATABASE_URL, REDIS_URL, KEYCLOAK_URL, OLLAMA_BASE_URL
+  - Voeg NEXT_PUBLIC_API_URL toe vanuit FastAPI Cloud Run URL
+
+W10.4 — Secrets Management (G-54)
+──────────────────────────────────
+Deliverable: GCP Secret Manager setup
+  - Secrets: DB_PASSWORD, MOLLIE_API_KEY, NEXTAUTH_SECRET, WEBHOOK_SECRET
+  - Bind aan Cloud Run services via --set-secrets
+  - GitHub Actions secret: GCP_SA_KEY (secretAccessor role)
+  - deploy.yml: vervang --set-env-vars door --set-secrets
+
+W10.5 — Mermaid.js installeren (G-50)
+──────────────────────────────────────
+  cd frontend && npm install mermaid
+  - Vervang <pre>-fallback in diagram_renderer frontend component
+  - Lazy-load mermaid (dynamic import) voor bundle size
+  - Test met bestaande Mermaid-output van diagram_renderer.py
+
+Verwachte waarde W10:
+  ✅ Portal is niet meer publiek — GDPR-compliant
+  ✅ Admin kan URL sturen naar klant → klant logt in via email → ziet eigen project
+  ✅ FastAPI draait op Cloud Run, aanstuurbaar via klantportal
+  ✅ Fundament voor W11: auth + deploy + secrets als basis
+
+================================================================================
+4. WAVE W11 — CLIENT EXPERIENCE
+================================================================================
+Thema:  Professionele klantpresentatie
+Doel:   Klant kan zelfstandig project aanmaken, rapport lezen én downloaden
+
+W11.1 — Rapport-pagina in Portal (G-53)
+────────────────────────────────────────
+Deliverable: frontend/app/portal/projects/[id]/rapport/page.tsx
+  - Server Component: fetch GET /api/portal/projects/{id}/rapport
+  - Render Markdown met react-markdown + remark-gfm
+  - Syntax highlighting (prism/shiki) voor code-blokken
+  - Collapsible secties voor lange rapporten
+  - Download-knop (zie W11.3)
+
+W11.2 — Klant Self-Service Onboarding (G-52)
+─────────────────────────────────────────────
+Deliverable: frontend/app/portal/projects/nieuw/page.tsx
+  - Client Component (form)
+  - Velden: project_naam, beschrijving, project_type (dropdown), codebase upload
+  - Submit → POST /api/portal/projects
+  - Success → redirect naar /portal/projects/{id}
+  - Validatie: project_type ∈ [code_analyse, bedrijfsproces, security_audit]
+
+Deliverable: POST /api/portal/projects/{id}/upload
+  - Accepteert .zip, .tar.gz, individuele bestanden
+  - Sla op in /tmp/projects/{tenant_id}/{project_id}/
+  - Trigger background analyse via BackgroundTasks
+
+W11.3 — Rapport Export / PDF Download (G-56)
+─────────────────────────────────────────────
+Deliverable: Frontend download-knop (Markdown)
+  - "Download .md" knop op rapport-pagina
+  - Blob download via window.URL.createObjectURL
+
+Deliverable: PDF export
+  - GET /api/portal/projects/{id}/rapport/pdf
+  - Browser-side print-to-PDF via window.print() met @media print CSS
+  - Alternatief: weasyprint server-side (als kwaliteit onvoldoende)
+
+W11.4 — Email Notificaties (G-51)
+──────────────────────────────────
+Deliverable: api/routers/notifications.py (vullen)
+  - POST /api/notifications/send (intern, auth vereist)
+  - Body: {type: "rapport_gereed", project_id, klant_email}
+  - aiosmtplib voor async email verzending
+  - Jinja2 HTML templates: templates/email/rapport_gereed.html
+
+Deliverable: portal.py integratie
+  - Na status-update "rapport_gereed":
+    background_tasks.add_task(stuur_email_rapport_gereed, project_id, klant_email)
+
+W11.5 — Keycloak Productie-strategie (G-57)
+─────────────────────────────────────────────
+BESLISSING: NextAuth JWT-only voor W11 (snelheid > perfectie)
+
+  OPTIE A (gekozen): NextAuth + JWT-only, geen externe auth server
+    - FastAPI JWT validatie via gedeeld NEXTAUTH_SECRET
+    - Nul externe dependency, werkt direct op Cloud Run
+    - Keycloak blijft lokaal via Docker Compose voor admin
+
+  OPTIE B (later): Keycloak op separate Cloud Run instance
+    - Plannen voor Revisie 7 indien RBAC management vereist
+
+Verwachte waarde W11:
+  ✅ End-to-end klantflow: aanmaken → analyseren → rapport lezen → downloaden
+  ✅ Professionele presentatie: Mermaid + Markdown + branded PDF
+  ✅ Klant krijgt email → geen polling nodig
+  ✅ Klant kan project starten zonder hulp van Koen
+
+================================================================================
+5. WAVE W12 — INTELLIGENCE & SCALE
+================================================================================
+Thema:  Differentiatie en schaalbaarheid
+Doel:   Platform presteert 10× sneller, toont intelligence-waarde aan klant
+
+W12.1 — GPU Server Integratie (G-55)
+──────────────────────────────────────
+Deliverable: Dual Ollama routing in ollama/client.py
+  - GPU_AVAILABLE = bool(OLLAMA_GPU_URL)
+  - Routing: grote chunks → GPU, kleine → CPU
+  - Health check vóór routing: GET {OLLAMA_GPU_URL}/api/tags
+  - Fallback: als GPU unreachable → CPU met waarschuwing
+
+Deliverable: .env.example update
+  OLLAMA_GPU_URL=http://192.168.1.x:11434   # gaming desktop
+  OLLAMA_GPU_MODEL=llama3:70b               # groter model op GPU
+
+Deliverable: Tailscale VPN setup documentatie
+  - Veilige tunnel laptop ↔ gaming desktop
+  - Alternatief: ZeroTier
+
+Impact: ~290s/chunk → ~15s/chunk = 19× sneller
+
+W12.2 — Real-Time Pipeline Progress in Portal
+──────────────────────────────────────────────
+Deliverable: GET /api/portal/projects/{id}/stream (SSE)
+  - Hergebruik bestaande streaming.py infrastructuur
+  - Events: {step: "PII_scan", percent: 15, message: "..."}
+  - Frontend: EventSource hook in project-detail pagina
+  - Auto-close na status = "rapport_gereed"
+
+Deliverable: frontend/app/portal/projects/[id]/page.tsx update
+  - Client Component + EventSource
+  - Animated live progress bar
+  - Live log-stream: laatste N berichten in sidepanel
+
+W12.3 — Knowledge Graph Visualisatie in Portal
+───────────────────────────────────────────────
+Deliverable: GET /api/portal/projects/{id}/graph
+  - Exporteer KnowledgeGraph als Cytoscape.js / D3.js JSON
+  - Nodes: componenten, modules, afhankelijkheden
+  - Edges: import-relaties, call-chains
+
+Deliverable: frontend/app/portal/projects/[id]/graph/page.tsx
+  - Interactieve graaf-visualisatie (cytoscape-js)
+  - Filter op node-type (class, module, service)
+  - Click-to-expand voor details
+
+W12.4 — Platform Intelligence Dashboard (klant-variant)
+─────────────────────────────────────────────────────────
+Deliverable: frontend/app/portal/dashboard/page.tsx
+  - Mijn projecten (status overzicht)
+  - Analyse-uren gespaard vs. handmatige audit
+  - Kostenoverzicht (CostForecaster output)
+  - Aanbevelingen van recommendation_engine.py
+  - "Vraag nieuwe analyse aan" CTA
+
+W12.5 — CostForecaster v2 Eerste Iteratie (G-58)
+──────────────────────────────────────────────────
+Deliverable: ollama/cost_forecaster_v2.py
+  - SimpleLinearRegression: inputgrootte → tokens → kosten/uren
+  - Minimaal 5 projecten voldoende (niet 20)
+  - scikit-learn: LinearRegression, joblib pickle
+  - Confidence interval op basis van projectvariabiliteit
+  - Fallback naar v1 (heuristic) als <5 datapunten
+
+Verwachte waarde W12:
+  ✅ 19× snellere analyses via GPU routing
+  ✅ Live progress → klant ziet wat er gebeurt
+  ✅ Visuele knowledge graph → indrukwekkende demo
+  ✅ Klant dashboard met ROI-visualisatie
+
+================================================================================
+6. TECHNISCHE BESLISSINGEN
+================================================================================
+
+6.1 AUTHENTICATIE — DEFINITIEVE KEUZE
+──────────────────────────────────────
+Aanbeveling: NextAuth v5 (Auth.js) als primaire auth-laag
+
+| Criterium           | NextAuth | Keycloak Docker | Auth0/Supabase |
+|---------------------|----------|-----------------|----------------|
+| Werkt op Cloud Run  | ✅       | ❌ (stateful)   | ✅             |
+| Al geïnstalleerd    | ✅       | ✅ (Docker)     | ❌             |
+| Klant email-login   | ✅       | ✅ (complex)    | ✅             |
+| Admin Keycloak SSO  | ✅       | ✅ native       | via OIDC       |
+| Onderhoud           | Laag     | Hoog            | Geen           |
+
+BESLISSING: NextAuth middleware.ts + JWT-only voor W10/W11
+            Keycloak blijft voor admin via Docker Compose lokaal
+
+6.2 MULTI-TENANT — MINIMALE REFACTOR AANPAK
+────────────────────────────────────────────
+Row-Level Security via applicatielaag (niet PostgreSQL RLS):
+
+  ALTER TABLE client_projects ADD COLUMN tenant_id VARCHAR(255);
+  UPDATE client_projects SET tenant_id = klant_email;
+  CREATE INDEX ix_client_projects_tenant_id ON client_projects(tenant_id);
+
+Elke portal API-call voegt WHERE tenant_id = jwt.email toe.
+PostgreSQL RLS plannen voor Revisie 7 als defense-in-depth.
+
+6.3 CLOUD RUN DEPLOYMENT — PRIORITEITVOLGORDE
+──────────────────────────────────────────────
+W10: deploy-api job toevoegen aan deploy.yml
+W10: Secrets via GCP Secret Manager
+W11: NextAuth JWT-only voor productie
+W12: Eventueel Keycloak op aparte Cloud Run instance
+
+Deploy volgorde per commit op main:
+  CI (pytest + ruff + mypy + nextjs build)
+    → deploy-api     (FastAPI)
+    → deploy-webhooks (parallel)
+    → deploy-frontend (wacht op api URL)
+
+6.4 KRITISCH PAD NAAR EERSTE DEMO
+───────────────────────────────────
+3 werkdagen voor eerste werkende klantdemo:
+  Dag 1 ochtend: middleware.ts (2u) + EmailProvider NextAuth (4u)
+  Dag 1 namiddag: deploy.yml FastAPI job (4u)
+  Dag 2: Rapport-pagina frontend (1 dag)
+  Dag 3 ochtend: Email notificatie (4u) + testen
+
+================================================================================
+7. RISICO'S EN MITIGATIES
+================================================================================
+
+Risico                          Kans    Impact  Mitigatie
+──────────────────────────────────────────────────────────────────────────────
+Cloud Run cold start            Hoog    Medium  --min-instances=1 voor portal
+(~5s startup FastAPI)                           Accepteer kosten (~€5/mnd dev)
+
+Ollama timeout op Cloud Run     Hoog    KRITIEK Analyseer asynchroon via
+(analyse duurt minuten,                         BackgroundTasks + SSE polling
+Cloud Run timeout 60s)                          Verhoog timeout naar 3600s
+
+Email deliverability            Medium  Hoog    Gebruik Resend.com of SendGrid
+(magic links in spam)                           Voeg SPF/DKIM toe
+
+GCP kosten overschrijding       Medium  Medium  Budget alerts ($20/mnd hard stop)
+                                                Cloud SQL Shared Core (€7/mnd)
+
+Mermaid bundle size             Laag    Medium  dynamic(() => import('mermaid'),
+(~2MB gzipped)                                  { ssr: false })
+                                                Alleen laden op rapport-pagina
+
+PostgreSQL schema drift         Medium  Medium  tenant_id als nullable toevoegen
+(tenant_id migration)                           Bestaande tests blijven werken
+                                                Backfill in aparte migration
+
+GPU server onbeschikbaar        Hoog    Laag    Health check + graceful fallback
+(gaming desktop uit)                            naar CPU met gebruikerswaarschuwing
+
+================================================================================
+8. WAVES SAMENVATTING
+================================================================================
+
+Wave  Thema                   Kritieke Deliverables              Klantwaarde
+──────────────────────────────────────────────────────────────────────────────
+W10   Production Foundation   Auth middleware, tenant isolatie,   Platform veilig
+                              FastAPI deploy, Secrets, Mermaid    en live
+
+W11   Client Experience       Rapport-pagina, project form,       Eerste betalende
+                              PDF download, email notificatie     klant mogelijk
+
+W12   Intelligence & Scale    GPU routing, live SSE progress,     Differentiatie
+                              knowledge graph UI, dashboard       premium platform
+
+Na W10: Veilig, deployed, één klant kan inloggen
+Na W11: Volledig self-service, rapport leesbaar, email-notificatie
+Na W12: 19× snellere analyses, visuele knowledge graph, klant ziet ROI
+
+================================================================================
+9. EERSTE WEEK AANBEVOLEN ACTIES
+================================================================================
+
+1. frontend/middleware.ts          — 30 regels, beschermt onmiddellijk portal
+2. Alembic migration tenant_id     — 1 bestand, lost GDPR-risico op
+3. deploy.yml uitbreiden deploy-api — FastAPI live op Cloud Run voor demo
+
+================================================================================
+EINDE REVISIE 6 PLAN
+================================================================================

@@ -18,14 +18,15 @@
 - **19 skills** in `.claude/skills/` (folder-structuur met SKILL.md)
 - **5 workflow pipelines** in `ollama/workflows/` (YAML-geladen)
 - **3 skill chains** in `ollama/workflows/chains/`
-- **FastAPI backend** met 11 routers, JWT/Keycloak auth
-- **Next.js frontend** met blog, portfolio, how-to's
+- **FastAPI backend** met 11 routers (incl. portal, feedback, streaming), JWT/Keycloak auth
+- **Next.js frontend** met blog, portfolio, how-to's, portal klantpagina's
 - **Quality Gate systeem** (QG-FRAUD-01..QG-CONTENT-01)
 - **Event-driven orchestrator** (SkillChainOrchestrator)
-- **29 ollama/ modules** (Control Plane, policy engine, A/B tester, deployment rings, ...)
+- **47 ollama/ modules** (Control Plane, policy engine, A/B tester, deployment rings, RAG, KnowledgeGraph, compliance_engine, diagram_renderer, reasoning_logger, ...)
 - **Consultancy tooling**: `scripts/analyse_project.py`, `code_analyse_agent`, `consultancy_orchestrator`
 
-**AI Masterplan:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (Revisie 5 — actief)
+**AI Masterplan Revisie 5:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (COMPLEET — alle gaps G-32..G-46 gesloten)
+**AI Masterplan Revisie 6:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE6.TXT` (ACTIEF — W10 gepland)
 
 ---
 
@@ -72,14 +73,47 @@
 
 Revisie 5 is volledig geïmplementeerd. **1649 tests, 0 failures.**
 
-### Future Items (post-Revisie 5)
+### Future Items (post-Revisie 5 → Revisie 6)
 
 - `CostForecaster v2 ML` (scikit-learn) — vereist ≥20 historische projecten data
-- **GPU server integratie**: gaming desktop configureren als Ollama remote endpoint (`OLLAMA_BASE_URL=http://<desktop-ip>:11434`)
+- **GPU server integratie**: gaming desktop configureren als Ollama remote endpoint (`OLLAMA_GPU_URL=http://<desktop-ip>:11434`)
 - `npm install mermaid` — volledige Mermaid.js rendering in frontend (nu: graceful fallback naar `<pre>`)
 - Cypress E2E tests voor portal frontend (projectlijst, navigatie, detailpagina)
 
 ---
 
-Zie `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` voor volledige spec van alle gaps, modules en beslissingen.
+## Revisie 6 — Klantklaar Platform
+
+> Volledige detailspec: `documentatie/AI_OPTIMALISATIEPLAN_REVISIE6.TXT`
+> 12 nieuwe gaps (G-47..G-58) geïdentificeerd; 3 zijn BLOCKERS.
+
+**Visie**: platform écht klantklaar maken — één betalende klant bedienen vóór einde Wave W11.
+
+| Wave | Scope | Status | Key deliverables |
+|------|-------|--------|-----------------|
+| **W10** | **Production Foundation** | 🟡 GEPLAND | Portal auth middleware, multi-tenant isolatie, FastAPI Cloud Run deploy, GCP Secret Manager, Mermaid.js installatie |
+| **W11** | **Client Experience** | ⬜ BACKLOG | Rapport-pagina portal, klant self-service onboarding, PDF-export, email notificaties (aiosmtplib) |
+| **W12** | **Differentiatie** | ⬜ BACKLOG | GPU server integratie, CostForecaster v2 ML, geavanceerde portal analytics |
+
+### Revisie 6 Gaps
+
+| Gap | Naam | Klasse | Prioriteit |
+|-----|------|--------|-----------|
+| G-47 | Portal Authentication Gate | Auth/Security | BLOCKER |
+| G-48 | Multi-tenant isolatie Portal | Data/Privacy | BLOCKER |
+| G-49 | FastAPI niet gedeployd in CI/CD | Deployment | BLOCKER |
+| G-50 | Mermaid.js niet geïnstalleerd | Frontend | HIGH |
+| G-51 | Notificaties niet geïmplementeerd | Integratie | HIGH |
+| G-52 | Klant self-service project aanmaken | Frontend/UX | HIGH |
+| G-53 | Portal rapport-pagina ontbreekt | Frontend | HIGH |
+| G-54 | Secrets management voor Cloud Run | Deployment | HIGH |
+| G-55 | GPU server integratie | Performance | MEDIUM |
+| G-56 | Rapport export / PDF download | Frontend/Value | MEDIUM |
+| G-57 | Keycloak productie-setup | Auth | MEDIUM |
+| G-58 | CostForecaster v2 ML | AI/Intelligence | LOW |
+
+---
+
+Zie `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` voor volledige Revisie 5 spec.
+Zie `documentatie/AI_OPTIMALISATIEPLAN_REVISIE6.TXT` voor de Revisie 6 roadmap (W10-W12).
 Gebruik `validate-agents.mjs` voor health checks van de Claude agent fleet.

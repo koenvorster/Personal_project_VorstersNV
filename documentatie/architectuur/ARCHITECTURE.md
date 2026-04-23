@@ -1,7 +1,8 @@
 # VorstersNV – Projectarchitectuur
 
-> **AI Platform versie:** 5.0 | **Status:** Wave 9 COMPLEET — Revisie 5 volledig geïmplementeerd (alle gaps G-32..G-46 gesloten) | **Datum:** April 2026
-> **AI Masterplan:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (Revisie 5 — Enterprise Consultancy Intelligence Platform)
+> **AI Platform versie:** 5.0 (Revisie 6 gepland) | **Status:** Wave 9 COMPLEET — Revisie 5 volledig geïmplementeerd (alle gaps G-32..G-46 gesloten) | Wave 10 gepland | **Datum:** April 2026
+> **AI Masterplan Revisie 5:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (COMPLEET)
+> **AI Masterplan Revisie 6:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE6.TXT` (ACTIEF — W10 gepland)
 
 ---
 
@@ -104,7 +105,8 @@ REVISIE 4: AI CONTROLLED PLATFORM met governance, maturity en rollout
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │                   AGENT FLEET (6 groepen)                     │   │
 │  │  .claude/agents/ │ agents/ │ ollama/agent_runner.py           │   │
-│  │  15+ agents │ 6 tools │ ollama/agent_groups.py               │   │
+│  │  15+ agents │ 6 tools │ ollama/agent_groups.py               │
+│  │  32 Ollama runtime agents │ 49 Claude agents                 │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                      │
 │  ollama/contracts.py — typed domain contracts (input/output)        │
@@ -826,6 +828,13 @@ L4 BUSINESS EVAL   → ollama/quality_monitor.py + Grafana N3 dashboard
 | `ollama/observability.py`                | Trust Plane      | N1/N2/N3 metrics, dashboard snapshot             |
 | `ollama/deployment_rings.py`             | Trust Plane      | RingPolicy, RingGateChecker, promotie criteria   |
 | `ollama/schema_validator.py`             | Trust Plane      | L1 unit eval, schema compliance                  |
+| `ollama/compliance_engine.py`            | Compliance Engine| GDPR/NIS2/BTW/EU AI Act 4-laags validator (W9)  |
+| `ollama/diagram_renderer.py`             | Consultancy      | Mermaid/PlantUML rendering met CLI probe (W9)    |
+| `ollama/reasoning_logger.py`             | Consultancy      | CoT-stap extractie + sessie-persistentie (W9)    |
+| `api/routers/portal.py`                  | Portal API       | 6 endpoints: projecten, status, rapport, diagrams, forecasts |
+| `api/routers/feedback.py`                | Feedback API     | POST/GET feedback per project (W8)               |
+| `api/routers/streaming.py`               | SSE Streaming    | Server-Sent Events voor live analyse-updates (W6) |
+| `policies/nis2-policies.yaml`            | Policy-as-Code   | NIS2 maatregelen P1-P4, 10 items (W9)            |
 | `ollama/memory.py`                       | Infrastructure   | Context memory, versioned injection              |
 | `ollama/skill_loader.py`                 | Infrastructure   | Skill .md bestanden laden                        |
 | `ollama/workflow_loader.py`              | Infrastructure   | YAML workflow configs laden                      |
@@ -836,7 +845,8 @@ L4 BUSINESS EVAL   → ollama/quality_monitor.py + Grafana N3 dashboard
 | `policies/hitl-policies.yaml`            | Policy-as-Code   | HITL-001..003 regels                             |
 | `policies/tool-policies.yaml`            | Policy-as-Code   | TOOL-001..002 allow/deny per capability          |
 | `policies/maturity-policies.yaml`        | Policy-as-Code   | Maturity-omgeving restricties                    |
-| `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` | Documentatie | Masterplan Revisie 5, gaps G-32..G-46, Waves 6–8 |
+| `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` | Documentatie | Masterplan Revisie 5, gaps G-32..G-46, Waves 6–9 (COMPLEET) |
+| `documentatie/AI_OPTIMALISATIEPLAN_REVISIE6.TXT` | Documentatie | Masterplan Revisie 6, gaps G-47..G-58, Waves 10–12 (ACTIEF) |
 | `documentatie/AI_OPTIMALISATIEPLAN.TXT`  | Documentatie     | Masterplan Revisie 4, gaps G-01..G-31, Waves 1–5 (archief) |
 
 ---
@@ -957,6 +967,46 @@ WAVE 9 — PORTAL, COMPLIANCE & REASONING                [COMPLEET ✅]
   FUTURE    CostForecaster v2 ML (scikit-learn) — vereist ≥20 historische projecten
   FUTURE    GPU server integratie (gaming desktop als Ollama remote endpoint)
   FUTURE    npm install mermaid (volledige Mermaid.js rendering, nu <pre> fallback)
+
+═══════════════════════════════════════════════════════════════════
+  REVISIE 6 — KLANTKLAAR PLATFORM
+  Zie: documentatie/AI_OPTIMALISATIEPLAN_REVISIE6.TXT
+  12 nieuwe gaps (G-47..G-58) — 3 BLOCKERS
+═══════════════════════════════════════════════════════════════════
+
+WAVE 10 — PRODUCTION FOUNDATION                        [GEPLAND 🟡]
+────────────────────────────────────────────────────────────────────
+  W10-01 🟡  Portal Auth Middleware (G-47) — frontend/middleware.ts
+             NextAuth EmailProvider voor klanten + Keycloak voor admins
+  W10-02 🟡  Multi-Tenant Portal Isolatie (G-48) — Alembic migration
+             tenant_id kolom op client_projects + portal.py WHERE-filter
+  W10-03 🟡  FastAPI Deploy naar Cloud Run (G-49) — deploy.yml update
+             Dockerfile.api → Artifact Registry → Cloud Run vorstersNV-api
+  W10-04 🟡  GCP Secrets Management (G-54) — Google Secret Manager
+             DB_PASSWORD, MOLLIE_API_KEY, NEXTAUTH_SECRET via --set-secrets
+  W10-05 🟡  Mermaid.js installeren (G-50) — npm install mermaid
+             Vervangt <pre>-fallback in diagram_renderer frontend component
+
+WAVE 11 — CLIENT EXPERIENCE                            [BACKLOG ⬜]
+────────────────────────────────────────────────────────────────────
+  W11-01 ⬜  Rapport-pagina Portal (G-53)
+             frontend/app/portal/projects/[id]/rapport/page.tsx
+  W11-02 ⬜  Klant Self-Service Onboarding (G-52)
+             Wizard: project aanmaken + codebase uploaden
+  W11-03 ⬜  PDF Export (G-56)
+             /api/portal/projects/{id}/rapport/export → PDF download
+  W11-04 ⬜  Email Notificaties (G-51)
+             aiosmtplib + SMTP_FROM — klant ontvangt mail als rapport klaar is
+
+WAVE 12 — DIFFERENTIATIE                               [BACKLOG ⬜]
+────────────────────────────────────────────────────────────────────
+  W12-01 ⬜  GPU Server Integratie (G-55)
+             OLLAMA_GPU_URL → gaming desktop RTX 3090/4070 Ti
+             ~290s/chunk → ~15s/chunk (19× sneller)
+  W12-02 ⬜  CostForecaster v2 ML (G-58)
+             scikit-learn regressie — vereist ≥20 historische projecten
+  W12-03 ⬜  Keycloak Productie-Setup (G-57)
+             Auth-strategie voor Cloud Run productie
 ```
 
 ---

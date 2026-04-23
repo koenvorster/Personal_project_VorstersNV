@@ -6,6 +6,7 @@ Provides guidance to Claude Code when working in this repository.
 
 **VorstersNV** is een freelance IT/AI-consultancy platform voor Belgische KMOs.
 **Focus (Fase 6)**: legacy code-analyse, bedrijfsproces automatisering, AI-agents bouwen voor klanten.
+**Revisie 6 doel (W10–W12)**: klantklaar platform — portal auth, multi-tenant isolatie, Cloud Run deploy (FastAPI), klantrapportage UI, PDF-export, email notificaties.
 The webshop component is deprioritized — consultancy tooling is the primary development target.
 
 Full-stack monorepo:
@@ -65,6 +66,10 @@ python agent_runner.py --agent code_analyse_agent --spec "..."  # directe agent 
 | `agents/klant_rapport_agent.yml` | `agents/` | Klantgerichte samenvatting genereren |
 | `agents/bedrijfsproces_agent.yml` | `agents/` | Bedrijfsproces AS-IS/TO-BE mapping |
 | `agents/consultancy_orchestrator.yml` | `agents/` | End-to-end consultancy workflow |
+| `ollama/compliance_engine.py` | `ollama/` | GDPR / NIS2 / BTW / EU AI Act validator (4-laags) |
+| `ollama/diagram_renderer.py` | `ollama/` | Mermaid/PlantUML architectuurdiagrammen genereren |
+| `ollama/reasoning_logger.py` | `ollama/` | Chain-of-thought stappen loggen per agent-sessie |
+| `api/routers/portal.py` | `api/routers/` | Klantportal API (6 endpoints: projecten, status, rapport, diagrams, forecasts) |
 | `documentatie/analyse/` | `documentatie/` | Gegenereerde klantanalyses opslaan |
 
 ### Analyse starten
@@ -106,6 +111,9 @@ Met RTX 3090/4070 Ti: mistral:7B in ~1-2s, modellen tot 34B parameters.
 | **Payments** | Payment, Refund | `api/routers/betalingen.py` |
 | **Notifications** | Notification | `api/routers/notifications.py` |
 | **Dashboard** | Metrics | `api/routers/dashboard.py` |
+| **Portal** | ClientProject | `api/routers/portal.py` |
+| **Feedback** | FeedbackRecord | `api/routers/feedback.py` |
+| **Streaming** | SSE stream | `api/routers/streaming.py` |
 
 ## Architecture Decision: FastAPI is the primary backend
 
@@ -141,7 +149,10 @@ Met RTX 3090/4070 Ti: mistral:7B in ~1-2s, modellen tot 34B parameters.
 
 ## Ollama Agent System
 
-Agent YAML files in `agents/` define runtime AI agents. Loaded by `agent_runner.py`:
+**47 modules** in `ollama/` (Control Plane, Capability Plane, Execution Plane, Trust Plane, Consultancy Intelligence).
+Key Wave 9 modules: `compliance_engine.py`, `diagram_renderer.py`, `reasoning_logger.py`.
+
+Agent YAML files in `agents/` define runtime AI agents (32 YAML-bestanden). Loaded by `agent_runner.py`:
 
 ```yaml
 name: my_agent
@@ -167,6 +178,17 @@ NEXTAUTH_URL=
 MOLLIE_API_KEY=       # live/test key
 KEYCLOAK_URL=
 REDIS_URL=
+# SMTP (W11 notificaties)
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=
+# Cloud Run (Revisie 6 / W10)
+GCP_PROJECT_ID=
+GCP_REGION=europe-west1
+# GPU server (Revisie 6 / W12, optioneel)
+OLLAMA_GPU_URL=       # http://<gaming-desktop-ip>:11434
 ```
 
 ## Atlassian

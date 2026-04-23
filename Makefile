@@ -1,7 +1,7 @@
 # VorstersNV – Makefile
 # Gebruik: make <target>
 
-.PHONY: up down api frontend test lint migrate
+.PHONY: up down api webhooks frontend test lint mypy typecheck coverage migrate migrate-analytics migration migration-analytics mode build-mode validate-agents
 
 ## Start alle services (Ollama, PostgreSQL, Redis, Webhooks)
 up:
@@ -27,25 +27,36 @@ frontend:
 test:
 	python3 -m pytest tests/ -v --tb=short
 
-## Draai linter
+## Draai tests met coverage rapport
+coverage:
+	python3 -m pytest tests/ -v --cov=api --cov=ollama --cov-report=term-missing
+
+## Draai linter (Ruff)
 lint:
-	~/.local/bin/ruff check .
+	ruff check .
+
+## Draai type-checker (mypy)
+mypy:
+	mypy api/ ollama/ --ignore-missing-imports
+
+## Alias voor mypy
+typecheck: mypy
 
 ## Webshop DB migratie uitvoeren
 migrate:
-	~/.local/bin/alembic -c alembic.ini upgrade head
+	alembic -c alembic.ini upgrade head
 
 ## Analytics DB migratie uitvoeren
 migrate-analytics:
-	~/.local/bin/alembic -c alembic_analytics.ini upgrade head
+	alembic -c alembic_analytics.ini upgrade head
 
 ## Nieuwe migratie aanmaken (webshop DB)
 migration:
-	~/.local/bin/alembic -c alembic.ini revision --autogenerate -m "$(msg)"
+	alembic -c alembic.ini revision --autogenerate -m "$(msg)"
 
 ## Nieuwe migratie aanmaken (analytics DB)
 migration-analytics:
-	~/.local/bin/alembic -c alembic_analytics.ini revision --autogenerate -m "$(msg)"
+	alembic -c alembic_analytics.ini revision --autogenerate -m "$(msg)"
 
 ## Toon project mode
 mode:
@@ -54,3 +65,7 @@ mode:
 ## Zet op build mode
 build-mode:
 	python3 scripts/set_mode.py --mode build
+
+## Valideer alle Claude agents met validate-agents.mjs
+validate-agents:
+	node .claude/scripts/validate-agents.mjs

@@ -6,6 +6,7 @@ VorstersNV is een freelance **IT/AI-consultancy platform** voor Belgische KMOs, 
 Het project bestaat uit een **FastAPI backend**, **Next.js frontend**, een **YAML-gebaseerd agent-systeem** en **consultancy tooling**.
 
 **Primaire focus (Fase 6)**: legacy code-analyse, bedrijfsproces automatisering, AI-agents bouwen voor klanten.
+**Revisie 6 (W10–W12)**: klantklaar platform — portal auth, multi-tenant isolatie, Cloud Run FastAPI deploy, klantrapportage UI, PDF-export, email notificaties.
 De webshop is lager geprioriteerd — consultancy tools zijn het actieve ontwikkeldomein.
 
 ---
@@ -26,11 +27,20 @@ Personal_project_VorstersNV/
 ├── .github/
 │   ├── agents/               # 29 Copilot development agents (.agent.md)
 │   └── copilot-instructions.md
-├── agents/                   # Runtime Ollama agent YAML-definities (21 bestanden)
-├── ollama/                   # Ollama Python module
+├── agents/                   # Runtime Ollama agent YAML-definities (32 bestanden)
+├── ollama/                   # Ollama Python module (47 modules)
 │   ├── client.py             # OllamaClient – HTTP-communicatie met Ollama
 │   ├── agent_runner.py       # Laadt agent YAML + voert agent uit
-│   └── prompt_iterator.py    # Prompt-versies vergelijken via feedback-scores
+│   ├── prompt_iterator.py    # Prompt-versies vergelijken via feedback-scores
+│   ├── control_plane.py      # Centrale routing, policy, HITL, ring-beslissing
+│   ├── compliance_engine.py  # GDPR / NIS2 / BTW / EU AI Act validator (W9)
+│   ├── diagram_renderer.py   # Mermaid/PlantUML architectuurdiagrammen (W9)
+│   ├── reasoning_logger.py   # Chain-of-thought logging per sessie (W9)
+│   ├── rag_engine.py         # RAG + HashEmbedding fallback (W7)
+│   ├── knowledge_graph.py    # Knowledge graph + Mermaid export (W7)
+│   ├── self_improvement.py   # FeedbackAnalyzer + SelfImprovementLoop (W8)
+│   ├── recommendation_engine.py # Next-best-action via KnowledgeGraph (W8)
+│   └── ... (35 meer modules: cost_governance, deployment_rings, skill_chain_orchestrator, ...)
 ├── backend/                  # Java Spring Boot 3.3.5 (Java 21) – aparte API-laag
 │   └── src/main/java/dev/koenvorsters/
 ├── webhooks/                 # Python FastAPI webhook handlers
@@ -172,14 +182,20 @@ Elke runtime-agent is gedefinieerd als een YAML-bestand in `agents/` en heeft:
 | `product_beschrijving_agent.yml` | llama3 | Productbeschrijvingen + SEO-tekst |
 | `seo_agent.yml` | llama3 | SEO-optimalisatie pagina's en producten |
 | `order_verwerking_agent.yml` | llama3 | Orderbevestiging, facturen, notificaties |
+| `consultancy_orchestrator.yml` | llama3 | End-to-end IT/AI consultancy pipeline |
+| `code_analyse_agent.yml` | llama3 | Legacy codebase analyse per chunk |
+| `klant_rapport_agent.yml` | mistral | Klantgerichte samenvatting genereren |
+| `bedrijfsproces_agent.yml` | llama3 | AS-IS/TO-BE procesanalyse + ROI |
 
-### Sub-agents
+### Sub-agents (selectie uit 32 totaal)
 | Agent YAML | Model | Doel |
 |------------|-------|------|
 | `retour_verwerking_agent.yml` | llama3 | Retouraanvragen verwerken |
 | `email_template_agent.yml` | llama3 | E-mailsjablonen genereren |
 | `fraude_detectie_agent.yml` | llama3 | Fraudescores berekenen (0-100) |
 | `voorraad_check_agent.yml` | llama3 | Voorraadbeheer + herbesteladvies |
+| `java_chunk_analyse_agent.yml` | llama3 | Java-specifieke code-analyse |
+| `architect_agent.yml` | llama3 | DDD-architectuur ontwerp + delegatie |
 
 ### Prompt Iteratie
 - System prompts: `prompts/system/<agent>.txt`

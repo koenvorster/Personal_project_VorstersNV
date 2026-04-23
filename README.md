@@ -11,7 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![Ollama](https://img.shields.io/badge/Ollama-32%20agents-black?logo=ollama)](agents/)
-[![Tests](https://img.shields.io/badge/Tests-28%20passing-brightgreen?logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-1649%20passing-brightgreen?logo=pytest)](tests/)
 [![License](https://img.shields.io/badge/License-Privé-red)](LICENSE)
 
 </div>
@@ -197,7 +197,7 @@ graph TB
         JAPI[REST API + Actuator]
     end
 
-    subgraph AI["🤖 AI Laag — Ollama (25 agents)"]
+    subgraph AI["🤖 AI Laag — Ollama (32 agents)"]
         ORCH[Agent Orchestrator]
         KS[klantenservice_agent]
         OV[order_verwerking_agent]
@@ -285,7 +285,7 @@ sequenceDiagram
 | **Cache** | Redis 7 | Performance caching |
 | **Auth (BE)** | Keycloak + JWT | Toegangscontrole |
 | **Betalingen** | Mollie | iDEAL, creditcard, Bancontact |
-| **AI/LLM** | Ollama, LLaMA 3, Mistral (25 agents) | Lokale AI inference |
+| **AI/LLM** | Ollama, LLaMA 3, Mistral (32 agents) | Lokale AI inference |
 | **Smart Home** | MCP server + Home Assistant | IoT & agent integratie |
 | **Containers** | Docker Compose | Lokale & cloud-omgeving |
 | **CI/CD** | GitHub Actions (4 jobs) → Google Cloud Run | Tests & deployment |
@@ -296,8 +296,6 @@ sequenceDiagram
 ## 🤖 AI-agents
 
 Het platform bevat **32 Ollama YAML-agents** (volledig lokaal) + een AI-development ecosysteem in `.claude/`.
-
-### Overzicht per categorie
 
 | Categorie | Agents | Aantal |
 |-----------|--------|--------|
@@ -387,7 +385,10 @@ frontend/app/
 ├── dashboard/            → Live system monitoring
 ├── shop/                 → Webshop product listing
 ├── winkelwagen/          → Winkelwagen & checkout
-└── login/                → Keycloak SSO login
+├── login/                → Keycloak SSO login
+└── portal/               → Klantportal (Revisie 6)
+    ├── projects/         → Projectenlijst (alle klantprojecten)
+    └── projects/[id]/    → Projectdetail + rapport + diagrammen
 ```
 
 **Glassmorphism design** via Tailwind CSS:
@@ -418,7 +419,11 @@ api/routers/
 ├── inventory.py   → Voorraadniveaus + low-stock alerts
 ├── betalingen.py  → Mollie betaalintegratie
 ├── auth.py        → Token validatie + user info
-└── dashboard.py   → Service health + agent statistieken
+├── dashboard.py   → Service health + agent statistieken
+├── portal.py      → Klantportal (projecten, status, rapport, diagrams, forecasts)
+├── feedback.py    → Feedback API (POST/GET per project)
+├── streaming.py   → SSE streaming endpoint
+└── notifications.py → E-mail + push notificaties
 ```
 
 **Voorbeeld — product aanmaken met AI-beschrijving:**
@@ -510,7 +515,7 @@ Copy-Item .env.example .env
 
 ```env
 DB_PASSWORD=verander-dit
-NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### 3. Alles starten met Docker Compose
@@ -609,7 +614,7 @@ Na het starten van de backend:
 
 ```
 Personal_project_VorstersNV/
-├── agents/                  # 25 Ollama YAML-agents
+├── agents/                  # 32 Ollama YAML-agents
 │   ├── README.md            # Agent index met triggers en modellen
 │   ├── klantenservice_agent_v2.yml
 │   ├── order_verwerking_agent.yml
@@ -619,11 +624,16 @@ Personal_project_VorstersNV/
 │   ├── retour_verwerking_agent.yml
 │   ├── email_template_agent.yml
 │   ├── voorraad_advies_agent.yml
-│   └── ... (17 meer agents)
-├── ollama/                  # Lokale AI-integratie
+│   └── ... (24 meer agents)
+├── ollama/                  # Lokale AI-integratie (47 modules)
 │   ├── client.py            # HTTP-client voor Ollama
 │   ├── agent_runner.py      # Laadt YAML + voert agents uit
 │   ├── orchestrator.py      # Multi-agent workflows
+│   ├── compliance_engine.py # GDPR/NIS2/BTW/EU AI Act validator (W9)
+│   ├── diagram_renderer.py  # Mermaid/PlantUML rendering (W9)
+│   ├── reasoning_logger.py  # Chain-of-thought logging (W9)
+│   ├── rag_engine.py        # RAG + HashEmbedding (W7)
+│   ├── knowledge_graph.py   # Knowledge graph + Mermaid export (W7)
 │   └── prompt_iterator.py   # Prompt-versies + feedback
 ├── api/                     # FastAPI backend (Python :8000)
 │   ├── main.py              # App + CORS + Swagger
@@ -642,8 +652,8 @@ Personal_project_VorstersNV/
 │   ├── components/          # Herbruikbare UI componenten
 │   └── AGENTS.md            # Frontend agent conventions
 ├── .claude/                 # Claude Code AI ecosystem
-│   ├── agents/              # 10 Claude agents (developer, reviewer, GDPR, DB...)
-│   ├── skills/              # 7 skills (fastapi-ddd, nextjs, testing, gdpr, alembic...)
+│   ├── agents/              # 49 Claude agents (developer, reviewer, GDPR, DB...)
+│   ├── skills/              # 19 skills (fastapi-ddd, nextjs, testing, gdpr, alembic...)
 │   ├── capabilities/        # 7 geregistreerde capabilities
 │   ├── scripts/             # validate-agents.mjs, check-env.mjs
 │   └── README.md            # Volledig agent index
