@@ -2,7 +2,7 @@ name: klant_rapport_agent
 version: "1.0"
 type: standalone_agent
 description: "Agent voor het genereren van professionele, klantgerichte rapporten op basis van analyses"
-model: mistral:latest
+model: mistral
 temperature: 0.4
 max_tokens: 2048
 language: nl

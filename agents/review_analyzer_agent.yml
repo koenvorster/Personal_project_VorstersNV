@@ -1,5 +1,6 @@
 name: review_analyzer_agent
 version: "1.0"
+description: "Agent voor analyse en samenvatting van klantreviews en productfeedback"
 model: mistral
 temperature: 0.3
 max_tokens: 1000

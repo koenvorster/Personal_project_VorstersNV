@@ -1,9 +1,9 @@
 # VorstersNV — Ollama Agent Catalogue
 
-Dit zijn de **25 runtime agents** die het VorstersNV platform lokaal aandrijven via [Ollama](https://ollama.com).
+Dit zijn de **32 runtime agents** die het VorstersNV platform lokaal aandrijven via [Ollama](https://ollama.com).
 Ze worden aangeroepen door `api/routers/agents.py` via de `PromptIterator` klasse.
 
-> **Let op:** Dit zijn **productagents** die het webshop-platform bedienen.
+> **Let op:** Dit zijn **runtime agents** voor het platform (webshop + consultancy).
 > Ze zijn _niet_ dezelfde als de GitHub Copilot dev-agents in `.github/agents/` of de Claude Code agents in `.claude/agents/`.
 > Zie [Agent Taxonomy](#agent-taxonomy) voor het onderscheid.
 
@@ -82,6 +82,18 @@ Het project heeft **drie lagen** van AI agents:
 | `ddd_modeling_agent` | llama3 | 0.25 | Modelleert DDD aggregates, entities, value objects |
 | `domain_validation_agent` | llama3 | 0.2 | Valideert domein-invarianten en business rules |
 | `email_template_agent` | llama3 | 0.6 | Genereert getailorde transactionele e-mailteksten |
+
+### Freelance IT/AI Consultancy 🆕
+
+| Agent | Model | Temp | Rol |
+|-------|-------|------|-----|
+| `bedrijfsproces_agent` | llama3 | 0.35 | AS-IS/TO-BE procesanalyse, automatiseringskansen, ROI-berekening |
+| `code_analyse_agent` | llama3 | 0.25 | Technische analyse van codebase-chunks — architectuur, kwaliteit, risico's |
+| `java_chunk_analyse_agent` | llama3 | 0.2 | Java-specifieke chunk-analyse — Spring patterns, class-structuur, afhankelijkheden |
+| `klant_rapport_agent` | llama3 | 0.4 | Genereert klantgerichte samenvattingen van technische analyses |
+| `review_analyzer_agent` | llama3 | 0.3 | Analyseert klantreviews — sentiment, patronen, verbeterpunten |
+| `product_recommender_agent` | mistral | 0.6 | Productaanbevelingen op basis van klantprofiel en koopgeschiedenis |
+| `consultancy_orchestrator` | llama3 | 0.3 | End-to-end consultancy workflow — coördineert code_analyse + klant_rapport |
 
 ---
 

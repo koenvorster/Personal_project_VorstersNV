@@ -93,6 +93,15 @@ Canonieke bronnen voor tech stack en domain model:
 
 > Bij versie-twijfel of domain vragen: raadpleeg eerst deze docs.
 
+**Architectuurplan (actief):**
+- 📄 [`documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT`](../documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT) — Revisie 5 (actief, Wave 6 roadmap)
+- 📄 [`documentatie/AI_OPTIMALISATIEPLAN.TXT`](../documentatie/AI_OPTIMALISATIEPLAN.TXT) — Revisie 4 (archief)
+- 📄 [`documentatie/architectuur/ARCHITECTURE.md`](../documentatie/architectuur/ARCHITECTURE.md) — technische architectuur v5.0
+
+> **Fase 6 focus:** Wave 6 Intelligence Foundations — multi-tenant `ClientProjectSpace`,
+> PII-scanner, EU AI Act compliance, SSE streaming, AdaptiveChunker.
+> Zie Revisie 5 voor de volledige roadmap (Waves 6–8).
+
 ---
 
 ## Claude Agents (`.claude/agents/`)

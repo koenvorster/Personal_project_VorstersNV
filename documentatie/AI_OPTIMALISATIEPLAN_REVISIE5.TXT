@@ -1,0 +1,1623 @@
+================================================================================
+  VorstersNV AI ARCHITECTUUR — ITERATIEF OPTIMALISATIEPLAN
+  Revisie 5 — Enterprise Consultancy Intelligence Platform
+  Datum: 2026-04-22
+  Status: ONTWERP — ter vervanging / aanvulling van Revisie 4
+================================================================================
+
+BRONNEN VERWERKT
+─────────────────
+ 1.  VorstersNV Revisie 4 architectuurplan (AI_OPTIMALISATIEPLAN.TXT)
+ 2.  Volledige codebase-inspectie: ollama/, agents/, policies/, .claude/
+ 3.  Agentic RAG & long-context retrieval best practices 2025/2026
+ 4.  EU AI Act (2026 volledige toepassing) risicoklasse-indeling
+ 5.  NIS2-richtlijn implementatievereisten voor IT-dienstverleners
+ 6.  Multi-tenant SaaS isolation patterns (Row-Level Security + tenant keys)
+ 7.  Knowledge Graph voor AI pipelines (LlamaIndex KG, Neo4j patterns 2025)
+ 8.  pgvector 0.7 + Chroma 0.5 embedding & retrieval architecturen
+ 9.  Speculative decoding & CPU-GPU offload voor Ollama local LLMs
+10.  LLM agent versioning (PromptOps, prompt registries, semantic diff)
+11.  Cost forecasting voor AI proposals (token estimation, Monte Carlo)
+12.  Belgische regelgeving: GDPR, BTW-wetboek, herroepingstermijn, NIS2
+13.  MCP (Model Context Protocol) v1.2 tool composition patterns
+14.  Mixture-of-Agents (MoA) & reasoning model integration 2025
+
+
+================================================================================
+ SECTIE 1: POSITIONERING — VAN PLATFORM NAAR INTELLIGENCE FABRIEK
+================================================================================
+
+EVOLUTIELIJN
+─────────────
+  VROEGER (Revisie 1-2):   verzameling van losse agents en scripts
+  REVISIE 3:               event-driven skill chain orchestratie
+  REVISIE 4:               AI CONTROLLED PLATFORM (4 planes, governance)
+  REVISIE 5 (DOEL):        AI CONSULTANCY INTELLIGENCE FABRIEK
+
+DEFINITIE REVISIE 5:
+  VorstersNV wordt een geautomatiseerde consultancyfabriek die:
+
+    ✅  Elke nieuwe klantcase VOLLEDIG geïsoleerd verwerkt (multi-tenant)
+    ✅  Kennis uit elk project ACCUMULEERT in een groeiende Knowledge Graph
+    ✅  Grote codebases analyseert op CPU-hardware via Agentic RAG + chunking
+    ✅  Automatisch GDPR/BTW/NIS2-compliance valideert in elke output
+    ✅  Kosten per project VOORSPELT voor accurate offertes (±15% marge)
+    ✅  Agents veilig VERSIONED en rollback-klaar houdt
+    ✅  Zichzelf verbetert via een Self-Improvement Loop op basis van feedback
+    ✅  Klantportaal biedt met real-time pipeline-voortgang
+
+KERNVERSCHIL REVISIE 4 vs 5:
+  Revisie 4 bouwde het PLATFORM (planes, governance, execution)
+  Revisie 5 bouwt de INTELLIGENTIE bovenop dat platform:
+    → van "het systeem kan agents uitvoeren"
+    → naar "het systeem DENKT mee met de klant, LEERT van elk project,
+             en DIFFERENTIEERT VorstersNV als unieke partner"
+
+
+================================================================================
+ SECTIE 2: KRITISCHE GAP ANALYSE — VOORBIJ REVISIE 4
+================================================================================
+
+Na een diepgaande codebase-inspectie zijn de volgende ECHTE gaps gevonden
+die NIET in de bestaande G-01..G-31 catalogus staan:
+
+──────────────────────────────────────────────────────────────────────────────
+ KLASSE A: ARCHITECTURELE LACUNES (blokkerend voor productie)
+──────────────────────────────────────────────────────────────────────────────
+
+G-32 | GEEN CLIENT PROJECT ISOLATION
+  Beschrijving: Alle agents, logs en context zijn single-tenant. Twee
+    klantprojecten die parallel lopen kunnen elkaars context lekken.
+    consultancy_orchestrator.yml logt naar logs/{klant_naam}_{datum}.md
+    maar heeft GEEN namespace-isolatie, GEEN toegangscontrole,
+    GEEN resource quota per klant.
+  Impact: KRITIEK — datahygiëne, GDPR-risico, concurrentieel risico
+  Gap severity: BLOCKER voor meerdere simultane klanten
+
+G-33 | GEEN VECTOR DATABASE / SEMANTISCHE RETRIEVAL
+  Beschrijving: memory.py doet alleen turn-based summarization maar slaat
+    GEEN embeddings op. Er is geen vector store (pgvector, Chroma, Qdrant).
+    Code-analyse resultaten van vorige projecten zijn niet terugvindbaar.
+    klant_rapport_agent genereert telkens vanuit nul — geen accumulatie.
+  Impact: HOOG — elke analyse begint opnieuw, kennis verdwijnt
+  Gap severity: BLOCKER voor kennisaccumulatie
+
+G-34 | GEEN ADAPTIVE CONTEXT WINDOW MANAGEMENT
+  Beschrijving: java_chunk_analyse_agent.yml heeft chunking-logica voor
+    Java bestanden, maar dit is hardcoded per agent. Er is geen generieke
+    AdaptiveChunker die:
+      - automatisch chunks bepaalt op basis van model context window
+      - prioriteert welke chunks het meest relevant zijn
+      - overlap beheert tussen chunks (sliding window)
+      - context compresseert bij overschrijding
+    Op een CPU-only laptop met llama3 (4096 tokens) is dit kritiek.
+  Impact: HOOG — grote codebases falen of leveren slechte resultaten
+  Gap severity: BLOCKER voor enterprise code-analyse
+
+G-35 | GEEN AGENTIC RAG PIPELINE
+  Beschrijving: Geen Retrieval-Augmented Generation. Wanneer een agent
+    kennis nodig heeft over een klant of codebase, heeft hij ENKEL wat
+    in de prompt zit. Geen retrieval van:
+      - eerder geanalyseerde klantcode
+      - sector-specifieke benchmarks
+      - gelijkaardige processen uit vorige opdrachten
+      - VorstersNV kennisbank
+  Impact: HOOG — kwaliteit van rapporten schaalt niet met ervaring
+  Gap severity: BLOCKER voor differentiatie als consultancyplatform
+
+G-36 | GEEN AGENT VERSIONING SYSTEEM
+  Beschrijving: 26 YAML agent-bestanden hebben version: "1.0" maar er is
+    GEEN systeem voor:
+      - semantic versioning van prompts (major.minor.patch)
+      - diff tussen promptversies
+      - rollback naar vorige versie bij regressie
+      - A/B testing van promptversies op productietrafiek
+      - audit trail: welke promptversie gaf welk resultaat
+    ab_tester.py bestaat maar is niet gekoppeld aan het agent versioning.
+  Impact: HOOG — onveilig prompts updaten in productie
+  Gap severity: HOOG
+
+G-37 | GEEN COST FORECASTING VOOR OFFERTES
+  Beschrijving: cost_governance.py meet verbruik maar voorspelt NIET.
+    Bij een nieuwe klantaanvraag kan VorstersNV NIET automatisch zeggen:
+    "Deze code-analyse zal ~€X kosten en ~Y uur duren."
+    Er is geen:
+      - tokenschatting pre-run op basis van inputgrootte
+      - historisch verbruik per opdrachtstype
+      - confidence interval op de schatting
+      - offertemodule die AI-kosten vertaalt naar klantprijs
+  Impact: HOOG — handmatige offertes, onderschatting van AI-kosten
+  Gap severity: HOOG
+
+──────────────────────────────────────────────────────────────────────────────
+ KLASSE B: COMPLIANCE & GOVERNANCE LACUNES
+──────────────────────────────────────────────────────────────────────────────
+
+G-38 | GEEN EU AI ACT RISICOKLASSIFICATIE
+  Beschrijving: EU AI Act trad volledig in werking in 2026. VorstersNV
+    levert AI-systemen aan Belgische KMOs. Dit vereist:
+      - risicoklassificatie van elke capability (limited/high/unacceptable)
+      - conformiteitsdocumentatie voor high-risk AI systemen
+      - transparantieverplichtingen (klant weet wanneer AI beslist)
+      - menselijk toezicht bij high-risk beslissingen
+    Huidige HITL-policies zijn onvoldoende voor EU AI Act compliance.
+  Impact: JURIDISCH RISICO — boetes tot €30M of 6% omzet
+  Gap severity: KRITIEK (tijdsgevoelig)
+
+G-39 | GEEN GEAUTOMATISEERDE PII DETECTIE / MASKING
+  Beschrijving: Klanten leveren vaak productiedumps aan met echte
+    klantgegevens (namen, BSN, IBAN, emailadressen). Er is geen:
+      - automatische PII-scanner vóór code-analyse
+      - masking engine (John Doe → KLANT_001)
+      - GDPR data-minimisation check op agent outputs
+      - data lineage: waar in het rapport komt PII vandaan?
+    GDPR artikel 5(1)(c) vereist data-minimalisatie.
+  Impact: KRITIEK — GDPR-boete risico bij klantprojecten
+  Gap severity: BLOCKER
+
+G-40 | GEEN NIS2 SECURITYCONTROLES
+  Beschrijving: VorstersNV is een IT-dienstverlener en valt dus onder
+    NIS2 als "important entity". Vereiste controles ontbreken:
+      - incident response procedure voor AI-gerelateerde incidenten
+      - supply chain security assessment (Ollama, externe APIs)
+      - vulnerability disclosure policy
+      - security audit logging conform NIS2
+      - business continuity plan voor AI-platform
+  Impact: HOOG — NIS2-non-compliance door CERT.be
+  Gap severity: HOOG
+
+G-41 | GEEN BELGISCHE SECTOR-SPECIFIEKE KENNISBANK
+  Beschrijving: Voor de Belgische KMO-markt ontbreekt domeinkennis over:
+      - Belgische boekhoudregels (Boekhoudwet 2019)
+      - RSZ-bijdragen en SWT-regels (loonberekening)
+      - Sectoriële CAOs (PC 200, PC 218, PC 307 etc.)
+      - NBB-rapporteringsverplichtingen
+      - Kruispuntbank voor Ondernemingen (KBO) patterns
+    agents/bedrijfsproces_agent.yml bevat sector: [hr_payroll, boekhouding]
+    maar heeft GEEN feitelijke regelgeving ingebakken.
+  Impact: MEDIUM — verkeerde adviezen voor Belgische context
+  Gap severity: MEDIUM (maar competitief kritiek)
+
+──────────────────────────────────────────────────────────────────────────────
+ KLASSE C: AI/LLM TECHNOLOGIE LACUNES (2025/2026 best practices)
+──────────────────────────────────────────────────────────────────────────────
+
+G-42 | GEEN MIXTURE-OF-AGENTS VOOR COMPLEXE OPDRACHTEN
+  Beschrijving: Voor complexe consultancy-opdrachten wordt één agent
+    gebruikt (bijv. code_analyse_agent). Moderne MoA-patronen gebruiken
+    meerdere "proposer" agents die parallel een antwoord genereren,
+    gevolgd door een "aggregator" die het beste antwoord synthetiseert.
+    Dit verhoogt kwaliteit significant voor moeilijke vragen.
+  Impact: HOOG — suboptimale rapporten voor complexe architectuurvragen
+  Gap severity: HOOG (lage implementatiedrempel)
+
+G-43 | GEEN STRUCTURED REASONING (CHAIN-OF-THOUGHT) LOGGING
+  Beschrijving: Agents geven output maar hun redeneerpad is niet
+    zichtbaar of opgeslagen. Voor consultancy-rapporten is het
+    redeneerpad ZELF waardevol (klant begrijpt WAAROM een aanbeveling).
+    Reasoning tokens (DeepSeek R1, Qwen3-thinking stijl) worden
+    niet apart opgeslagen of geëxposeerd.
+  Impact: MEDIUM — black-box rapport, minder vertrouwen bij klant
+  Gap severity: MEDIUM
+
+G-44 | GEEN MULTIMODALE AGENT CAPABILITIES
+  Beschrijving: Consultancyrapporten zijn beter met visuele elementen:
+      - architectuurdiagrammen (Mermaid/PlantUML uit agent output)
+      - swimlane diagrammen voor procesanalyse
+      - data-flow diagrammen uit code-analyse
+    bedrijfsproces_agent.yml heeft swimlane_diagram_genereren als
+    capability maar er is geen renderer/exporter.
+    code_analyse_agent.yml genereert diagram_tekst (string) maar
+    dit wordt nooit omgezet naar een echt diagram.
+  Impact: MEDIUM — tekstuele rapporten minder professioneel
+  Gap severity: MEDIUM
+
+G-45 | GEEN SELF-IMPROVEMENT LOOP OP BASIS VAN KLANTFEEDBACK
+  Beschrijving: evaluation/metrics (volledigheid_score, etc.) zijn
+    gedefinieerd in agent YAMLs maar er is geen mechanisme om:
+      - klantfeedback te koppelen aan specifieke promptversies
+      - automatisch zwakke agents te identificeren
+      - prompt-verbeteringen voor te stellen op basis van patterns
+      - A/B testresultaten te vertalen naar definitieve promotie
+    ab_tester.py en maturity_engine.py bestaan maar zijn niet
+    verbonden via een learning feedback loop.
+  Impact: HOOG — platform leert niet, kwaliteitsplateau
+  Gap severity: HOOG
+
+G-46 | GEEN ASYNC STREAMING VOOR LANGE AGENT RUNS
+  Beschrijving: agent_runner.py roept Ollama synchroon aan. Bij een
+    grote code-analyse (30+ minuten) heeft de gebruiker geen
+    voortgangsindicatie. Geen:
+      - server-sent events (SSE) van tussentijdse agent output
+      - partial result streaming naar frontend
+      - progress percentages per workflow stap
+      - cancellable long-running tasks
+  Impact: HOOG — slechte UX, gebruiker weet niet of systeem werkt
+  Gap severity: HOOG
+
+──────────────────────────────────────────────────────────────────────────────
+ SAMENVATTING NIEUWE GAPS (G-32 t/m G-46)
+──────────────────────────────────────────────────────────────────────────────
+
+GAP  | BESCHRIJVING                              | KLASSE | SEVERITY
+─────|───────────────────────────────────────────|────────|──────────
+G-32 | Geen client project isolation             | A      | BLOCKER
+G-33 | Geen vector database / semantische RAG    | A      | BLOCKER
+G-34 | Geen adaptive context window management   | A      | BLOCKER
+G-35 | Geen agentic RAG pipeline                 | A      | BLOCKER
+G-36 | Geen agent versioning systeem             | A      | HOOG
+G-37 | Geen cost forecasting voor offertes       | A      | HOOG
+G-38 | Geen EU AI Act risicoklassificatie        | B      | KRITIEK
+G-39 | Geen geautomatiseerde PII detectie        | B      | BLOCKER
+G-40 | Geen NIS2 securitycontroles               | B      | HOOG
+G-41 | Geen Belgische sector kennisbank          | B      | MEDIUM
+G-42 | Geen Mixture-of-Agents pattern            | C      | HOOG
+G-43 | Geen structured reasoning logging         | C      | MEDIUM
+G-44 | Geen multimodale agent capabilities       | C      | MEDIUM
+G-45 | Geen self-improvement loop                | C      | HOOG
+G-46 | Geen async streaming voor lange runs      | C      | HOOG
+
+
+================================================================================
+ SECTIE 3: REVISIE 5 ARCHITECTUUR — 5 PLANES + INTELLIGENCE LAYER
+================================================================================
+
+UITBREIDING VAN DE 4-PLANES ARCHITECTUUR
+──────────────────────────────────────────
+
+  Revisie 4 kende 4 planes. Revisie 5 voegt een 5e plane toe:
+
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │  [INTELLIGENCE PLANE]  ← ← ← NIEUW IN REVISIE 5                   │
+   │    ClientProjectSpace, KnowledgeGraph, AgenticRAG,                  │
+   │    CostForecaster, SelfImprovementLoop, ComplianceEngine             │
+   └──────────────────────────────┬──────────────────────────────────────┘
+                                  ↓
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │  [CONTROL PLANE]                                                    │
+   │    routing, policy, budget, rollout rings, HITL beslissing          │
+   └──────────────────────────────┬──────────────────────────────────────┘
+                                  ↓
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │  [CAPABILITY PLANE]                                                 │
+   │    maturity L1→L4, policy enforcement, EU AI Act classificatie      │
+   └──────────────────────────────┬──────────────────────────────────────┘
+                                  ↓
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │  [EXECUTION PLANE]                                                  │
+   │    agents, tools, workflows, skill chains, MoA aggregator           │
+   └──────────────────────────────┬──────────────────────────────────────┘
+                                  ↓
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │  [TRUST PLANE]                                                      │
+   │    evals, QG, audit, decision journal, EU AI Act logs               │
+   └─────────────────────────────────────────────────────────────────────┘
+
+
+VOLLEDIG ARCHITECTUURDIAGRAM — REVISIE 5
+──────────────────────────────────────────
+
+  [KLANT INPUT]
+      │  code_dump | proces_beschrijving | analyse_aanvraag
+      ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  CLIENT PROJECT SPACE (G-32)                                      │
+  │    - Isolatie per project (tenant_id + project_id)                │
+  │    - PII Scanner + Masker (G-39) VÓÓR verdere verwerking          │
+  │    - Resource quota: max_tokens, max_runs, max_storage            │
+  │    - GDPR data classification: PUBLIC | INTERNAL | CONFIDENTIAL   │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  ADAPTIVE CHUNKER (G-34)                                          │
+  │    - Detecteer input grootte (tokens schatten zonder API call)     │
+  │    - Splits in chunks op basis van model context window            │
+  │    - Prioriteer chunks via TF-IDF relevance scoring                │
+  │    - Beheert overlap (sliding window, 10% overlap)                 │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  AGENTIC RAG ENGINE (G-33, G-35)                                  │
+  │    - Retrieve: zoek gerelateerde knowledge uit VectorStore         │
+  │    - Augment: voeg retrieved context toe aan agent prompt          │
+  │    - Knowledge types: code_patterns, process_templates,           │
+  │      sector_benchmarks, previous_findings                         │
+  │    - VectorStore: pgvector (embedded in PostgreSQL)               │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  COMPLIANCE ENGINE (G-38, G-39, G-40, G-41)                       │
+  │    - EU AI Act: bepaal risicoklasse voor deze capability           │
+  │    - BTW validator: juiste tarieven voor factuur                   │
+  │    - GDPR checker: PII in output? → maskeren                      │
+  │    - NIS2 audit logger: security-relevant events                   │
+  │    - Belgisch sectorrecht: sector-specifieke validaties            │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  CONTROL PLANE  (Revisie 4 — ongewijzigd)                         │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  CONSULTANCY INTELLIGENCE LAYER (G-42, G-44)                      │
+  │    ├── MoA Orchestrator: 3 proposer agents + aggregator           │
+  │    ├── ReasoningLogger: chain-of-thought apart opslaan (G-43)     │
+  │    ├── DiagramRenderer: Mermaid/PlantUML uit agent output          │
+  │    └── StreamingPublisher: SSE naar frontend (G-46)               │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  EXECUTION PLANE  (Revisie 4 — uitgebreid)                        │
+  │    + AgentVersioningSystem (G-36): semver, rollback               │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  TRUST PLANE + SELF-IMPROVEMENT LOOP (G-45)                       │
+  │    - Klantfeedback → FeedbackStore                                │
+  │    - FeedbackAnalyzer: koppelt feedback aan promptversie          │
+  │    - PromptImprovementProposer: auto-genereert prompt updates      │
+  │    - CostForecaster: historisch verbruik → schatting (G-37)       │
+  └──────────────────────────────┬────────────────────────────────────┘
+                                 ↓
+  ┌───────────────────────────────────────────────────────────────────┐
+  │  KNOWLEDGE GRAPH (G-33)                                           │
+  │    - Elke analyse-uitkomst → nodes + relaties in graph            │
+  │    - Entiteiten: Client, Project, CodePattern, BusinessRule,      │
+  │      Finding, Recommendation, ProcessType, Sector                 │
+  │    - Query-interface voor RAG retrieval                            │
+  │    - Groeit met elk project: VorstersNV "AI geheugen"             │
+  └───────────────────────────────────────────────────────────────────┘
+                                 ↓
+  [KLANT OUTPUT]
+      │  rapport_pdf | executive_summary | ROI_calculator | diagram_svg
+      ↓
+  [CLIENT PORTAL API]  ← real-time SSE voortgang + resultaat delivery
+
+
+================================================================================
+ SECTIE 4: INTELLIGENCE PLANE — COMPONENT ONTWERPEN
+================================================================================
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.1  CLIENT PROJECT SPACE
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/client_project_space.py
+
+  @dataclass
+  class ClientProject:
+      project_id:    str  # UUID
+      client_id:     str  # Keycloak user/org ID
+      project_name:  str
+      sector:        str
+      data_class:    DataClassification  # PUBLIC | INTERNAL | CONFIDENTIAL
+      resource_quota: ProjectQuota
+      created_at:    datetime
+      status:        ProjectStatus  # ACTIVE | PAUSED | COMPLETED | ARCHIVED
+
+  @dataclass
+  class ProjectQuota:
+      max_tokens_per_run:    int = 100_000
+      max_runs_per_day:      int = 50
+      max_storage_mb:        int = 500
+      max_concurrent_agents: int = 3
+
+ISOLATIEMECHANISMEN:
+  1. Database: Row-Level Security (RLS) in PostgreSQL
+     → elke query gefilterd op project_id
+     → agent kan NOOIT data van ander project zien
+  2. Logs: /logs/{project_id}/ (geen gedeelde log map)
+  3. VectorStore: namespace per project_id in pgvector
+  4. Memory: sessie-scoped aan project_id
+  5. Decision Journal: project_id als verplicht veld
+
+PII SCANNER (pre-processing):
+  Engine: presidio (Microsoft, open-source)
+  Entiteiten: EMAIL, PHONE_NUMBER, IBAN, BSN/RRN, IP_ADDRESS,
+              PERSON, LOCATION, ORGANIZATION
+  Actie bij detectie:
+    CONFIDENTIAL project → BLOKKEER of MASKEER (configureerbaar)
+    INTERNAL project    → MASKEER automatisch, log in audit trail
+    PUBLIC project      → LOG waarschuwing, ga door
+
+  pii_result = pii_scanner.scan(input_text)
+  clean_input = pii_scanner.mask(input_text, pii_result)
+  # Origineel NOOIT doorgegeven aan LLM
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.2  AGENTIC RAG ENGINE
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/rag_engine.py
+
+ARCHITECTUUR:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  RAG PIPELINE                                                   │
+  │                                                                 │
+  │  INGEST FASE (na elke succesvolle analyse):                     │
+  │    1. Extract findings (business_rules, aanbevelingen)          │
+  │    2. Genereer embeddings via sentence-transformers              │
+  │       (model: all-MiniLM-L6-v2, lokaal draaiend, CPU-compatibel)│
+  │    3. Sla op in pgvector met metadata:                          │
+  │       {project_id, sector, agent_name, finding_type, timestamp} │
+  │    4. Update KnowledgeGraph nodes/relaties                      │
+  │                                                                 │
+  │  RETRIEVAL FASE (vóór elke agent call):                         │
+  │    1. Genereer query-embedding van huidige taak                 │
+  │    2. Cosine similarity search in pgvector (top-K=5)            │
+  │    3. Re-rank resultaten (cross-encoder of MMR diversity)       │
+  │    4. Filter op project_id + data_classification                │
+  │    5. Format als [RETRIEVED_CONTEXT] sectie in prompt           │
+  └─────────────────────────────────────────────────────────────────┘
+
+VECTOR STORE SCHEMA (pgvector):
+  CREATE TABLE rag_documents (
+    id          UUID PRIMARY KEY,
+    project_id  UUID NOT NULL,          -- Row-Level Security
+    client_id   UUID NOT NULL,
+    sector      TEXT,
+    agent_name  TEXT,
+    doc_type    TEXT,                   -- code_pattern|business_rule|benchmark
+    content     TEXT,
+    embedding   vector(384),            -- all-MiniLM-L6-v2 dimensie
+    metadata    JSONB,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+  );
+  CREATE INDEX ON rag_documents USING ivfflat (embedding vector_cosine_ops);
+
+RETRIEVAL TYPES:
+  1. SEMANTIC: zoek op betekenis (voor open vragen)
+  2. HYBRID:   semantic + keyword BM25 (voor technische termen)
+  3. FILTERED: semantic binnen specifiek sector of agent_name
+  4. GRAPH:    graph-hop via KnowledgeGraph voor gerelateerde entiteiten
+
+CROSS-PROJECT RETRIEVAL (opt-in per client):
+  - Klant kan toestaan dat anonieme findings gedeeld worden
+  - Sector-benchmarks worden opgebouwd uit geanonimiseerde projectdata
+  - "VorstersNV heeft X soortgelijke projecten geanalyseerd" → kwaliteit ↑
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.3  ADAPTIVE CHUNKER
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/adaptive_chunker.py
+
+PROBLEEM:
+  CPU-only llama3 = max ~4096 tokens context window
+  llama3.1:8b = max 128k (maar memory-intensief op CPU)
+  Enterprise codebase = 500k+ tokens
+
+STRATEGIE:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  INPUT: bestand of code_fragment                                 │
+  │     ↓                                                           │
+  │  STAP 1: Token estimatie (tiktoken, no LLM needed)              │
+  │     → bepaal chunk_size = model_context * 0.6 (safety margin)   │
+  │     ↓                                                           │
+  │  STAP 2: Semantische grenzen detecteren                         │
+  │     → splits op klasse/functie/method grenzen (AST-aware)       │
+  │     → NOOIT splits in het midden van een functie                │
+  │     ↓                                                           │
+  │  STAP 3: Relevantie scoring per chunk                           │
+  │     → TF-IDF op basis van analyse_type (business_rules/arch)    │
+  │     → Top-N chunks voor beschikbaar context budget              │
+  │     ↓                                                           │
+  │  STAP 4: Overlap management                                     │
+  │     → 10% overlap tussen opeenvolgende chunks                   │
+  │     → ChunkManifest: houdt bij welke chunks verwerkt zijn       │
+  │     ↓                                                           │
+  │  STAP 5: Progressieve synthese                                  │
+  │     → per chunk: partial_findings[]                             │
+  │     → na alle chunks: synthesize_agent samenvoegen              │
+  └─────────────────────────────────────────────────────────────────┘
+
+  @dataclass
+  class ChunkManifest:
+      total_chunks:    int
+      processed:       list[int]
+      partial_findings: list[dict]
+      synthesis_ready: bool
+
+LANGUAGE-AWARE SPLITTING:
+  - Java:    splits op class/interface/method niveau (via javalang)
+  - Python:  splits via ast.parse (class/def grenzen)
+  - C#:      splits via regex op namespace/class/method
+  - Generic: splits op blanco regels + indentation niveau
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.4  COMPLIANCE ENGINE
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/compliance_engine.py
+
+DRIE LAGEN:
+
+  LAAG 1 — EU AI ACT COMPLIANCE:
+    Risicoklasse-bepaling per capability:
+      UNACCEPTABLE:  social scoring, biometric surveillance → BLOKKEER
+      HIGH-RISK:     HR-beslissingen, kredietscoring       → HITL VERPLICHT
+      LIMITED-RISK:  chatbots, content generatie           → TRANSPARENCY NOTE
+      MINIMAL-RISK:  code analyse, procesbeschrijving      → GEEN EXTRA MAATREGEL
+
+    AiActRecord (per run):
+      - capability_id
+      - determined_risk_class
+      - human_oversight_applied: bool
+      - transparency_disclosure: str
+      - conformity_documentation_ref: str
+
+  LAAG 2 — BELGISCHE REGELGEVING:
+    BTW_VALIDATOR:
+      - standaard 21%, verlaagd 6%/12%, vrijgesteld 0%
+      - B2B intercom: valideer BTW-nummer via VIES API
+      - automatische factuurlijn-validatie
+
+    HERROEPINGSTERMIJN_CHECKER:
+      - 14 kalenderdagen voor B2C digitale diensten
+      - uitzonderingen: gepersonaliseerde digitale content
+      - automatische waarschuwing als deadline nadert
+
+    SECTOR_COMPLIANCE_CHECKER:
+      - HR/payroll: RSZ-regels, DMFA-aangifte vereisten
+      - Bouw: wet op aanneming, veiligheidscoördinatie
+      - Handel: wet marktpraktijken, etiketteringsregels
+
+  LAAG 3 — GDPR DATA LINEAGE:
+    Voor elke output-sectie: traceer tot welke input-data hij herleid kan worden
+    GdprLineageRecord:
+      - output_section_id
+      - source_data_ids[]
+      - pii_present: bool
+      - retention_expires_at: datetime (max 2 jaar default)
+      - erasure_eligible: bool
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.5  COST FORECASTER
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/cost_forecaster.py
+
+AANPAK: statistisch model op basis van historisch verbruik
+
+  INPUT FEATURES:
+    - input_type: code_analyse | procesanalyse | rapport | review
+    - input_size_tokens: schatting op basis van bestandsgrootte
+    - taal: java | python | csharp | other
+    - analyse_diepte: snel | standaard | diepgaand
+    - rag_enabled: bool
+    - parallel_agents: int
+    - chunk_count: int (geschat door AdaptiveChunker)
+
+  MODEL: gewogen gemiddelde + standaarddeviatie op basis van:
+    → UsageRecord[] uit cost_governance.py (historische data)
+    → minimaal 10 runs voor betrouwbare schatting
+    → fallback naar tabelwaarden (geen data beschikbaar)
+
+  OUTPUT:
+    @dataclass
+    class CostForecast:
+        project_type:        str
+        estimated_eur_min:   float   # P10 percentiel
+        estimated_eur_median: float  # P50 percentiel
+        estimated_eur_max:   float   # P90 percentiel
+        estimated_duration_min: int  # minuten
+        confidence_level:    float   # 0.0-1.0 (lager bij weinig data)
+        main_cost_drivers:   list[str]
+
+  OFFERTEMODULE:
+    CostForecast → klantprijs via markup_factor (configureerbaar, default 3x)
+    Output: PDF/Word met:
+      - AI platform kosten (intern)
+      - Consultancy uurloon
+      - Totaalbedrag voor klant
+      - Vertrouwensniveau van schatting
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.6  AGENT VERSIONING SYSTEEM
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/agent_versioning.py
+
+SEMANTISCH VERSIONSYSTEEM:
+  MAJOR.MINOR.PATCH  (bijv. 2.1.3)
+    MAJOR: fundamentele wijziging in output schema
+    MINOR: wijziging in reasoning strategie
+    PATCH: kleine prompt-verfijning
+
+OPSLAG:
+  - agents/versions/{agent_name}/{version}/agent.yml   ← prompt versie
+  - agents/versions/{agent_name}/CHANGELOG.md          ← wat veranderde
+  - DB tabel: agent_versions(agent_name, version, sha256, deployed_at, status)
+
+DEPLOYMENT LIFECYCLE:
+  DRAFT → SHADOW → CANARY (5%) → STABLE → DEPRECATED → ARCHIVED
+
+ROLLBACK MECHANISME:
+  1. Detecteer regressie: eval_score daalt > 10% t.o.v. vorige versie
+  2. Auto-rollback trigger: maturity_engine.py detecteert regressie
+  3. Control plane schakelt terug naar laatste STABLE versie
+  4. Incident report in decision journal
+
+SHADOW MODE (veiligste manier om te testen):
+  - Nieuwe versie ontvangt zelfde input als productie-versie
+  - Output wordt NIET gebruikt, enkel vergeleken
+  - Score-vergelijking na 100 runs → promotie of reject
+  - Geen enkel productie-risico
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.7  KNOWLEDGE GRAPH
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/knowledge_graph.py
+
+STORAGE:
+  Optie A (aanbevolen): PostgreSQL + JSONB + recursieve queries
+    → geen extra infrastructuur
+    → schema: kg_nodes(id, type, label, properties JSONB, embedding vector)
+              kg_edges(from_id, to_id, relation, weight, created_at)
+  Optie B (toekomst): Neo4j Graph Database (als volume > 1M nodes)
+
+NODE TYPES:
+  CLIENT           → naam, sector, grootte
+  PROJECT          → type, status, datum
+  CODE_PATTERN     → taal, complexiteit, anti_pattern_type
+  BUSINESS_RULE    → beschrijving, prioriteit, geautomatiseerd: bool
+  FINDING          → type, ernst, agent_naam
+  RECOMMENDATION   → beschrijving, impact, effort, ROI
+  TECHNOLOGY       → naam, versie, supported_until
+  PROCESS          → naam, sector, uren_per_week
+  SECTOR           → naam, Belgisch_recht_ref
+
+RELATIE TYPES:
+  HAS_FINDING, CONTAINS_PATTERN, RECOMMENDS, SIMILAR_TO,
+  DEPENDS_ON, GOVERNED_BY, IMPLEMENTED_IN, BELONGS_TO_SECTOR
+
+GEBRUIK:
+  1. Na elke analyse: extract_entities() → voeg nodes/edges toe
+  2. RAG retrieval: graph-hop naar gerelateerde findings
+  3. Rapport kwaliteit: "We zagen dit patroon ook in 3 andere Belgische
+     HR-systemen — hier zijn de typische risico's..."
+  4. Sector benchmarks: "Gemiddelde automatiseringsscore in de bouwsector
+     is 6.8/12 — uw bedrijf scoort 8.2/12 (bovengemiddeld)"
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.8  MIXTURE-OF-AGENTS (MoA) ORCHESTRATOR
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/mixture_of_agents.py
+
+WANNEER ACTIVEREN:
+  - analyse_diepte == "diepgaand"
+  - OR capability.risk_level == "HIGH"
+  - OR confidence_required > 0.90
+
+PATROON:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  PROPOSER FASE (parallel, temperature=0.4)                      │
+  │    Agent A: code_analyse_agent (perspective: architectuur)      │
+  │    Agent B: security_permissions_agent (perspective: security)  │
+  │    Agent C: clean_code_reviewer_agent (perspective: kwaliteit)  │
+  │                    ↓ (alle 3 parallel)                          │
+  │  AGGREGATOR FASE (temperature=0.2)                              │
+  │    klant_rapport_agent:                                         │
+  │      - Ontvang alle 3 perspectieven                             │
+  │      - Identificeer consensus vs conflicterende meningen        │
+  │      - Synthetiseer beste antwoord                              │
+  │      - Vermeld dissenting views in rapport                      │
+  └─────────────────────────────────────────────────────────────────┘
+
+VOORDELEN:
+  - Hogere kwaliteit door meerdere perspectieven
+  - Conflicten worden zichtbaar (transparantie)
+  - Niet afhankelijk van één agent's blinde vlekken
+  - Parallel = sneller dan sequentieel
+
+COST IMPACT:
+  3x tokens verbruik voor proposers + 1x aggregator ≈ 4x kostprijs
+  Enkel activeren bij diepgaande analyses (gerechtvaardigd)
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.9  SELF-IMPROVEMENT LOOP
+──────────────────────────────────────────────────────────────────────────────
+
+MODULE:  ollama/self_improvement.py
+
+CYCLUS:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  1. FEEDBACK COLLECTIE                                          │
+  │     → Klant geeft score (1-5) per rapport-sectie                │
+  │     → Interne review: consultant beoordeelt kwaliteit           │
+  │     → Automatische eval: LLM-as-judge op output                 │
+  │                  ↓                                              │
+  │  2. FEEDBACK ANALYSE                                            │
+  │     → Koppel feedback aan: agent_name + prompt_version          │
+  │     → Identificeer welke sectie het minst scoort                │
+  │     → Pattern detectie: "Agent X scoort <0.7 bij Java code"     │
+  │                  ↓                                              │
+  │  3. PROMPT IMPROVEMENT PROPOSALS                                │
+  │     → prompt_iterator.py genereert verbeterde promptversie      │
+  │     → Legt vast: wat veranderde, waarom, verwachte verbetering  │
+  │                  ↓                                              │
+  │  4. SHADOW TESTING (vóór promotie)                              │
+  │     → Nieuwe versie in SHADOW mode                              │
+  │     → Vergeleken op identieke test cases                        │
+  │                  ↓                                              │
+  │  5. AUTO-PROMOTIE (als gates geslaagd)                          │
+  │     → auto_promoter.py promoot naar CANARY                      │
+  │     → Na 50 runs stabiel: → STABLE                              │
+  │                  ↓                                              │
+  │  6. KNOWLEDGE UPDATE                                            │
+  │     → Succesvolle verbetering → KnowledgeGraph update           │
+  │     → "Patroon X vraagt expliciete vermelding van ..."          │
+  └─────────────────────────────────────────────────────────────────┘
+
+ANTI-PATTERN VOORKOMEN:
+  - Improvement Proposals vereisen human review bij MAJOR wijziging
+  - Max 1 auto-promotie per agent per week
+  - Rollback altijd mogelijk (agent versioning)
+
+──────────────────────────────────────────────────────────────────────────────
+ 4.10  STREAMING & CLIENT PORTAL
+──────────────────────────────────────────────────────────────────────────────
+
+MODULES:
+  api/routers/streaming.py   ← Server-Sent Events endpoint
+  api/routers/portal.py      ← Client Portal REST API
+  frontend/app/portal/       ← Next.js portal UI
+
+SSE STROOM VOOR LANGE ANALYSES:
+  event: workflow_start
+  data: {"project_id": "...", "total_steps": 7, "estimated_minutes": 25}
+
+  event: step_start
+  data: {"step": 2, "name": "code_analyse", "agent": "code_analyse_agent"}
+
+  event: step_progress
+  data: {"step": 2, "chunks_done": 3, "chunks_total": 12, "percent": 25}
+
+  event: step_partial_result
+  data: {"step": 2, "finding": {"type": "business_rule", "count": 14}}
+
+  event: step_complete
+  data: {"step": 2, "duration_ms": 45000, "findings_count": 14}
+
+  event: workflow_complete
+  data: {"rapport_url": "/portal/projects/.../rapport.pdf"}
+
+CLIENT PORTAL API ENDPOINTS:
+  POST   /api/portal/projects                 ← nieuw project aanmaken
+  GET    /api/portal/projects/{id}/status     ← voortgang opvragen
+  GET    /api/portal/projects/{id}/stream     ← SSE stream
+  GET    /api/portal/projects/{id}/rapport    ← rapport downloaden
+  POST   /api/portal/projects/{id}/feedback   ← klantfeedback indienen
+  GET    /api/portal/forecasts                ← kostenschatting opvragen
+
+AUTHENTICATIE: Keycloak JWT, rol: "klant" (read-only eigen projecten)
+
+
+================================================================================
+ SECTIE 5: EU AI ACT — CAPABILITY RISICOKLASSIFICATIE
+================================================================================
+
+Alle bestaande capabilities worden ingedeeld in EU AI Act risicoklassen:
+
+CAPABILITY                    KLASSE         TOELICHTING
+──────────────────────────────────────────────────────────────────────────────
+fraude_detectie_agent        HIGH-RISK      Beïnvloedt toegang tot diensten
+code_analyse_agent           MINIMAL-RISK   Informatieve analyse
+bedrijfsproces_agent         MINIMAL-RISK   Adviserend
+klant_rapport_agent          LIMITED-RISK   Gegenereerde content
+klantenservice_agent_v2      LIMITED-RISK   Interactie met personen
+security_permissions_agent   LIMITED-RISK   Informatief advies
+order_verwerking_agent       HIGH-RISK      Financiële beslissingen
+retour_verwerking_agent      HIGH-RISK      Financiële beslissingen
+developer_agent              MINIMAL-RISK   Code generatie (review required)
+seo_agent                    MINIMAL-RISK   Content optimalisatie
+product_beschrijving_agent   LIMITED-RISK   Gegenereerde marketing content
+java_chunk_analyse_agent     MINIMAL-RISK   Code-informatief
+consultancy_orchestrator     LIMITED-RISK   Adviserend eindrapport
+──────────────────────────────────────────────────────────────────────────────
+
+HIGH-RISK capabilities vereisen (EU AI Act Art. 9-15):
+  ✅  Risicomanagementsysteem documentatie
+  ✅  Data governance procedures
+  ✅  Technische documentatie
+  ✅  Logboekbijhouding (reeds: decision_journal.py)
+  ✅  Transparantievereisten (klant krijgt melding)
+  ✅  Menselijk toezicht (HITL — reeds aanwezig)
+  ✅  Nauwkeurigheids- en robuustheidsmaatregelen
+
+NIEUW: capability YAML uitbreiden met eu_ai_act sectie:
+  eu_ai_act:
+    risk_class:            high_risk          # minimal|limited|high|unacceptable
+    transparency_required: true
+    human_oversight:       always             # always|conditional|never
+    conformity_doc_ref:    "docs/conformity/fraud-detection-v2.md"
+    audit_retention_years: 10                 # EU AI Act vereist 10 jaar bij HR
+
+
+================================================================================
+ SECTIE 6: ROADMAP WAVES 6-8
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────
+WAVE 6 — CONSULTANCY INTELLIGENCE (client-facing AI pipeline)
+Doel: Eerste volledig geautomatiseerde klantanalyse van intake tot rapport
+Tijdsduur: ~6-8 weken implementatie
+────────────────────────────────────────────────────────────────────────────
+
+  W6-01  ClientProjectSpace + PII Scanner
+         Bestand:  ollama/client_project_space.py
+         DB:       tabel client_projects + Row-Level Security
+         Prio:     BLOCKER voor alle andere Wave 6 items
+
+  W6-02  pgvector setup + basis RAG ingest pipeline
+         Bestand:  ollama/rag_engine.py
+         DB:       tabel rag_documents + ivfflat index
+         Deps:     W6-01 (project isolatie voor namespacing)
+
+  W6-03  AdaptiveChunker (AST-aware voor Java/Python)
+         Bestand:  ollama/adaptive_chunker.py
+         Deps:     geen (standalone utility)
+
+  W6-04  Agentic RAG retrieval integratie in agent_runner.py
+         Aanpassing: agent_runner.py krijgt rag_enabled flag
+         Deps:     W6-02, W6-03
+
+  W6-05  Compliance Engine — laag 1 (EU AI Act + PII output check)
+         Bestand:  ollama/compliance_engine.py
+         Dep:      capability YAML uitbreiding met eu_ai_act sectie
+
+  W6-06  Async Streaming — SSE in agent_runner.py + FastAPI endpoint
+         Bestand:  api/routers/streaming.py
+         Frontend: frontend/app/portal/stream/page.tsx
+
+  W6-07  Cost Forecaster v1 (tabelwaarden fallback, historisch zodra data)
+         Bestand:  ollama/cost_forecaster.py
+         Dep:      cost_governance.py (bestaand)
+
+  W6-08  Diagram Renderer — Mermaid output van agents
+         Bestand:  ollama/diagram_renderer.py
+         Frontend: frontend/app/portal/rapport/page.tsx (Mermaid.js)
+
+  W6-09  Client Portal API + basis portal UI
+         Bestand:  api/routers/portal.py
+         Frontend: frontend/app/portal/
+
+  W6-10  Update consultancy_orchestrator.yml naar V2
+         Integreert RAG, chunking, compliance checks, SSE streaming
+
+GAP CLOSURE WAVE 6: G-32, G-33, G-34, G-35, G-38, G-39, G-44, G-46
+
+────────────────────────────────────────────────────────────────────────────
+WAVE 7 — MULTI-TENANT & ENTERPRISE READINESS
+Doel: Meerdere klanten parallel, veilig, schaalbaar, compliant
+Tijdsduur: ~8-10 weken
+────────────────────────────────────────────────────────────────────────────
+
+  W7-01  Agent Versioning Systeem (semver, shadow mode, rollback)
+         Bestand:  ollama/agent_versioning.py
+         Herstructureer: agents/ → agents/versions/{name}/{version}/
+
+  W7-02  Knowledge Graph v1 (PostgreSQL JSONB + recursieve queries)
+         Bestand:  ollama/knowledge_graph.py
+         DB:       tabellen kg_nodes + kg_edges
+
+  W7-03  Knowledge Graph ingest na elke succesvolle analyse
+         Aanpassing: orchestrator.py → post-run KG update
+
+  W7-04  Sector-specifieke kennisbank (Belgische regelgeving)
+         Bestanden: .claude/skills/belgian-hr-law/SKILL.md
+                    .claude/skills/belgian-bouw/SKILL.md
+                    .claude/skills/belgian-handel/SKILL.md
+         Ingest in KG als authoritative SECTOR nodes
+
+  W7-05  NIS2 securitycontroles
+         Bestand:  ollama/compliance_engine.py (laag 3)
+         Beleid:   policies/nis2-policies.yaml
+         Audit:    NIS2-events naar aparte audit stream
+
+  W7-06  Belgische regelgeving Compliance Engine (laag 2)
+         BTW validator, herroepingstermijn, sector-recht
+         Dep: W7-04 (kennisbank als reference)
+
+  W7-07  Mixture-of-Agents voor diepgaande analyses
+         Bestand:  ollama/mixture_of_agents.py
+         Integratie met control_plane.py: MoA als workflow lane E
+
+  W7-08  Reasoning Logger — chain-of-thought apart opslaan
+         Aanpassing: agent_runner.py → extracteer reasoning sectie
+         DB: tabel agent_reasoning_logs
+
+  W7-09  EU AI Act conformiteitsdocumentatie generatie (auto)
+         Bestand:  ollama/ai_act_compliance.py
+         Output: conformity_docs/{capability}/{version}.md (auto-gegenereerd)
+
+  W7-10  Multi-client HITL dashboard v2
+         Frontend: meerdere klantprojecten tegelijk bewaken
+         Dep: W6-09 (portal API)
+
+GAP CLOSURE WAVE 7: G-36, G-37, G-40, G-41, G-42, G-43
+
+────────────────────────────────────────────────────────────────────────────
+WAVE 8 — AUTONOMOUS LEARNING & SELF-IMPROVEMENT
+Doel: Platform dat zichzelf ververbetert op basis van elke klantinteractie
+Tijdsduur: ~10-12 weken
+────────────────────────────────────────────────────────────────────────────
+
+  W8-01  Feedback collectie systeem (klant + intern)
+         API:     POST /api/portal/projects/{id}/feedback
+         DB:      tabel feedback_records
+         Frontend: sterrenrating per rapport-sectie
+
+  W8-02  FeedbackAnalyzer — koppeling feedback → promptversie
+         Bestand:  ollama/self_improvement.py
+         Dep:      W7-01 (agent versioning), W8-01 (feedback)
+
+  W8-03  Prompt Improvement Proposer
+         Bestand:  ollama/prompt_iterator.py (uitbreiden)
+         Logica: analyse slechte outputs → genereer verbeterd systeem-prompt
+         HITL: menselijke review vóór shadow deployment
+
+  W8-04  Self-improvement cyclus koppelen aan auto_promoter.py
+         Aanpassing: auto_promoter.py leest van FeedbackAnalyzer
+         Gate: min. 50 runs + feedback score > 4.0 → CANARY promotie
+
+  W8-05  Cross-project sector benchmarking
+         Knowledge Graph: geanonimiseerde sector-aggregaten
+         Output: "Uw score vergeleken met X soortgelijke Belgische KMOs"
+
+  W8-06  Cost Forecaster v2 — ML-model op basis van historische data
+         Vervang tabelwaarden met gradient boosting model (scikit-learn)
+         Feature engineering uit historische UsageRecords
+         Dep: min. 20 projecten afgerond (data vereiste)
+
+  W8-07  Aanbeveling Intelligence — automatische next-best-action
+         Knowledge Graph query: "klant heeft X, vergelijkbare klanten
+         namen daarna stap Y, ROI was Z"
+         Output: proactieve aanbevelingen in dashboard
+
+  W8-08  A/B testing op productietrafiek (volledig geautomatiseerd)
+         ab_tester.py uitbreiden: statistisch significantie test
+         Automatisch beslissen: winner na p<0.05
+
+  W8-09  Autonome kwaliteitsverbetering monitoring
+         quality_monitor.py: detecteer trends over meerdere weken
+         Alert: "Agent X vertoont kwaliteitsdaling — prompt review aanbevolen"
+
+  W8-10  Platform zelfevaluatie rapport (wekelijks)
+         Automatisch gegenereerd overzicht:
+           - welke agents verbeterden
+           - welke gaps gesloten werden
+           - kostefficiëntie trend
+           - klantfeedback samenvatting
+
+GAP CLOSURE WAVE 8: G-45 + continue verbetering van alle vorige gaps
+
+
+================================================================================
+ SECTIE 7: TOP 10 IMPLEMENTATIEPRIORITEITEN (ROI × HAALBAARHEID)
+================================================================================
+
+Rangschikking op basis van: (ROI impact × technische haalbaarheid) / kosten
+
+┌────┬─────────────────────────────────────────────────────────────────────┐
+│ #1 │  PII SCANNER + CLIENT PROJECT ISOLATION (W6-01)                    │
+│    │  ROI: KRITIEK — zonder dit geen tweede klant tegelijk               │
+│    │  Haalbaarheid: HOOG — presidio library, PostgreSQL RLS              │
+│    │  Tijdsinvestering: 3-4 dagen                                        │
+│    │  Gaps sluit: G-32, G-39                                             │
+│    │  → Onmiddellijk doen vóór eerste klantproductie                     │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #2 │  ASYNC STREAMING + PROGRESS INDICATOR (W6-06)                       │
+│    │  ROI: HOOG — klant vertrouwt systeem bij voortgangsindicatie        │
+│    │  Haalbaarheid: HOOG — FastAPI SSE is ingebouwd                      │
+│    │  Tijdsinvestering: 2-3 dagen                                        │
+│    │  Gap sluit: G-46                                                    │
+│    │  → Directe UX-verbetering zonder complexe infra                     │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #3 │  ADAPTIVE CHUNKER (W6-03)                                           │
+│    │  ROI: HOOG — huidige code-analyse faalt op grote codebases          │
+│    │  Haalbaarheid: HOOG — geen LLM nodig, tiktoken + AST               │
+│    │  Tijdsinvestering: 3-4 dagen                                        │
+│    │  Gap sluit: G-34                                                    │
+│    │  → Onmiddellijk verbetering voor java_chunk_analyse_agent           │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #4 │  COST FORECASTER v1 (W6-07)                                         │
+│    │  ROI: HOOG — professionaliseert offerteproces                       │
+│    │  Haalbaarheid: HOOG — tabelwaarden in eerste versie                 │
+│    │  Tijdsinvestering: 2 dagen                                          │
+│    │  Gap sluit: G-37                                                    │
+│    │  → Directe commerciële waarde voor klantgesprekken                  │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #5 │  EU AI ACT RISICOKLASSIFICATIE IN CAPABILITY YAMLS (W6-05)         │
+│    │  ROI: KRITIEK (juridisch risico) — snelle compliance-klaar          │
+│    │  Haalbaarheid: HOOG — YAML uitbreiding + kleine engine              │
+│    │  Tijdsinvestering: 2-3 dagen                                        │
+│    │  Gap sluit: G-38                                                    │
+│    │  → Beschermt VorstersNV tegen juridische aansprakelijkheid          │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #6 │  pgvector + BASIS RAG INGEST (W6-02)                                │
+│    │  ROI: HOOG — kennisaccumulatie is strategische differentiator       │
+│    │  Haalbaarheid: MEDIUM — pgvector installatie + embedding model      │
+│    │  Tijdsinvestering: 5-6 dagen                                        │
+│    │  Gap sluit: G-33                                                    │
+│    │  → Begin vroeg: waarde groeit naarmate meer projecten worden ingest │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #7 │  AGENT VERSIONING SYSTEEM (W7-01)                                   │
+│    │  ROI: HOOG — productie-veilige prompt updates                       │
+│    │  Haalbaarheid: HOOG — directory herstructurering + kleine module    │
+│    │  Tijdsinvestering: 4-5 dagen                                        │
+│    │  Gap sluit: G-36                                                    │
+│    │  → Kritiek voor fase 6 productie-deployments                        │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #8 │  MIXTURE-OF-AGENTS VOOR CODE ANALYSE (W7-07)                        │
+│    │  ROI: HOOG — kwaliteitssprong voor complexe klantprojecten          │
+│    │  Haalbaarheid: MEDIUM — parallelle agent aanroepen                  │
+│    │  Tijdsinvestering: 4-5 dagen                                        │
+│    │  Gap sluit: G-42                                                    │
+│    │  → Premium tier differentiator voor grote klanten                   │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│ #9 │  KNOWLEDGE GRAPH v1 (W7-02, W7-03)                                  │
+│    │  ROI: HOOG (lange termijn) — accumulerende kennis is moat           │
+│    │  Haalbaarheid: MEDIUM — PostgreSQL JSONB implementatie              │
+│    │  Tijdsinvestering: 6-7 dagen                                        │
+│    │  Gap sluit: G-33 (gedeeltelijk)                                     │
+│    │  → Start vroeg: elk afgerond project voegt waarde toe               │
+├────┼─────────────────────────────────────────────────────────────────────┤
+│#10 │  SELF-IMPROVEMENT LOOP v1 (W8-01, W8-02)                            │
+│    │  ROI: HOOG (cumulatief) — kwaliteit stijgt automatisch              │
+│    │  Haalbaarheid: MEDIUM — na agent versioning + feedback API          │
+│    │  Tijdsinvestering: 7-8 dagen                                        │
+│    │  Gap sluit: G-45                                                    │
+│    │  → Strategisch differentiator: platform wordt beter met elk project │
+└────┴─────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+ SECTIE 8: TECHNISCHE AANBEVELINGEN
+================================================================================
+
+──────────────────────────────────────────────────────────────────────────────
+ 8.1  NIEUWE PYTHON LIBRARIES
+──────────────────────────────────────────────────────────────────────────────
+
+DIRECT TOEVOEGEN (requirements.txt):
+
+  presidio-analyzer==2.2.x        ← PII detectie (G-39) — CPU-only
+  presidio-anonymizer==2.2.x      ← PII masking
+  sentence-transformers==3.x      ← Embedding generatie voor RAG
+  pgvector==0.3.x                 ← PostgreSQL vector extensie client
+  tiktoken==0.7.x                 ← Token counting zonder LLM API call
+  javalang==0.13.x                ← Java AST parsing voor AdaptiveChunker
+  mermaid-py==0.3.x               ← Mermaid diagram rendering
+  httpx-sse==0.4.x                ← SSE client-side (agent → API)
+  structlog==24.x                 ← Gestructureerde logging (NIS2-conform)
+  prometheus-client==0.20.x       ← Metrics export voor monitoring
+
+TOEKOMST (Wave 7-8):
+  scikit-learn==1.5.x             ← Cost forecaster ML model (W8-06)
+  networkx==3.3.x                 ← Knowledge graph analyse (W7-02)
+  rank-bm25==0.2.x                ← Hybrid RAG (BM25 + vector)
+  opentelemetry-sdk==1.24.x       ← Reeds gepland — upgrade naar GenAI convs
+
+──────────────────────────────────────────────────────────────────────────────
+ 8.2  OLLAMA / LOCAL LLM OPTIMALISATIE
+──────────────────────────────────────────────────────────────────────────────
+
+HUIDIG (CPU-only laptop):
+  - llama3:8b          ← code analyse (goed voor redeneren)
+  - mistral:7b         ← rapport generatie (sterk in taal)
+  - codellama:7b       ← specifiek code begrip
+  - all-MiniLM-L6-v2  ← embeddings (via sentence-transformers, geen Ollama)
+
+CPU OPTIMALISATIE TIPS:
+  1. Gebruik Ollama num_ctx parameter bewust:
+       llama3 standaard: 2048 → voor code analyse: 4096
+       (hogere ctx = meer RAM gebruik op CPU)
+  2. llm_load_time: pre-load meest gebruikte modellen bij startup
+       ollama.pull("llama3") bij applicatiestart
+  3. Parallel requests: max 1 op CPU (num_parallel=1 in Ollama config)
+  4. Quantisatie: gebruik Q4_K_M (beste kwaliteit/snelheid balans op CPU)
+       ollama pull llama3:8b-instruct-q4_K_M
+
+OVERGANG NAAR GPU (gaming desktop):
+  Aanbevolen workflow bij GPU beschikbaar:
+  1. OLLAMA_HOST=0.0.0.0 op gaming desktop (server mode)
+  2. Laptop stuurt requests naar gaming desktop via lokaal netwerk
+  3. OLLAMA_BASE_URL=http://192.168.x.x:11434 in .env
+  4. Modellen met GPU:
+       llama3.1:70b (Q4)  ← voor MoA aggregator (70B >> 8B kwaliteit)
+       mixtral:8x7b        ← voor complexe code analyse
+       codellama:34b       ← voor enterprise Java/C# analyse
+  5. Platform_adapter.py: route per capability naar juiste host
+       HIGH-RISK capability → GPU desktop
+       MINIMAL-RISK query  → CPU laptop (sneller voor kleine taken)
+
+CONTEXT WINDOW AANPAK:
+  Model               Max ctx     Aanbevolen gebruik
+  ──────────────────────────────────────────────────
+  llama3:8b           4096        Kleine code, rapporten < 2000 tokens
+  llama3.1:8b         131072      Grote code-analyses op CPU (traag!)
+  llama3.1:70b (GPU)  131072      Enterprise analyses (ideaal)
+  codellama:34b (GPU) 16384       Gespecialiseerde code-analyse
+  mistral:7b          32768       Rapport generatie, lange outputs
+
+──────────────────────────────────────────────────────────────────────────────
+ 8.3  MCP TOOLS VOOR CONSULTANCY USE CASE
+──────────────────────────────────────────────────────────────────────────────
+
+ESSENTIËLE MCP TOOLS (toe te voegen aan mcp_registry.py):
+
+  1. filesystem-mcp
+     → Veilig lezen van klant-codebase bestanden
+     → Sandbox: enkel /projects/{project_id}/ toegankelijk
+     → Nodig voor: code_analyse_agent, java_chunk_analyse_agent
+
+  2. git-mcp
+     → Analyseer git history voor code evolutie
+     → Blame-analyse: wie schreef welk systeem
+     → Nodig voor: code_analyse_agent, technische schuld detectie
+
+  3. jira-mcp (reeds aanwezig in mcp-config.json)
+     → Ophalen van bestaande tickets voor context
+     → Gap analyse: code ↔ ticket status
+     → Nodig voor: bedrijfsproces_agent, klant_rapport_agent
+
+  4. confluence-mcp (reeds aanwezig in mcp-config.json)
+     → Lezen/schrijven van klantdocumentatie
+     → Rapport rechtstreeks publiceren naar Confluence pagina
+     → Nodig voor: klant_rapport_agent
+
+  5. database-query-mcp
+     → Schemaquery (enkel read-only metadata, GEEN data)
+     → Tabelnamen, kolomtypen, relaties analyseren
+     → Nodig voor: code_analyse_agent (database-laag analyse)
+
+  6. diagrams-mcp
+     → Mermaid → SVG/PNG rendering server-side
+     → PlantUML support
+     → Nodig voor: diagram_renderer.py
+
+  7. pdf-export-mcp
+     → Markdown rapport → professionele PDF
+     → VorstersNV branding (logo, kleuren)
+     → Nodig voor: klant_rapport_agent output
+
+SECURITY VOOR MCP TOOLS:
+  Alle tools zijn sandboxed via tool-policies.yaml:
+    - filesystem-mcp: enkel /projects/{project_id}/ (RLS equivalent)
+    - database-query-mcp: enkel EXPLAIN/SHOW TABLES (nooit SELECT data)
+    - git-mcp: enkel read, nooit commit/push
+
+──────────────────────────────────────────────────────────────────────────────
+ 8.4  NIS2 SECURITYCONTROLES IMPLEMENTATIE
+──────────────────────────────────────────────────────────────────────────────
+
+VEREISTEN (NIS2 Bijlage I voor IT-dienstverleners):
+
+  1. INCIDENT RESPONSE
+     → policies/nis2-incident-response.yaml
+     → Definitie: wat is een "significant incident" voor AI-platform
+     → Meldingsplicht: CCN2.be binnen 24u (initieel), 72u (volledig)
+     → Trigger: policy_engine.py meldt NIS2-relevante events
+
+  2. SUPPLY CHAIN SECURITY
+     → Risico-assessment van Ollama (open-source, SBOM beschikbaar)
+     → Risico-assessment van externe APIs (Mollie, Keycloak)
+     → software_bill_of_materials.json bijhouden
+
+  3. ACCESS CONTROL AUDIT LOG
+     → structlog events voor alle Keycloak authenticaties
+     → SIEM-ready: JSON format, NIS2-vereiste velden
+     → Retentie: minimaal 1 jaar (NIS2 Bijlage I)
+
+  4. VULNERABILITY MANAGEMENT
+     → GitHub Dependabot alerts → Jira issue automatisch
+     → Kritieke vulnerabilities: patch binnen 72u
+
+  5. BUSINESS CONTINUITY
+     → Offline mode: platform kan zonder internet functioneren
+       (alles is lokaal: Ollama + PostgreSQL + Redis)
+     → RTO: 4 uur (Recovery Time Objective)
+     → RPO: 24 uur (Recovery Point Objective)
+
+
+================================================================================
+ SECTIE 9: RISICO'S & MITIGATIES
+================================================================================
+
+┌──────┬───────────────────────────────────────────────────────────────────┐
+│ R-01 │  DATAHYGIËNE-INCIDENT BIJ KLANTPROJECTEN                         │
+│      │  Risico: Klantcode bevat persoonsgegevens die in LLM prompt belanden│
+│      │  Waarschijnlijkheid: HOOG (klanten zenden ongefiltered)           │
+│      │  Impact: KRITIEK (GDPR boete, reputatieschade)                   │
+│      │  Mitigatie:                                                       │
+│      │    1. PII Scanner (presidio) als eerste stap in elke pipeline    │
+│      │    2. Contractuele afspraken met klant (DPA) vóór project        │
+│      │    3. Data Processing Agreement template in portal               │
+│      │    4. Audit log: "PII gedetecteerd en gemaskeerd in {project}"   │
+│      │    5. Maandelijkse PII scan op bestaande project-data            │
+└──────┴───────────────────────────────────────────────────────────────────┘
+
+┌──────┬───────────────────────────────────────────────────────────────────┐
+│ R-02 │  LLM HALLUCINATION IN KLANTRAPPORT                               │
+│      │  Risico: Agent genereert valse bevindingen die klant opvolgt     │
+│      │  Waarschijnlijkheid: MEDIUM (lokale LLMs zijn minder betrouwbaar) │
+│      │  Impact: HOOG (verkeerde bedrijfsbeslissingen, aansprakelijkheid) │
+│      │  Mitigatie:                                                       │
+│      │    1. Elke bevinding koppelen aan code-locatie (citaat verplicht) │
+│      │    2. Confidence score verplicht in output_schema                │
+│      │    3. HITL voor HIGH-RISK capabilities (EU AI Act Art. 14)       │
+│      │    4. Disclaimer in elk rapport: "AI-gegenereerd, menselijke     │
+│      │       verificatie aanbevolen"                                     │
+│      │    5. LLM-as-judge cross-check op kritieke bevindingen           │
+└──────┴───────────────────────────────────────────────────────────────────┘
+
+┌──────┬───────────────────────────────────────────────────────────────────┐
+│ R-03 │  CPU-HARDWARE BOTTLENECK BIJ GROTE KLANTPROJECTEN                │
+│      │  Risico: 30+ klasse Java codebase duurt 4+ uur op CPU-only laptop│
+│      │  Waarschijnlijkheid: HOOG (eerste enterprise klant)              │
+│      │  Impact: MEDIUM (slechte UX, gemiste deadline)                   │
+│      │  Mitigatie:                                                       │
+│      │    1. AdaptiveChunker: splits grote codebase in prioritaire delen│
+│      │    2. Async SSE: klant ziet voortgang, verwacht de duur          │
+│      │    3. CostForecaster: schat ook duur in bij offerte              │
+│      │    4. GPU gaming desktop: routing voor grote analyses (W6)       │
+│      │    5. Nacht-modus: langlopende analyses inplannen                │
+└──────┴───────────────────────────────────────────────────────────────────┘
+
+┌──────┬───────────────────────────────────────────────────────────────────┐
+│ R-04 │  KENNISBANKCONTAMINATIE                                           │
+│      │  Risico: Foutieve analyse-output wordt geïngest in KnowledgeGraph│
+│      │  → Toekomstige klanten krijgen verkeerd advies                   │
+│      │  Waarschijnlijkheid: MEDIUM                                      │
+│      │  Impact: HOOG (systematische kwaliteitsverslechtering)           │
+│      │  Mitigatie:                                                       │
+│      │    1. KG ingest enkel na quality gate PASSED                     │
+│      │    2. Human review voor KG ingest van HIGH-RISK capabilities     │
+│      │    3. KG soft-delete: bevindingen kunnen gemarked worden         │
+│      │       als "unverified" zonder te verwijderen                     │
+│      │    4. Wekelijkse KG-audit: outlier detectie op lage scores       │
+└──────┴───────────────────────────────────────────────────────────────────┘
+
+┌──────┬───────────────────────────────────────────────────────────────────┐
+│ R-05 │  COMPLEXITEITSVAL — TEVEEL ARCHITECTUUR, TE WEINIG PRODUCT       │
+│      │  Risico: Platform wordt zo complex dat geen klant meer bediend   │
+│      │  wordt terwijl architectuur gebouwd wordt                        │
+│      │  Waarschijnlijkheid: HOOG (architecten-antipatroon)              │
+│      │  Impact: HOOG (geen inkomsten, frustratie)                       │
+│      │  Mitigatie:                                                       │
+│      │    1. "Working software first" prioriteit (Agile manifest)       │
+│      │    2. Top-10 prioriteiten hierboven zijn MAXIMAAL scope Wave 6   │
+│      │    3. Na elke 4 weken: een echte klantanalyse opleveren          │
+│      │       (ook als het gedeeltelijk handmatig is)                    │
+│      │    4. Architectuurprincipe: elk component moet first klant        │
+│      │       meerwaarde leveren vóór implementatie                      │
+│      │    5. "Walking skeleton" aanpak: dunne maar complete pipeline    │
+│      │       vóór verdieping                                             │
+└──────┴───────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+ SECTIE 10: SUCCES METRICS REVISIE 5
+================================================================================
+
+TIER 1 — PRODUCT METRICS (maandelijks meten)
+
+  Metric                              Target Wave 6  Target Wave 8
+  ──────────────────────────────────────────────────────────────────
+  Klantprojecten afgerond             1 / maand      5 / maand
+  Gemiddelde analysetijd (code)       < 60 min       < 30 min
+  Rapport kwaliteitsscore (klant)     > 3.5 / 5      > 4.2 / 5
+  PII incidents                       0              0
+  Correct gemaskeerde PII entiteiten  > 99%          > 99.9%
+  EU AI Act compliance rate           100%           100%
+  Cost forecast accuraatheid          ± 30%          ± 15%
+
+TIER 2 — PLATFORM METRICS (wekelijks)
+
+  Metric                              Target
+  ──────────────────────────────────────────────────────────────────
+  Agent schema validation rate        > 95%
+  LLM-as-judge score (Tier 2 eval)   > 0.82
+  Context window overschrijdingen    0 (AdaptiveChunker pakt dit op)
+  Hallucination rate (geen citaat)   < 5% van bevindingen
+  RAG retrieval relevance (MRR)      > 0.75
+  KnowledgeGraph nodes (cumulatief)  +50 per project (min)
+  Agent versie rollbacks             < 1 per maand
+
+TIER 3 — BUSINESS METRICS (kwartaal)
+
+  Metric                              Target
+  ──────────────────────────────────────────────────────────────────
+  Offerteconversieratio               > 60% (na cost forecaster)
+  Herhalingsaankopen (2e project)     > 40% van klanten
+  Tijd van intake tot rapport         < 48 uur (vs. huidige handmatig)
+  AI-kostenaandeel in project         < 15% van projectomzet
+  Net Promoter Score                  > 40
+
+TIER 4 — INTELLIGENCE METRICS (kwartaal)
+
+  Metric                              Target
+  ──────────────────────────────────────────────────────────────────
+  KG sector-benchmarks beschikbaar   5 sectoren na 10 projecten
+  Self-improvement cycles completeet 1 per maand
+  Gemiddelde agent score verbetering +0.05 / cycle (cumulatief)
+  Cross-project patroon matches       > 30% van bevindingen
+    (gedeeld patroon gevonden in KG)
+  MoA kwaliteitsbonus (vs single)    > 15% hogere klant score
+
+
+================================================================================
+ SECTIE 11: BESTANDSSTRUCTUUR REVISIE 5
+================================================================================
+
+VorstersNV/
+├── ollama/
+│   ├── ... (alles uit Revisie 4 behouden)
+│   │
+│   ├── client_project_space.py    ← 🆕 W6-01: isolatie + quota + PII scan
+│   ├── rag_engine.py              ← 🆕 W6-02: vector store + retrieval
+│   ├── adaptive_chunker.py        ← 🆕 W6-03: context window management
+│   ├── compliance_engine.py       ← 🆕 W6-05: EU AI Act + BTW + GDPR + NIS2
+│   ├── cost_forecaster.py         ← 🆕 W6-07: kostenschatting pre-run
+│   ├── diagram_renderer.py        ← 🆕 W6-08: Mermaid/PlantUML rendering
+│   ├── agent_versioning.py        ← 🆕 W7-01: semver, shadow, rollback
+│   ├── knowledge_graph.py         ← 🆕 W7-02: graph-based kennisbank
+│   ├── mixture_of_agents.py       ← 🆕 W7-07: MoA orchestrator
+│   ├── self_improvement.py        ← 🆕 W8-02: feedback → prompt verbetering
+│   ├── ai_act_compliance.py       ← 🆕 W7-09: conformiteitsdocumentatie
+│   │
+│   └── workflows/
+│       ├── chains/
+│       │   ├── consultancy_full.yml     ← 🆕 W6-10: volledige consultancy chain
+│       │   ├── code_analyse_deep.yml    ← 🆕 W7-07: MoA chain
+│       │   └── compliance_check.yml    ← 🆕 W6-05
+│       └── consultancy_pipeline_v2.yml ← 🆕 W6-10: geüpdatete pipeline
+│
+├── agents/
+│   ├── versions/                        ← 🆕 W7-01: versioned agent store
+│   │   ├── code_analyse_agent/
+│   │   │   ├── 1.0.0/agent.yml
+│   │   │   └── CHANGELOG.md
+│   │   └── ... (alle 26 agents)
+│   ├── pii_scanner_agent.yml           ← 🆕 W6-01: PII detectie agent
+│   └── synthesizer_agent.yml           ← 🆕 W6-03: chunk synthese agent
+│
+├── policies/
+│   ├── ... (bestaande policies behouden)
+│   ├── nis2-policies.yaml              ← 🆕 W7-05
+│   ├── eu-ai-act-policies.yaml         ← 🆕 W6-05
+│   └── data-classification-policies.yaml ← 🆕 W6-01
+│
+├── api/
+│   ├── routers/
+│   │   ├── streaming.py               ← 🆕 W6-06: SSE endpoint
+│   │   └── portal.py                  ← 🆕 W6-09: client portal API
+│   └── ...
+│
+├── frontend/
+│   ├── app/
+│   │   ├── portal/
+│   │   │   ├── page.tsx               ← 🆕 W6-09: project overzicht
+│   │   │   ├── projects/[id]/
+│   │   │   │   ├── stream/page.tsx    ← 🆕 W6-06: live voortgang
+│   │   │   │   ├── rapport/page.tsx   ← 🆕 W6-09: rapport viewer
+│   │   │   │   └── feedback/page.tsx  ← 🆕 W8-01: feedback formulier
+│   │   │   └── forecast/page.tsx      ← 🆕 W6-07: kostenschatting UI
+│   │   └── ...
+│
+├── db/
+│   └── migrations/
+│       ├── add_client_projects.sql     ← 🆕 W6-01
+│       ├── add_rag_documents.sql       ← 🆕 W6-02 (pgvector)
+│       ├── add_kg_nodes_edges.sql      ← 🆕 W7-02
+│       ├── add_agent_versions.sql      ← 🆕 W7-01
+│       ├── add_feedback_records.sql    ← 🆕 W8-01
+│       └── add_eu_ai_act_logs.sql      ← 🆕 W6-05
+│
+├── .claude/
+│   ├── agents/ (bestaande 49 agents behouden)
+│   ├── skills/
+│   │   ├── ... (bestaande 23+ skills)
+│   │   ├── belgian-hr-law/SKILL.md    ← 🆕 W7-04
+│   │   ├── belgian-bouw/SKILL.md      ← 🆕 W7-04
+│   │   ├── belgian-handel/SKILL.md    ← 🆕 W7-04
+│   │   ├── eu-ai-act/SKILL.md         ← 🆕 W6-05
+│   │   └── rag-patterns/SKILL.md      ← 🆕 W6-04
+│   └── capabilities/
+│       └── ... (uitbreiden met eu_ai_act sectie)
+│
+├── docs/
+│   └── conformity/                    ← 🆕 W7-09 (EU AI Act)
+│       ├── fraud-detection-v2.md
+│       └── order-processing-v2.md
+│
+└── documentatie/
+    ├── AI_OPTIMALISATIEPLAN.TXT        ← dit bestand (Revisie 5)
+    └── COMPLIANCE_REGISTER.md          ← 🆕 EU AI Act + NIS2 register
+
+
+================================================================================
+ SECTIE 12: GAP REFERENTIE VOLLEDIG (REVISIE 5)
+================================================================================
+
+GAP  | BESCHRIJVING                              | SEV    | WAVE | STATUS
+─────|───────────────────────────────────────────|────────|──────|──────────
+G-01 | preprompt_ref bug                         | KRITIEK| W1   | ✅ DONE
+G-02 | ParallelStep nooit gebruikt               | HOOG   | W1   | ✅ DONE
+G-03 | output schema niet gevalideerd            | HOOG   | W1   | ✅ DONE
+G-04 | tracing niet gebruikt                     | HOOG   | W1   | ✅ DONE
+G-05 | geen typed domain contracts               | HOOG   | W1   | pending
+G-06 | geen Quality Gate systeem                 | HOOG   | W1   | pending
+G-07 | pipelines hardcoded in Python             | HOOG   | W2   | pending
+G-08 | geen event-driven orchestrator            | HOOG   | W2   | pending
+G-09 | geen project context preprompt            | MEDIUM | W1   | pending
+G-10 | .claude/agents/ vrijwel leeg              | HOOG   | W3   | pending
+G-11 | skill files zijn flat .md                 | MEDIUM | W3   | pending
+G-12 | capability YAML mist structuur            | MEDIUM | W3   | pending
+G-13 | agent tools nooit aangeroepen             | HOOG   | W3   | pending
+G-14 | geen agent validatiescript                | MEDIUM | W3   | pending
+G-15 | geen evaluation metrics in agent YAML     | MEDIUM | W4   | pending
+G-16 | geen A/B testing                          | MEDIUM | W4   | pending
+G-17 | geen LLM-as-judge evaluatiepipeline       | HOOG   | W4   | pending
+G-18 | geen state machine checkpointing/HITL     | HOOG   | W2   | pending
+G-19 | geen typed event taxonomy                 | HOOG   | W1   | pending
+G-20 | geen memory summarization/versioned ctx   | MEDIUM | W3   | pending
+G-21 | MCP tool registry zonder metadata         | MEDIUM | W5   | pending
+G-22 | tracing niet conform OTel GenAI convs     | MEDIUM | W4   | pending
+G-23 | geen Control Plane                        | KRITIEK| W1   | pending
+G-24 | geen Policy-as-Code governance            | HOOG   | W1   | pending
+G-25 | geen Decision Journal                     | HOOG   | W1   | pending
+G-26 | capability YAML heeft geen maturity model | HOOG   | W1   | pending
+G-27 | geen workflow lanes                       | HOOG   | W2   | pending
+G-28 | geen deployment rings                     | HOOG   | W2   | pending
+G-29 | geen evaluation hierarchy (4 levels)      | HOOG   | W4   | pending
+G-30 | geen cost & model governance              | MEDIUM | W2   | pending
+G-31 | observability mist business metrics (N3)  | MEDIUM | W4   | pending
+─────────────────── NIEUW REVISIE 5 ──────────────────────────────────────
+G-32 | Geen client project isolation             | BLOCKER| W6   | pending
+G-33 | Geen vector database / semantische RAG    | BLOCKER| W6   | pending
+G-34 | Geen adaptive context window management   | BLOCKER| W6   | pending
+G-35 | Geen agentic RAG pipeline                 | BLOCKER| W6   | pending
+G-36 | Geen agent versioning systeem             | HOOG   | W7   | pending
+G-37 | Geen cost forecasting voor offertes       | HOOG   | W6   | pending
+G-38 | Geen EU AI Act risicoklassificatie        | KRITIEK| W6   | pending
+G-39 | Geen geautomatiseerde PII detectie        | BLOCKER| W6   | pending
+G-40 | Geen NIS2 securitycontroles               | HOOG   | W7   | pending
+G-41 | Geen Belgische sector kennisbank          | MEDIUM | W7   | pending
+G-42 | Geen Mixture-of-Agents pattern            | HOOG   | W7   | pending
+G-43 | Geen structured reasoning logging         | MEDIUM | W7   | pending
+G-44 | Geen multimodale agent capabilities       | MEDIUM | W6   | pending
+G-45 | Geen self-improvement loop                | HOOG   | W8   | pending
+G-46 | Geen async streaming voor lange runs      | HOOG   | W6   | pending
+
+
+================================================================================
+ SECTIE 13: CAPABILITY YAML TEMPLATE — REVISIE 5
+================================================================================
+
+Elke capability YAML wordt uitgebreid met:
+
+  eu_ai_act:
+    risk_class:            minimal_risk     # minimal|limited|high|unacceptable
+    transparency_required: false
+    human_oversight:       never            # always|conditional|never
+    conformity_doc_ref:    ""               # pad naar conformiteitsdocument
+    audit_retention_years: 2               # min. bewaarplicht EU AI Act logs
+
+  data:
+    classification:        internal        # public|internal|confidential
+    pii_possible:          false           # activeert PII scanner bij true
+    sector_specific:       []              # ["hr_payroll", "bouw"] etc.
+
+  rag:
+    enabled:               true            # gebruikt RAG retrieval?
+    ingest_on_success:     true            # ingest findings in KG na run?
+    retrieval_type:        semantic        # semantic|hybrid|graph|filtered
+
+
+================================================================================
+ SECTIE 14: TECHNISCHE BESLISSINGEN REVISIE 5
+================================================================================
+
+VECTOR STORAGE:
+  Keuze: pgvector (PostgreSQL extensie)
+  Reden: geen extra infra, bestaande PostgreSQL 16, RLS-isolatie werkt
+  Fallback: Chroma (in-memory voor lokale dev/test zonder PostgreSQL)
+  Embedding model: all-MiniLM-L6-v2 (384 dimensies, CPU-snel, 90MB)
+
+PII SCANNING:
+  Keuze: Microsoft Presidio (open-source, lokaal, geen API calls)
+  Reden: GDPR-compliant (data verlaat NOOIT het systeem), gratis
+  Belgische entiteiten: RRN-nummers, IBAN (BE...), BTW-nummers (BE...)
+
+KNOWLEDGE GRAPH (eerste versie):
+  Keuze: PostgreSQL JSONB + recursive CTE queries
+  Reden: geen extra infra, bewezen schaalbaar tot 1M nodes
+  Upgrade pad: Neo4j bij > 5M nodes of als graph-queries te complex worden
+
+STREAMING:
+  Keuze: Server-Sent Events (SSE) via FastAPI EventSourceResponse
+  Reden: eenvoudiger dan WebSockets, HTTP/2 compatible, browser-native
+  Frontend: EventSource API in Next.js (geen extra library)
+
+AGENT VERSIONING:
+  Keuze: directory-based (agents/versions/{name}/{version}/)
+  Reden: git-compatible, eenvoudig, geen extra DB tabel nodig
+  Semver: bump via CLI script (scripts/bump_agent_version.py)
+
+COMPLIANCE FRAMEWORK:
+  EU AI Act: zelfgebouwde lichte engine (geen extern product)
+    Reden: vereisten zijn relatief eenvoudig voor bestaande capabilities
+    Scope: risicoklassificatie + HITL + audit logging
+  GDPR: Presidio + bestaande decision_journal.py retention policy
+  NIS2: structlog JSON logging + incident response procedure (YAML)
+
+BACKWARDS COMPATIBILITY:
+  Alle Revisie 4 modules: ONGEWIJZIGD (uitbreiden, niet vervangen)
+  Agent YAMLs: nieuwe secties zijn OPTIONEEL (backward compatible)
+  Database: additive migraties (ALTER TABLE ADD COLUMN, nooit DROP)
+  API: nieuwe endpoints, bestaande /api/... ongewijzigd
+
+
+================================================================================
+ SECTIE 15: SUCCES CRITERIA — REVISIE 5 (WAVE 6 KLAAR ALS...)
+================================================================================
+
+  ✓ Twee klantprojecten tegelijk actief zonder datalek risico
+  ✓ PII scanner detecteert > 99% van Belgische BSN/IBAN/email patronen
+  ✓ Java codebase van 100k regels wordt succesvol geanalyseerd op CPU
+  ✓ AdaptiveChunker geeft 0 context overflow fouten
+  ✓ Klant ziet real-time voortgang via portal (SSE actief)
+  ✓ Cost forecast voor "medium Java code analyse" heeft < 30% afwijking
+  ✓ Alle capabilities hebben eu_ai_act sectie in YAML
+  ✓ HIGH-RISK capabilities vereisen HITL (EU AI Act Art. 14 gecheckt)
+  ✓ Mermaid diagrammen gegenereerd in klantrapport
+  ✓ consultancy_orchestrator V2 integreert RAG + chunking + compliance
+
+  WAVE 7 KLAAR ALS:
+  ✓ Agent versioning: alle 26 agents op versie 1.0.0, rollback werkt
+  ✓ Knowledge Graph: 200+ nodes na 4 afgeronde projecten
+  ✓ MoA geeft aantoonbaar hogere kwaliteitsscore dan single-agent
+  ✓ Belgische HR/bouw/handel kennisbank beschikbaar in RAG
+  ✓ NIS2 audit log actief: alle security-events in structured JSON
+
+  WAVE 8 KLAAR ALS:
+  ✓ Self-improvement loop heeft 1 volledige cyclus afgerond
+  ✓ Minstens één agent verbeterd via automatische promptoptimalisatie
+  ✓ Cost forecaster v2 op basis van min. 15 historische projecten
+  ✓ Cross-project benchmarking actief voor min. 2 sectoren
+  ✓ Platform kwaliteitsrapport wordt wekelijks automatisch gegenereerd
+
+
+================================================================================
+ SECTIE 16: REFERENTIES REVISIE 5
+================================================================================
+
+ARCHITECTUURPATRONEN:
+  Agentic RAG (LlamaIndex): https://docs.llamaindex.ai/en/stable/
+  pgvector 0.7: https://github.com/pgvector/pgvector
+  Presidio PII: https://microsoft.github.io/presidio/
+  sentence-transformers: https://www.sbert.net/
+  Mixture of Agents: https://arxiv.org/abs/2406.04692
+
+COMPLIANCE:
+  EU AI Act (2024/1689): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689
+  NIS2 Richtlijn (2022/2555): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022L2555
+  GDPR AVG: https://gdpr.eu/
+  Belgische BTW-wetboek: https://financien.belgium.be/nl/btw
+  CERT.be NIS2 implementatie: https://ccb.belgium.be/nl/nis2
+
+LOKALE CONTEXT:
+  Revisie 4 plan: documentatie/AI_OPTIMALISATIEPLAN.TXT
+  Bestaande modules: ollama/ (29 Python modules)
+  Agent fleet: agents/ (26 YAML agents) + .claude/agents/ (49 Claude agents)
+  CI/CD: .github/workflows/ (ci.yml + deploy.yml)
+
+================================================================================
+ EINDE — REVISIE 5: VorstersNV AI CONSULTANCY INTELLIGENCE FABRIEK
+ Van controlled platform naar zelf-verbeterend consultancy-intelligentiesysteem
+================================================================================

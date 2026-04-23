@@ -2,7 +2,7 @@
 
 # 🚀 VorstersNV Platform
 
-**Full-stack AI-powered webshop & business platform — gebouwd door Koen Vorsters**
+**Full-stack AI-powered IT/AI consultancy & webshop platform — gebouwd door Koen Vorsters**
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs)](https://nextjs.org)
@@ -10,7 +10,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![Ollama](https://img.shields.io/badge/Ollama-25%20agents-black?logo=ollama)](agents/)
+[![Ollama](https://img.shields.io/badge/Ollama-32%20agents-black?logo=ollama)](agents/)
 [![Tests](https://img.shields.io/badge/Tests-28%20passing-brightgreen?logo=pytest)](tests/)
 [![License](https://img.shields.io/badge/License-Privé-red)](LICENSE)
 
@@ -34,19 +34,22 @@
 
 ## 🧭 Over het project
 
-VorstersNV is een volledig zelfgebouwd bedrijfsplatform voor een KMO-webshop. Het combineert moderne web-development met lokale AI (via [Ollama](https://ollama.ai)) om bedrijfsprocessen zoals orderverwerking, klantenservice en productbeschrijvingen te automatiseren — **volledig zonder externe AI-API's**.
+VorstersNV is een volledig zelfgebouwd **IT/AI consultancy & e-commerce platform** voor Belgische KMOs. Het combineert moderne web-development met lokale AI (via [Ollama](https://ollama.ai)) om bedrijfsprocessen te automatiseren — **volledig zonder externe AI-API's**.
+
+> **Fase 6 focus:** Freelance IT/AI consultancy tooling voor Belgische KMOs —
+> legacy code-analyse, bedrijfsproces automatisering, klantrapportage via AI-agents.
 
 **Kernfunctionaliteit:**
 
 | Functie | Beschrijving |
 |---------|-------------|
-| 🌐 **Portfolio & website** | Persoonlijke portfolio met projecten, blog en over-mij |
+| 🔍 **IT/AI Consultancy** | Automatische legacy codebase-analyse, bedrijfsproces mapping (AS-IS/TO-BE), klantrapportage |
+| 🌐 **Portfolio & website** | Persoonlijke portfolio met projecten, blog en dienstenaanbod |
 | 📊 **Live dashboard** | Real-time monitoring van alle services, AI-agents en logs |
-| 🤖 **AI-agents** | 25 lokale Ollama YAML-agents voor klantenservice, SEO, productbeschrijvingen, orderverwerking en smart home |
-| 🛍️ **Webshop backend** | FastAPI REST API (Python) + Spring Boot API (Java) met producten, orders, voorraad en Mollie betalingen |
+| 🤖 **AI-agents** | 32 lokale Ollama YAML-agents voor consultancy, klantenservice, SEO, orderverwerking |
+| 🛍️ **Webshop backend** | FastAPI REST API met producten, orders, voorraad en Mollie betalingen |
 | 🔐 **SSO Authenticatie** | Keycloak single sign-on met JWT tokens |
 | 📬 **Webhooks** | Real-time order- en betaalverwerking via HMAC-beveiligde webhooks |
-| 🏠 **Smart Home** | MCP server + Home Assistant integratie via Ollama LLM |
 
 ---
 
@@ -292,17 +295,19 @@ sequenceDiagram
 
 ## 🤖 AI-agents
 
-Het platform bevat **25 Ollama YAML-agents** (volledig lokaal) + een AI-development ecosysteem in `.claude/`.
+Het platform bevat **32 Ollama YAML-agents** (volledig lokaal) + een AI-development ecosysteem in `.claude/`.
 
 ### Overzicht per categorie
 
 | Categorie | Agents | Aantal |
 |-----------|--------|--------|
 | **Webshop** | klantenservice, order_verwerking, fraude_detectie, retour_verwerking, email_template, voorraad_advies | 6 |
-| **Content** | product_beschrijving, seo_agent, content_moderatie, email_template | 4 |
+| **Content** | product_beschrijving, seo_agent, content_moderatie, product_recommender | 4 |
 | **AI/Dev** | developer_agent, architect_agent, clean_code_reviewer, ddd_modeling, domain_validation | 5 |
 | **Testing** | test_design, test_orchestrator, regression_selector, test_data_designer, automation_agent | 5 |
-| **Smart Home** | betaling_status_agent, checkout_begeleiding, loyaliteit_agent, playwright_mcp, security_permissions, voorraad_advies | 5 |
+| **Klantenservice** | betaling_status_agent, checkout_begeleiding, loyaliteit_agent, review_analyzer | 4 |
+| **IT/AI Consultancy** 🆕 | code_analyse_agent, java_chunk_analyse_agent, klant_rapport_agent, bedrijfsproces_agent, consultancy_orchestrator | 5 |
+| **Overige** | playwright_mcp, security_permissions, voorraad_advies | 3 |
 
 > 📋 Volledig overzicht: zie [`agents/README.md`](agents/README.md)
 

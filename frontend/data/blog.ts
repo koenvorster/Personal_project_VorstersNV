@@ -2464,6 +2464,462 @@ cypress-smoke:
       },
     ],
   },
+  {
+    slug: 'beleggen-coach-ai-platform',
+    titel: 'Beleggen Coach: hoe ik een AI-gedreven beleggingsapp bouwde met MCP, Copilot agents en een monorepo',
+    excerpt:
+      'Van onboarding-wizard tot gepersonaliseerde ETF-aanbevelingen: een technische deep-dive in de architectuur van Beleggen Coach — een full-stack beleggingsplatform gebouwd met Next.js, FastAPI, PostgreSQL, Redis en zes domeinspecifieke MCP servers.',
+    datum: '22 april 2026',
+    datumISO: '2026-04-22',
+    leestijd: '16 min',
+    categorie: 'Project',
+    categorieKleur: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    afbeelding:
+      'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80',
+    inhoud: [
+      {
+        type: 'paragraph',
+        text: 'Beleggen is voor veel mensen een drempel vol jargon, angst en onzekerheid. Toch is vroeg beginnen met eenvoudige, gespreide ETF-beleggingen één van de krachtigste manieren om vermogen op te bouwen. Ik bouwde Beleggen Coach als een persoonlijk project om die drempel te verlagen — een slimme app die beginners begeleidt van profiel tot concreet beleggingsplan, aangedreven door AI en domeinspecifieke data. In dit artikel neem ik je mee door de volledige technische architectuur, de keuzes die ik maakte en de lessen die ik leerde.',
+      },
+      {
+        type: 'heading',
+        text: 'Wat is Beleggen Coach?',
+      },
+      {
+        type: 'paragraph',
+        text: 'Beleggen Coach is een full-stack webapplicatie die een gebruiker begeleidt door een gestructureerd onboardingproces: profiel opstellen, risicotolerantie bepalen, ETF-suggesties krijgen op maat en een persoonlijk beleggingsplan genereren. De app is gebouwd als een monorepo met twee hoofdapplicaties — een Next.js frontend en een FastAPI backend — aangevuld met zes onafhankelijke MCP (Model Context Protocol) servers die elk een specifiek domein bedienen.',
+      },
+      {
+        type: 'infobox',
+        icon: '💡',
+        title: 'Wat is MCP?',
+        text: 'Model Context Protocol (MCP) is een open standaard van Anthropic waarmee AI-assistenten zoals GitHub Copilot tools kunnen aanroepen via een gestandaardiseerde interface. In Beleggen Coach fungeert elke MCP server als een slimme module die Copilot-agents kunnen bevragen voor domeinkennis — van ETF-data tot gedragscoaching.',
+        color: 'border-emerald-500/30 bg-emerald-500/5',
+      },
+      {
+        type: 'heading',
+        text: 'De monorepo structuur',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het project is opgezet als een pnpm monorepo. Die keuze heeft meerdere voordelen: gedeelde TypeScript-types tussen frontend en backend, één centrale dependency-lock file en eenvoudiger CI/CD setup. De structuur is clean gescheiden: apps/ voor uitvoerbare applicaties, packages/ voor gedeelde code, mcp/ voor alle MCP servers en docs/ voor architectuur- en productdocumentatie.',
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        code: `beleggen-coach/
+├── apps/
+│   ├── web/          # Next.js 14 frontend (App Router)
+│   └── api/          # FastAPI backend (Python 3.12, uv)
+├── mcp/
+│   ├── investor-profile-mcp/   # Risicoscore berekening
+│   ├── etf-data-mcp/           # ETF-screening & top-3 ranking
+│   ├── market-data-mcp/        # Live koersen (yfinance / Alpha Vantage)
+│   ├── portfolio-plan-mcp/     # Beleggingsplan generatie & simulatie
+│   ├── behavior-coach-mcp/     # Gedragscoaching & emotionele check-ins
+│   └── learning-content-mcp/  # Leermateriaal & quiz content
+├── packages/
+│   └── shared-types/   # Gedeelde TypeScript interfaces
+├── db/                 # Alembic migraties
+├── docs/
+│   ├── architecture/   # Technische architectuurdocumentatie
+│   └── product/        # Feature specs & roadmap
+└── .github/
+    ├── agents/         # Custom Copilot agents (*.agent.md)
+    └── copilot-instructions.md`,
+      },
+      {
+        type: 'heading',
+        text: 'De systeemarchitectuur',
+      },
+      {
+        type: 'paragraph',
+        text: 'De architectuur volgt een gelaagd model. De Next.js frontend communiceert via REST/JSON met de FastAPI backend. De backend beheert de PostgreSQL database (via SQLAlchemy async) en een Redis cache voor sessiedata en snelle opzoekingen. Daaronder hangen de MCP servers als autonome modules die via het stdio-protocol aangesproken worden door Copilot. Externe diensten zoals Clerk (authenticatie), OpenAI API (AI chat) en Yahoo Finance (live koersen) worden op de juiste lagen geïntegreerd.',
+      },
+      {
+        type: 'grid2',
+        items: [
+          {
+            icon: '⚡',
+            title: 'Next.js App Router',
+            text: 'Server Components voor snelle initiële laadtijd, Client Components voor interactieve dashboards. Routing via /dashboard, /etfs, /plan, /learn, /chat, /portfolio en /analytics.',
+          },
+          {
+            icon: '🐍',
+            title: 'FastAPI + uv',
+            text: 'Async Python API met SQLAlchemy 2.0 en Alembic voor migraties. uv als supersnelle package manager vervangt pip/poetry. Routers per domein: onboarding, etfs, portfolio, chat.',
+          },
+          {
+            icon: '🗄️',
+            title: 'PostgreSQL + Redis',
+            text: 'PostgreSQL voor persistente data (profielen, posities, check-ins). Redis voor cache, sessiegeheugen bij AI chat en dagelijks herberekende ETF-rankings.',
+          },
+          {
+            icon: '🔌',
+            title: 'MCP via stdio',
+            text: 'Elke MCP server draait als een onafhankelijk Python-proces. Copilot roept tools aan via het stdio-protocol. Elke tool geeft een gestandaardiseerd { success, data, error } object terug.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: 'De zes MCP servers uitgelegd',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het hart van het AI-aspect van Beleggen Coach is het netwerk van zes domeinspecifieke MCP servers. Elk bedient een specifiek expertisedomein en kan onafhankelijk worden getest, gedeployed en geüpgraded. Dit is een fundamenteel ander patroon dan één grote AI-aanroep: kennis is verdeeld over specialisten.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'investor-profile-mcp — Risicoscore',
+            text: 'Ontvangt de onboarding-antwoorden (beleggingshorizon, risicobereidheid, maandelijkse inleg, leeftijd) en berekent een genormaliseerde risicoscore (0-100). Hogere score = hogere risicotolerantie = meer aandelengewicht in het plan.',
+          },
+          {
+            title: 'etf-data-mcp — Screening & ranking',
+            text: 'Beheert een gecureerde ETF-database met metadata: TER, categorie, regio, benchmark, historische volatiliteit. De tool get_top3_for_profile() combineert profiel-fit met marktdata en momentum voor een dagelijks bijgewerkte Top 3.',
+          },
+          {
+            title: 'market-data-mcp — Live koersen',
+            text: 'Haalt live en historische koersen op via yfinance of Alpha Vantage. Berekent volatiliteit, YTD-rendement en drawdown versus historisch gemiddelde. Wordt gecached in Redis om API-rate-limits te respecteren.',
+          },
+          {
+            title: 'portfolio-plan-mcp — Beleggingsplan',
+            text: 'Genereert een concreet beleggingsplan op basis van doelkapitaal, tijdshorizon, maandelijkse inleg en gekozen ETFs. Simuleert ook toekomstige portefeuillegroei met verwacht rendement en inflatiocorrectie.',
+          },
+          {
+            title: 'behavior-coach-mcp — Gedragscoaching',
+            text: 'Begeleidt de gebruiker bij emotionele beslissingen. Maandelijkse check-ins vragen naar gevoel, nieuws-invloeden en bereidheid om het plan aan te passen. De coach detecteert patroonafwijkingen en stuurt bij met motiverende inzichten.',
+          },
+          {
+            title: 'learning-content-mcp — Leermateriaal',
+            text: 'Levert gepersonaliseerd leermateriaal: artikelen, quizzen en mini-lessen op basis van het profiel van de gebruiker en zijn voortgang. Beginner krijgt andere content dan iemand die al 2 jaar belegt.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: 'Custom Copilot Agents als AI-ontwikkelteam',
+      },
+      {
+        type: 'paragraph',
+        text: 'Naast de runtime-MCP-servers bevat het project ook custom Copilot agents in .github/agents/. Dit zijn gespecialiseerde agents die ik gebruik tijdens de ontwikkeling zelf — niet op productie. Ze kennen de volledige codebase, de architectuurprincipes en de product-specs. Zo heb ik agents voor frontend componenten, API-routers, database-migraties en productanalyse die elk hun eigen expert-context meekrijgen via een gedetailleerde agent.md instructie.',
+      },
+      {
+        type: 'code',
+        language: 'markdown',
+        code: `# .github/copilot-instructions.md (fragment)
+
+## Stack
+- Frontend: Next.js 14 App Router, TypeScript, Tailwind CSS
+- Backend: FastAPI, Python 3.12, SQLAlchemy 2.0 async, Alembic
+- Database: PostgreSQL (via Docker), Redis
+- Package manager: pnpm (monorepo), uv (Python)
+- MCP: stdio protocol, elk eigen Python-package
+
+## Principes
+- Gebruik altijd async/await in FastAPI routes
+- MCP tools returnen altijd { success: bool, data: ..., error: str | None }
+- TypeScript strict mode — geen any-types
+- Elke nieuwe feature begint met een migratie-bestand`,
+      },
+      {
+        type: 'heading',
+        text: 'Fase 6: de roadmap',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het project is opgezet in fasen. De eerste vijf fasen legden de fundering: onboarding flow, ETF-database, beleggingsplan, leercentrum en maandelijkse check-in. Fase 6 brengt het platform naar een volwassen productieniveau met zeven grote toevoegingen: login & authenticatie via Clerk, een volledig uitgebreid dashboard, AI-chatinterface met streaming, top-3 ETF-aanbevelingen op basis van live marktdata, portefeuille-opvolging, analytisch overzicht en een gecureerde bronpagina.',
+      },
+      {
+        type: 'infobox',
+        icon: '🏗️',
+        title: 'Fase 6 prioritering',
+        text: 'Login & Auth is de basis voor alles persoonlijk. Daarna Dashboard → Bronpagina → Portefeuille → Top 3 ETFs → AI Chat → Analytics. De bronpagina is bewust vroeg gepland: geen afhankelijkheden, snel te bouwen, direct waarde voor de gebruiker.',
+        color: 'border-blue-500/30 bg-blue-500/5',
+      },
+      {
+        type: 'heading',
+        text: 'AI Chat met guardrails',
+      },
+      {
+        type: 'paragraph',
+        text: 'De AI-chatfunctie is technisch interessant én verantwoordelijk complex. De chat-router in FastAPI stuurt de gebruikersvraag naar OpenAI GPT-4o met een systeem-prompt die de context bevat: gebruikersprofiel, huidig plan, en relevante ETF-data opgehaald via MCP. Streaming via Server-Sent Events zorgt voor een vloeiende gebruikerservaring. Wat ik bewust niet doe: expliciete koopadvies geven. De guardrails in de systeem-prompt zorgen dat de AI altijd een disclaimer toevoegt en geen "koop nu" statements maakt.',
+      },
+      {
+        type: 'code',
+        language: 'python',
+        code: `# apps/api/src/routers/chat.py (vereenvoudigd)
+@router.post("/chat")
+async def chat(request: ChatRequest, user: TokenData = Depends(get_current_user)):
+    profile = await get_user_profile(user.user_id)
+    etf_context = await etf_data_mcp.get_top3_for_profile(profile.id)
+    
+    system_prompt = f"""
+    Je bent een beleggingscoach voor beginners.
+    Gebruikersprofiel: {profile.model_dump_json()}
+    Huidige Top 3 ETFs: {etf_context}
+    
+    REGELS:
+    - Geef nooit expliciete koop- of verkoopadvies
+    - Voeg altijd toe: "Dit is geen financieel advies."
+    - Leg termen uit in gewone taal
+    - Verwijs door naar een financieel adviseur bij complexe vragen
+    """
+    
+    async for chunk in openai_stream(system_prompt, request.messages):
+        yield f"data: {chunk}\\n\\n"`,
+      },
+      {
+        type: 'heading',
+        text: 'Wat ik leerde van dit project',
+      },
+      {
+        type: 'list',
+        items: [
+          'MCP is een game-changer voor AI-geïntegreerde applicaties: kennis opdelen in domeinspecifieke servers maakt het systeem veel onderhoudbaarder dan één grote AI-aanroep',
+          'uv als Python package manager is razendsnel — een volledige sync van een nieuw project duurt seconden in plaats van minuten',
+          'pnpm monorepo + turborepo zorgt voor een nette scheiding maar vereist discipline in het beheer van gedeelde types',
+          'Guardrails in de systeem-prompt zijn niet optioneel voor een financiële applicatie — ze zijn de eerste verdedigingslinie tegen onjuist advies',
+          'Redis als cache voor ETF-data vermijdt dat elke gebruikersinteractie een dure API-call triggert naar Yahoo Finance of Alpha Vantage',
+          'Custom Copilot agents tijdens ontwikkeling versnellen het werk aanzienlijk — ze kennen de architectuurprincipes en code-conventies beter dan een generieke AI',
+        ],
+      },
+      {
+        type: 'quote',
+        text: 'De beste beleggingsapp is niet de slimste — het is de meest begrijpbare. AI helpt niet door het antwoord te geven, maar door de vraag te verduidelijken.',
+      },
+      {
+        type: 'heading',
+        text: 'De code bekijken',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het volledige project staat open-source op GitHub: github.com/koenvorster/beleggen-coach. Je vindt er de architectuurdocumentatie in docs/architecture/overview.md, de feature roadmap in docs/product/fase6-features.md en de MCP-serverimplementaties in mcp/. Feedback, issues en pull requests zijn welkom.',
+      },
+      {
+        type: 'infobox',
+        icon: '⚠️',
+        title: 'Disclaimer',
+        text: 'Beleggen Coach is een persoonlijk leer- en demonstratieproject. De app geeft geen financieel advies. Alle ETF-suggesties en beleggingsplannen zijn puur informatief. Raadpleeg een gecertificeerd financieel adviseur voor persoonlijk beleggingsadvies.',
+        color: 'border-yellow-500/30 bg-yellow-500/5',
+      },
+    ],
+  },
+  {
+    slug: 'ai-avonturen-april-2026-copilot-cli-ollama-control-platform',
+    titel: 'Mijn AI-lab in april 2026: Copilot CLI, lokale LLMs en een platform dat zichzelf runt',
+    excerpt:
+      'Van GitHub Copilot CLI als slimme terminal-assistent tot een volledig lokaal AI Control Platform — een eerlijk verslag van wat werkt, wat traag is en wat me verraste tijdens mijn recentste AI-avonturen.',
+    datum: '23 april 2026',
+    datumISO: '2026-04-23',
+    leestijd: '12 min',
+    categorie: 'AI',
+    categorieKleur: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+    afbeelding:
+      'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80',
+    inhoud: [
+      {
+        type: 'paragraph',
+        text: 'April 2026 was een drukke maand in mijn AI-lab. Ik wil graag eerlijk delen wat ik de laatste weken heb gedaan, wat verrassend goed werkte en waar ik tegenaan liep. Geen gepolijste tutorial — gewoon een oprecht verslag van mijn laatste AI-avonturen. Van GitHub Copilot CLI die mijn terminal overneemt, over Ollama-agents die lokaal codebasissen analyseren, tot een AI Control Platform dat zichzelf bewaakt. Buckle up.',
+      },
+      {
+        type: 'heading',
+        text: '🤖 GitHub Copilot CLI: AI in je terminal',
+      },
+      {
+        type: 'paragraph',
+        text: 'De grootste verrassing van deze maand was GitHub Copilot CLI. Ik kende Copilot al van in de IDE, maar de CLI-variant is een ander beest. Je opent een terminal, typt wat je wilt bereiken in natuurlijke taal, en Copilot gaat aan de slag — hij leest bestanden, voert commando\'s uit, debugt fouten en legt elke stap uit. Het voelt alsof je een junior developer naast je hebt zitten die nooit moe wordt en altijd de juiste PowerShell-syntax kent.',
+      },
+      {
+        type: 'infobox',
+        icon: '💡',
+        title: 'Wat is GitHub Copilot CLI?',
+        text: 'GitHub Copilot CLI is een interactieve terminal-assistent die je helpt met software engineering taken. Hij heeft toegang tot je bestandssysteem, kan commando\'s uitvoeren, code lezen en schrijven, en integreert met GitHub, Jira, Confluence en MCP-servers. Beschikbaar via GitHub Copilot subscription.',
+        color: 'border-violet-500/30 bg-violet-500/5',
+      },
+      {
+        type: 'paragraph',
+        text: 'Concreet gebruik ik het voor het opstarten van het VorstersNV-project. Vandaag vroeg ik simpelweg: "kan je dit project lokaal nu draaien?" — en Copilot CLI analyseerde de volledige repo, controleerde welke tools beschikbaar waren (Python 3.12 ✅, Node.js 22 ✅, Ollama ✅, Docker ❌), ontdekte dat Docker Desktop niet geïnstalleerd was, vond de juiste poorten, en startte FastAPI én Next.js op zonder dat ik één commando zelf hoefde in te typen. Dat is de toekomst van developer tooling.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Stap 1 — Context verzamelen',
+            text: 'Copilot CLI leest docker-compose.yml, .env bestanden, requirements.txt en de projectstructuur om te begrijpen wat het project nodig heeft.',
+          },
+          {
+            title: 'Stap 2 — Beschikbare tools checken',
+            text: 'Via PowerShell-commando\'s controleert hij welke tools aanwezig zijn: Python, Node, Docker, Ollama, open poorten.',
+          },
+          {
+            title: 'Stap 3 — Intelligente beslissing',
+            text: 'Geen Docker? Dan start hij FastAPI direct met uvicorn en Next.js met npm run dev — zonder dat ik iets hoefde te zeggen.',
+          },
+          {
+            title: 'Stap 4 — Verificatie',
+            text: 'Na het opstarten doet hij een /health check op de FastAPI en controleert hij poort 3000 — pas dan meldt hij "klaar".',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🧠 Ollama lokaal: de realiteit van CPU-inference',
+      },
+      {
+        type: 'paragraph',
+        text: 'Ik draai Ollama lokaal op mijn laptop — een Intel i7-1165G7 zonder dedicated GPU. De eerlijkheid gebiedt me te zeggen: dat is traag. Mistral 7B doet er ~290 seconden over per chunk bij een codebase-analyse. Dat is geen typo — bijna vijf minuten per stuk code. Toch gebruik ik het, want de voordelen zijn reëel: geen cloud kosten, geen data-privacy zorgen, en volledige controle over welk model ik gebruik.',
+      },
+      {
+        type: 'grid2',
+        items: [
+          {
+            icon: '✅',
+            title: 'Wat werkt',
+            text: 'mistral:7B en llama3.2:3B draaien stabiel op CPU. Ideaal voor korte taken, code review per bestand, en eenvoudige agent-aanroepen.',
+          },
+          {
+            icon: '❌',
+            title: 'Wat niet werkt',
+            text: 'gpt-oss:20b met MXFP4-quantisatie — niet compatibel met CPU-only. starcoder:3b begrijpt geen instructies, alleen code completion.',
+          },
+          {
+            icon: '⚡',
+            title: 'Gaming desktop (gepland)',
+            text: 'Met een RTX 3090 of 4070 Ti via OLLAMA_BASE_URL naar de desktopserver: mistral:7B in ~1-2 seconden. Game changer.',
+          },
+          {
+            icon: '🎯',
+            title: 'Beste use case nu',
+            text: 'Analyse van één bestand tegelijk, met --dry-run eerst om te zien welke bestanden worden gescand vóór de AI aan het werk gaat.',
+          },
+        ],
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        code: `# Codebase analyseren met lokale AI (stap voor stap)
+# 1. Eerst dry-run: alleen bestanden scannen, geen AI
+python scripts/analyse_project.py \\
+  --pad C:\\pad\\naar\\klant-project \\
+  --dry-run
+
+# 2. Volledige analyse (mistral:7B op CPU — pak een koffie)
+python scripts/analyse_project.py \\
+  --pad C:\\pad\\naar\\klant-project
+
+# 3. Via gaming desktop server (veel sneller)
+# In .env:
+# OLLAMA_BASE_URL=http://192.168.1.XXX:11434
+# OLLAMA_DEFAULT_MODEL=mistral:7b`,
+      },
+      {
+        type: 'heading',
+        text: '🏗️ Het AI Control Platform: van idee naar productie',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het grote project van de laatste maanden is het AI Control Platform dat ik heb gebouwd als onderdeel van VorstersNV. Het is ontstaan uit een concrete nood: ik had meer dan 20 Ollama-agents die allemaal los van elkaar draaiden, zonder centraal beheer, zonder audit trail, zonder manier om te weten welke agent goed presteerde en welke niet. De oplossing: één centrale Control Plane die alles orkestreert.',
+      },
+      {
+        type: 'list',
+        items: [
+          '🎛️ Control Plane: één REST-endpoint (POST /api/ai/run) dat alle AI-aanroepen routeert op basis van 8 dimensies (capability, risk, environment, budget, latency, model, policy, rollout)',
+          '📋 Policy Engine: governance-regels als YAML — welke agent mag welke tool gebruiken, wanneer is human-in-the-loop verplicht, welk model wordt ingezet per risiconiveau',
+          '📓 Decision Journal: elke AI-beslissing wordt gelogd met trace_id, input, output, rationale en verdict — volledig auditeerbaar',
+          '📊 Quality Monitor: real-time alerts wanneer een agent degradeert (CRITICAL/DEGRADED/SLOW status)',
+          '🧪 A/B Tester met AutoPromoter: winnende prompt-versies worden automatisch gepromoot, verliezende teruggedraaid',
+          '🔗 Event Bridge: Mollie-webhooks en order-events triggeren automatisch de juiste AI skill chain',
+        ],
+      },
+      {
+        type: 'quote',
+        text: 'Het meest waardevolle was niet de technologie zelf, maar de governance die eromheen zit. Een AI-agent zonder audit trail is een tijdbom — je weet pas dat er iets mis is als het al fout gegaan is.',
+      },
+      {
+        type: 'heading',
+        text: '🔬 Wat ik leerde over AI-agent architectuur',
+      },
+      {
+        type: 'paragraph',
+        text: 'Na maanden bouwen heb ik een paar harde lessen geleerd die ik nergens anders las. Ten eerste: agents zijn zo goed als hun context. Een agent die alleen de user input krijgt, presteert significant slechter dan een agent die ook de relevante business-context meekrijgt — klanthistorie, ordergegevens, productcategorie. De prompt engineering is slechts 30% van het werk; de andere 70% is het ophalen en structureren van de juiste context vóór de agent aanroep.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Ten tweede: monitor alles, vertrouw niets. De Quality Monitor in het platform alarmeert me wanneer een agent structureel slechter presteert. Dat klinkt voor de hand liggend, maar zonder automatische monitoring merk je het pas na tientallen slechte antwoorden aan klanten. De Decision Journal heeft me al drie keer gered: één keer een policy-bug gevonden, één keer een model dat stilletjes andere outputs gaf na een Ollama update, en één keer een agent die op basis van verouderde productdata adviseerde.',
+      },
+      {
+        type: 'code',
+        language: 'yaml',
+        code: `# Voorbeeld policy in het AI Control Platform
+# policies/order_verwerking.yml
+policy_id: order-fraud-check
+version: "1.2"
+applies_to:
+  - capability: fraud_detection
+  - risk_level: [medium, high, critical]
+
+rules:
+  - id: hitl-high-risk
+    condition: risk_score >= 75
+    action: require_human_approval
+    notify: ["fraud-team@vorsternv.be"]
+
+  - id: block-critical
+    condition: risk_score >= 95
+    action: block_order
+    log_to_decision_journal: true
+
+  - id: model-selection
+    condition: risk_score >= 50
+    preferred_model: mistral:7b  # meer nauwkeurig, trager
+    fallback_model: llama3.2:3b  # sneller, minder nauwkeurig`,
+      },
+      {
+        type: 'heading',
+        text: '📁 Consultancy tooling: code analyseren voor klanten',
+      },
+      {
+        type: 'paragraph',
+        text: 'De nieuwste richting voor VorstersNV is IT/AI-consultancy voor Belgische KMOs. Concreet betekent dat: ik neem een bestaande codebase van een klant, scan die met lokale AI-agents, en lever een rapport met technische bevindingen, risico\'s en aanbevelingen. Geen cloud, geen data die de organisatie verlaat, geen licentiekosten per token. Alles draait lokaal op mijn laptop of op een kleine server bij de klant.',
+      },
+      {
+        type: 'paragraph',
+        text: 'De tooling hiervoor is bijna klaar: scripts/analyse_project.py scant de bestanden, code_analyse_agent beoordeelt elk bestand op architectuur en risico\'s, klant_rapport_agent schrijft de samenvatting in klantgerichte taal, en bedrijfsproces_agent mapt het AS-IS proces. De output gaat naar documentatie/analyse/ als Markdown-rapport dat ik kan bezorgen of in een Confluence-pagina zetten.',
+      },
+      {
+        type: 'infobox',
+        icon: '🚀',
+        title: 'Fase 6 in volle gang',
+        text: 'Het VorstersNV platform evolueert van webshop naar freelance IT/AI-consultancy platform. De webshop-functionaliteit blijft, maar de focus ligt nu op tools die ik gebruik voor klantopdrachten: codebase-analyse, procesautomatisering en AI-agent implementatie voor KMOs.',
+        color: 'border-emerald-500/30 bg-emerald-500/5',
+      },
+      {
+        type: 'heading',
+        text: '🗺️ Wat staat er nog op de planning',
+      },
+      {
+        type: 'list',
+        items: [
+          'Gaming desktop server configureren als Ollama inference node — OLLAMA_BASE_URL switchen en klaar',
+          'Docker Desktop installeren zodat de volledige stack (PostgreSQL + Redis) via één docker compose up draait',
+          'Eerste echte klantopdracht: codebase analyse van een bestaand Java ERP-systeem',
+          'A/B tester koppelen aan de Quality Monitor zodat slechte prompts automatisch worden teruggedraaid',
+          'MCP server voor de consulting module — Confluence integratie voor automatisch rapport genereren',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'Het tempo ligt hoog, maar dat is precies de charme van een persoonlijk platform: je kiest zelf wat je bouwt, hoe snel en waarvoor. AI maakt dat solo-development tegenwoordig dichter bij team-development komt — niet qua sociale dynamiek, maar qua snelheid en kwaliteit van wat je kunt afleveren. Als je vragen hebt over het platform, de consultancy aanpak of de Ollama setup — reach out. Ik deel graag wat werkt.',
+      },
+      {
+        type: 'quote',
+        text: 'AI maakt solo-development sneller, maar maakt het niet makkelijker. De moeilijkste beslissingen — architectuur, prioriteiten, wat je weggooit — die blijf je zelf maken. En dat is precies hoe het hoort.',
+      },
+    ],
+  },
 ]
 
 export function getBlogPostBySlug(slug: string): BlogPost | undefined {

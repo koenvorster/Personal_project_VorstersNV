@@ -6,7 +6,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import auth as auth_router
-from api.routers import agents, ai_platform, betalingen, dashboard, inventory, leads, logs, notifications, orders, products
+from api.routers import (
+    agents,
+    ai_platform,
+    betalingen,
+    dashboard,
+    feedback,
+    inventory,
+    leads,
+    logs,
+    notifications,
+    orders,
+    products,
+    streaming,
+)
 
 app = FastAPI(
     title="VorstersNV API",
@@ -59,6 +72,8 @@ app.include_router(notifications.router, prefix="/api/notifications", tags=["Not
 app.include_router(agents.router, prefix="/api/agents", tags=["AI Agents & Analytics"])
 app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
 app.include_router(ai_platform.router, prefix="/api/ai", tags=["AI Platform"])
+app.include_router(streaming.router, prefix="/api/analyse", tags=["Streaming & SSE"])
+app.include_router(feedback.router, prefix="/api/portal", tags=["Feedback"])
 
 
 @app.get("/", tags=["Algemeen"], summary="API Root")

@@ -1,7 +1,7 @@
 # VorstersNV – Projectarchitectuur
 
-> **AI Platform versie:** 4.0 | **Status:** Wave 3 (actief) | **Datum:** April 2026
-> **AI Masterplan:** `documentatie/AI_OPTIMALISATIEPLAN.TXT` (Revisie 4)
+> **AI Platform versie:** 5.0 | **Status:** Wave 8 COMPLEET — Revisie 5 volledig geïmplementeerd | **Datum:** April 2026
+> **AI Masterplan:** `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (Revisie 5 — Enterprise Consultancy Intelligence Platform)
 
 ---
 
@@ -836,14 +836,15 @@ L4 BUSINESS EVAL   → ollama/quality_monitor.py + Grafana N3 dashboard
 | `policies/hitl-policies.yaml`            | Policy-as-Code   | HITL-001..003 regels                             |
 | `policies/tool-policies.yaml`            | Policy-as-Code   | TOOL-001..002 allow/deny per capability          |
 | `policies/maturity-policies.yaml`        | Policy-as-Code   | Maturity-omgeving restricties                    |
-| `documentatie/AI_OPTIMALISATIEPLAN.TXT`  | Documentatie     | Masterplan Revisie 4, alle gaps en waves         |
+| `documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` | Documentatie | Masterplan Revisie 5, gaps G-32..G-46, Waves 6–8 |
+| `documentatie/AI_OPTIMALISATIEPLAN.TXT`  | Documentatie     | Masterplan Revisie 4, gaps G-01..G-31, Waves 1–5 (archief) |
 
 ---
 
 ## 12. Waves Roadmap
 
 ```
-WAVE 1 — TRUST FOUNDATION                              [COMPLEET]
+WAVE 1 — TRUST FOUNDATION                              [COMPLEET ✅]
 ────────────────────────────────────────────────────────────────────
   F1-01 ✅  Fix preprompt_ref bug
   F1-02 ✅  ParallelStep implementeren
@@ -856,7 +857,7 @@ WAVE 1 — TRUST FOUNDATION                              [COMPLEET]
   F2-01 ✅  Typed domain contracts (ollama/contracts.py)
   F2-02 ✅  Quality gates + review_loop.py
 
-WAVE 2 — CONTROL PLANE (routing, HITL, rollout rings)  [COMPLEET]
+WAVE 2 — CONTROL PLANE (routing, HITL, rollout rings)  [COMPLEET ✅]
 ────────────────────────────────────────────────────────────────────
   F2-04 ✅  Event-driven skill chain orchestrator V3
   W2-01 ✅  Workflow lanes (4 lanes, ollama/workflow_lanes.py)
@@ -865,61 +866,73 @@ WAVE 2 — CONTROL PLANE (routing, HITL, rollout rings)  [COMPLEET]
   F2-06 ✅  State machine + HITL checkpointing
   W1-04 ✅  Capability maturity model in YAML + maturity_engine.py
 
-WAVE 3 — EXECUTION (agents, tools, context)            [ACTIEF]
+WAVE 3 — EXECUTION (agents, tools, context)            [COMPLEET ✅]
 ────────────────────────────────────────────────────────────────────
   F3-01 ✅  Capability registry uitgebreid
   F3-04 ✅  Agent taxonomie — 6 skill groepen (agent_groups.py)
-  F3-05 ✅  ARCHITECTURE.md bijgewerkt                ← DIT BESTAND
+  F3-05 ✅  ARCHITECTURE.md bijgewerkt
   W4-01 ✅  Observability N3 business metrics (observability.py)
-  F3-02 ⏳  Domein-skills als SKILL.md folders
-  F3-03 ⏳  Tool executor (ollama/tool_executor.py)
-  F3-06 ⏳  Claude agent fleet (5+ agents in .claude/agents/)
-  F3-07 ⏳  validate-agents.mjs
-  F3-09 ⏳  Memory management + versioned context injection
+  F3-02 ✅  Domein-skills als SKILL.md folders (.claude/skills/)
+  F3-03 ✅  Tool executor (ollama/tool_executor.py)
+  F3-06 ✅  Claude agent fleet (49 agents in .claude/agents/)
+  F3-07 ✅  validate-agents.mjs
+  F3-09 ✅  Memory management + versioned context injection
 
-WAVE 3B — WEBSHOP FRONTEND (Fase 3 e-commerce)         [ACTIEF]
+WAVE 4 — LEARNING (evals, A/B testing, anomaly detection)  [COMPLEET ✅]
 ────────────────────────────────────────────────────────────────────
-  Volledig technisch ontwerp: documentatie/architectuur/FASE3_TECHNISCH_ONTWERP.md
+  F3-08 ✅  LLM-as-judge evaluatiepipeline (ollama/evals/judge.py)
+  W3-01 ✅  4-level evaluation hierarchy
+  F4-01 ✅  Automated prompt A/B testing (ollama/ab_tester.py)
+  F4-02 ✅  Agent performance analyse (.claude/scripts/*.mjs)
+  F4-03 ✅  Quality monitor + evaluation metrics in agent YAMLs
+  F4-04 ✅  auto_promoter.py — automatische ring-promotie
 
-  B1-01 ⏳  Navbar: /shop publieke link + WinkelwagenBadge (P1)
-  B1-02 ⏳  /shop FilterBar + SortDropdown + URL-state (P1)
-  B1-03 ⏳  /betaling/bevestiging pagina na Mollie redirect (P1)
-  B2-01 ⏳  Alembic: mollie_payment_id + checkout_url velden (P2)
-  B2-02 ⏳  Mollie Python SDK + MOLLIE_API_KEY configuratie (P2)
-  B2-03 ⏳  /api/bestellingen: mock → echte Mollie payments.create() (P2)
-  B2-04 ⏳  Webhook HMAC-SHA256 verificatie + PaymentSucceededEvent (P2)
-  B3-01 ⏳  Alembic: zoek_vector tsvector GENERATED + GIN index (P3)
-  B3-02 ⏳  FastAPI: GET /api/products/search?q= endpoint (P3)
-  B3-03 ⏳  Frontend: ZoekBalk (debounced, URL-state) (P3)
-  B4-01 ⏳  Alembic: reviews tabel + constraints (P3)
-  B4-02 ⏳  FastAPI reviews router + review_analyzer_agent integratie (P3)
-  B4-03 ⏳  Frontend: StarRating + ReviewList + ReviewForm (P3)
-  B5-01 ⏳  Next.js middleware: /account/* route protection (P4)
-  B5-02 ⏳  FastAPI: GET /api/auth/mij + PUT /api/klanten/{id} (P4)
-  B5-03 ⏳  Frontend: /account, /account/profiel, /account/bestellingen (P4)
-
-  Architectuurbeslissingen (ADRs):
-  ADR-01 ✅  Winkelwagen state: Zustand + localStorage (niet server-side)
-  ADR-02 ✅  Auth: NextAuth als abstractielaag (Keycloak OIDC in productie)
-  ADR-03 ✅  Zoekfunctie: PostgreSQL FTS (niet Elasticsearch/Typesense voor KMO)
-
-WAVE 4 — LEARNING (evals, A/B testing, anomaly detection)  [GEPLAND]
+WAVE 5 — PRODUCTIE (API, webhooks, portfolio, consultancy) [COMPLEET ✅]
 ────────────────────────────────────────────────────────────────────
-  F3-08 ⏳  LLM-as-judge evaluatiepipeline (ollama/evals/judge.py)
-  W3-01 ⏳  4-level evaluation hierarchy (ollama/evals/hierarchy.py)
-  F4-01 ⏳  Automated prompt A/B testing (ollama/ab_tester.py)
-  F4-02 ⏳  Agent performance analyse (.claude/scripts/*.mjs)
-  F4-03 ⏳  Quality monitor + evaluation metrics in agent YAMLs
-  F4-04 ⏳  OpenTelemetry GenAI semantic conventions upgrade
+  F5-01 ✅  FastAPI platform (11 routers, JWT auth)
+  F5-02 ✅  Next.js portfolio + blog
+  F5-03 ✅  32 Ollama runtime agents
+  F5-04 ✅  Consultancy tooling (analyse_project.py, klant_rapport_agent)
+  F5-05 ✅  MCP server configuratie (7 servers)
+  F5-06 ✅  GitHub Actions CI (4 jobs)
 
-WAVE 5 — PRODUCT (dashboard, UI, role-based flows)     [TOEKOMST]
+═══════════════════════════════════════════════════════════════════
+  REVISIE 5 TOEGEVOEGD — Enterprise Consultancy Intelligence Fabriek
+  Zie: documentatie/AI_OPTIMALISATIEPLAN_REVISIE5.TXT
+═══════════════════════════════════════════════════════════════════
+
+WAVE 6 — INTELLIGENCE FOUNDATIONS                      [COMPLEET ✅]
 ────────────────────────────────────────────────────────────────────
-  F4-05 ⏳  MCP tool registry YAML + metadata verrijking
-  FUTURE    Backoffice HITL dashboard (React component)
-  FUTURE    Merchant notification center
-  FUTURE    Role-based capability access (merchant/admin/AI team)
-  FUTURE    Winkelwagen server-side sync voor ingelogde klanten (Wave 3B ADR-01 revisie)
-  FUTURE    Cross-apparaat winkelwagensynchronisatie
+  W6-01 ✅  ClientProjectSpace + PII Scanner (G-32, G-39)
+  W6-02 ✅  SSE Streaming endpoint (G-40)
+  W6-03 ✅  AdaptiveChunker (G-34)
+  W6-04 ✅  EU AI Act classificatie (G-43)
+  W6-05 ✅  CostForecaster (G-41)
+  W6-06 —   DiagramRenderer (G-37) — uitgesteld
+  W6-07 ✅  AgentVersioning (G-44) → ollama/agent_versioning.py
+
+WAVE 7 — RAG & KNOWLEDGE GRAPH                         [COMPLEET ✅]
+────────────────────────────────────────────────────────────────────
+  W7-01 ✅  rag_engine.py + HashEmbedding fallback (G-33)
+  W7-02 ✅  KnowledgeGraph JSONB + Mermaid export (G-35)
+  W7-03 ✅  MixtureOfAgents — 3 proposers parallel + aggregator
+  W7-04 ✅  Sector benchmarks (9 Belgische KMO-sectoren)
+  W7-05 ✅  Alembic migration: vector_documents tabel
+
+WAVE 8 — SELF-IMPROVEMENT LOOP                         [COMPLEET ✅]
+────────────────────────────────────────────────────────────────────
+  W8-01 ✅  agent_versioning.py — DRAFT→SHADOW→CANARY→STABLE→DEPRECATED→ARCHIVED
+  W8-02 ✅  Feedback API (POST/GET /api/portal/projects/{id}/feedback)
+            + Next.js feedback pagina met sterrenrating
+            + Alembic migration: feedback_records tabel
+  W8-03 ✅  self_improvement.py — FeedbackAnalyzer + PromptImprovementProposer
+            + SelfImprovementLoop (6-staps cyclus)
+  W8-04 ✅  recommendation_engine.py — next-best-action via KnowledgeGraph
+            REFACTOR/SECURITY/MODERNIZE/PROCESS/COMPLIANCE/TRAINING
+  W8-05 ✅  platform_report.py — wekelijks zelf-evaluatierapport (Markdown + JSON)
+  W8-06 ✅  ab_tester.py uitgebreid — chi-square p-waarde + auto_beslis_winner()
+  FUTURE    DiagramRenderer (G-37) — uitgesteld naar Wave 9
+  FUTURE    CostForecaster v2 ML (scikit-learn) — vereist ≥20 historische projecten
 ```
 
 ---

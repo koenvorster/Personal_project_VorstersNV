@@ -8,7 +8,7 @@ from enum import Enum as PyEnum
 
 from sqlalchemy import (
     Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, Enum,
-    JSON, func,
+    Index, JSON, UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -163,3 +163,280 @@ class AgentLog(Base):
     rating: Mapped[int | None] = mapped_column(Integer)
     verwerkingstijd_ms: Mapped[int | None] = mapped_column(Integer)
     aangemaakt_op: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ClientProject(Base):
+    """
+    Persistente opslag van een consultancy analyseproject.
+
+    Spiegelt ClientProjectSpace (ollama/client_project_space.py) naar de database.
+    project_id is de externe UUID-referentie die in Python als primaire sleutel
+    van de in-memory registry fungeert. klant_id garandeert tenant-isolatie.
+    """
+    __tablename__ = "client_projects"
+
+    # ── Primaire sleutel ─────────────────────────────────────────────────────
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    # ── Externe UUID-referentie (Python ClientProjectSpace.project_id) ───────
+    project_id: Mapped[str] = mapped_column(
+        String(36),
+        unique=True,
+        nullable=False,
+    )
+
+    # ── Tenant / klant-velden ─────────────────────────────────────────────────
+    klant_naam:  Mapped[str] = mapped_column(String(200), nullable=False)
+    klant_id:    Mapped[str] = mapped_column(String(100), nullable=False)
+    projecttype: Mapped[str] = mapped_column(String(50),  nullable=False)
+
+    # ── Bronpad (absoluut lokaal pad als tekst) ───────────────────────────────
+    bronpad: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # ── Lifecycle status ──────────────────────────────────────────────────────
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        server_default="CREATED",
+        default="CREATED",
+    )
+
+    # ── JSON configuratie (ProjectConfig serialisatie) ────────────────────────
+    config_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # ── Rapport locatie (ingevuld na voltooiing) ──────────────────────────────
+    rapport_pad: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ── Tijdstempels ──────────────────────────────────────────────────────────
+    aangemaakt_op: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utcnow,
+        server_default=func.now(),
+        nullable=False,
+    )
+    bijgewerkt_op: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utcnow,
+        onupdate=utcnow,
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # ── Tabel-level indexen ───────────────────────────────────────────────────
+    __table_args__ = (
+        Index("ix_client_projects_klant_id",     "klant_id"),
+        Index("ix_client_projects_status",        "status"),
+        Index("ix_client_projects_aangemaakt_op", "aangemaakt_op"),
+    )
+
+
+class VectorDocumentModel(Base):
+    """
+    Persistente opslag van een geïndexeerd code-fragment (RAG pipeline, W7-01).
+
+    Spiegelt VectorDocument (ollama/rag_engine.py) naar de database.
+    De embedding vector wordt als JSON-array opgeslagen in embedding_json;
+    Wave 8+ kan dit vervangen door een pgvector VECTOR-kolom.
+
+    Tenant-isolatie: project_id FK naar client_projects.project_id (CASCADE DELETE).
+    """
+    __tablename__ = "vector_documents"
+
+    # ── Primaire sleutel ──────────────────────────────────────────────────────
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    # ── Unieke documentreferentie (VectorDocument.doc_id — UUID-string) ───────
+    doc_id: Mapped[str] = mapped_column(
+        String(36),
+        unique=True,
+        nullable=False,
+    )
+
+    # ── Tenant-sleutel (FK naar ClientProject.project_id) ────────────────────
+    project_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("client_projects.project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    # ── Referentie naar CodeChunk.chunk_id (adaptive_chunker) ────────────────
+    chunk_id: Mapped[str] = mapped_column(String(36), nullable=False)
+
+    # ── Bronbestand (relatief of absoluut pad) ────────────────────────────────
+    bestand: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # ── Codetekst van het fragment ────────────────────────────────────────────
+    inhoud: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # ── Embedding vector opgeslagen als JSON-array van floats ─────────────────
+    # Formaat: [0.123, -0.456, ...]  (384 elementen voor all-MiniLM-L6-v2)
+    embedding_json: Mapped[list] = mapped_column(JSON, nullable=False)
+
+    # ── Extra metadata (taal, lijn_start, lijn_eind, token_schatting, ...) ────
+    metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # ── Aanmaaktijdstip ───────────────────────────────────────────────────────
+    aangemaakt_op: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utcnow,
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # ── Relatie naar ClientProject ────────────────────────────────────────────
+    project: Mapped["ClientProject"] = relationship(
+        "ClientProject",
+        foreign_keys=[project_id],
+        primaryjoin="VectorDocumentModel.project_id == ClientProject.project_id",
+    )
+
+    # ── Tabel-level indexen ───────────────────────────────────────────────────
+    __table_args__ = (
+        Index("ix_vd_project_id", "project_id"),
+        Index("ix_vd_chunk_id",   "chunk_id"),
+    )
+
+
+class AgentVersionModel(Base):
+    """
+    Persistente opslag van één semantische agent-versie (W8-01).
+
+    Spiegelt AgentVersion (ollama/agent_versioning.py) naar de database.
+    Bewaart SHA-256 integriteitscheck, lifecycle-fase, evaluatiescore en
+    run-teller voor kwaliteitsbewaking en auditlogs.
+
+    Unieke constraint (agent_name, version) voorkomt dubbele versienummers
+    per agent.
+    """
+    __tablename__ = "agent_versions"
+
+    # ── Primaire sleutel (UUID, server-side gegenereerd) ──────────────────────
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=func.gen_random_uuid(),
+    )
+
+    # ── Agent-naam (bijv. "klantenservice_agent") ─────────────────────────────
+    agent_name: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    # ── SemVer-string (bijv. "2.1.3") ─────────────────────────────────────────
+    version: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    # ── SHA-256 hex-digest van de agent YAML-content (64 chars) ───────────────
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    # ── Lifecycle-fase ────────────────────────────────────────────────────────
+    lifecycle: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        server_default="draft",
+    )
+
+    # ── Relatief pad naar de agent YAML ──────────────────────────────────────
+    yaml_path: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # ── Evaluatiescore (0.0–1.0, rolling average) ─────────────────────────────
+    eval_score: Mapped[float | None] = mapped_column(nullable=True)
+
+    # ── Totaal aantal uitgevoerde runs ────────────────────────────────────────
+    run_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        server_default="0",
+    )
+
+    # ── Omschrijving van wijzigingen in deze versie ───────────────────────────
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ── UTC-tijdstempel van deployement naar STABLE ───────────────────────────
+    deployed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    # ── UTC-tijdstempel van aanmaak (auto-ingevuld door DB) ───────────────────
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    # ── Tabel-level constraints en indexen ───────────────────────────────────
+    __table_args__ = (
+        UniqueConstraint("agent_name", "version", name="uq_agent_versions_name_version"),
+        Index("ix_av_agent_name", "agent_name"),
+        Index("ix_av_lifecycle",  "lifecycle"),
+        Index("ix_av_created_at", "created_at"),
+    )
+
+
+class FeedbackRecordModel(Base):
+    """
+    Persistente opslag van één feedbackbeoordeling (Wave 8+).
+
+    Elke rij bevat de sterrenratings van een klant of consultant voor één
+    AI-agent run, geïsoleerd per project via de FK naar client_projects.
+
+    ratings_json formaat: {"kwaliteit": 4, "duidelijkheid": 3, ...}
+    gemiddelde_score is voorberekend bij opslaan voor snelle aggregatie.
+    """
+    __tablename__ = "feedback_records"
+
+    # ── Primaire sleutel (UUID, gegenereerd door PostgreSQL) ──────────────
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=func.gen_random_uuid(),
+    )
+
+    # ── Tenant-sleutel (FK naar ClientProject.project_id, CASCADE DELETE) ─
+    project_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("client_projects.project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    # ── Agent-informatie ──────────────────────────────────────────────────
+    agent_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    prompt_version: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    # ── Ratings als JSON-object { "kwaliteit": 4, "duidelijkheid": 3, … } ─
+    ratings_json: Mapped[dict] = mapped_column(JSON, nullable=False)
+
+    # ── Voorberekend gemiddelde van alle sectiescores ─────────────────────
+    gemiddelde_score: Mapped[float] = mapped_column(nullable=False)
+
+    # ── Vrije tekst opmerking (optioneel) ─────────────────────────────────
+    opmerking: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ── Wie heeft beoordeeld: "klant" | "consultant" | "auto" ────────────
+    beoordelaar: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    # ── Optionele referentie naar een trace/run-id ────────────────────────
+    trace_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    # ── Aanmaaktijdstip met tijdzone (auto-ingevuld door DB) ──────────────
+    aangemaakt_op: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    # ── Relatie naar ClientProject ────────────────────────────────────────
+    project: Mapped["ClientProject"] = relationship(
+        "ClientProject",
+        foreign_keys=[project_id],
+        primaryjoin="FeedbackRecordModel.project_id == ClientProject.project_id",
+    )
+
+    # ── Tabel-level indexen ───────────────────────────────────────────────
+    __table_args__ = (
+        Index("ix_fr_project_id",   "project_id"),
+        Index("ix_fr_agent_name",   "agent_name"),
+        Index("ix_fr_aangemaakt_op","aangemaakt_op"),
+    )

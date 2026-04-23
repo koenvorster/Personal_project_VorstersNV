@@ -1,0 +1,2266 @@
+[
+  {
+    "chunk_file": "AbstractBerekenBv.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\AbstractBerekenBv.java",
+    "class_name": "AbstractBerekenBv",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 5419
+  },
+  {
+    "chunk_file": "apo__VerwerkApoInput.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\apo\\VerwerkApoInput.java",
+    "class_name": "VerwerkApoInput",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1508
+  },
+  {
+    "chunk_file": "apo__VerwerkApoInputInhoudingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\apo\\VerwerkApoInputInhoudingen.java",
+    "class_name": "VerwerkApoInputInhoudingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1074
+  },
+  {
+    "chunk_file": "BerekenBelastbaarAchterstal.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBelastbaarAchterstal.java",
+    "class_name": "BerekenBelastbaarAchterstal",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2167
+  },
+  {
+    "chunk_file": "BerekenBelastbaarVrijwilligeBrandweer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBelastbaarVrijwilligeBrandweer.java",
+    "class_name": "BerekenBelastbaarVrijwilligeBrandweer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1921
+  },
+  {
+    "chunk_file": "BerekenBeslagOpLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBeslagOpLoon.java",
+    "class_name": "BerekenBeslagOpLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4889
+  },
+  {
+    "chunk_file": "BerekenBijzondereBijdrage.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBijzondereBijdrage.java",
+    "class_name": "BerekenBijzondereBijdrage",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2695
+  },
+  {
+    "chunk_file": "BerekenBrutoLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBrutoLoon.java",
+    "class_name": "BerekenBrutoLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 948
+  },
+  {
+    "chunk_file": "BerekenBrutoTheoretischJaarLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBrutoTheoretischJaarLoon.java",
+    "class_name": "BerekenBrutoTheoretischJaarLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2510
+  },
+  {
+    "chunk_file": "BerekenBvAchterstal.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvAchterstal.java",
+    "class_name": "BerekenBvAchterstal",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1998
+  },
+  {
+    "chunk_file": "BerekenBvExceptioneel.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvExceptioneel.java",
+    "class_name": "BerekenBvExceptioneel",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2575
+  },
+  {
+    "chunk_file": "BerekenBvFietsVergoeding.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvFietsVergoeding.java",
+    "class_name": "BerekenBvFietsVergoeding",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1009
+  },
+  {
+    "chunk_file": "BerekenBvGewoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvGewoon.java",
+    "class_name": "BerekenBvGewoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3333
+  },
+  {
+    "chunk_file": "BerekenBvOpzegVergoedingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvOpzegVergoedingen.java",
+    "class_name": "BerekenBvOpzegVergoedingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2161
+  },
+  {
+    "chunk_file": "BerekenBvTijdelijkeWerkloosheid.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvTijdelijkeWerkloosheid.java",
+    "class_name": "BerekenBvTijdelijkeWerkloosheid",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 778
+  },
+  {
+    "chunk_file": "BerekenBvToevalligeVergoedingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvToevalligeVergoedingen.java",
+    "class_name": "BerekenBvToevalligeVergoedingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1372
+  },
+  {
+    "chunk_file": "BerekenBvUittredingMandataris.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvUittredingMandataris.java",
+    "class_name": "BerekenBvUittredingMandataris",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 764
+  },
+  {
+    "chunk_file": "BerekenBvUittredingMandatarisAchterstal.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvUittredingMandatarisAchterstal.java",
+    "class_name": "BerekenBvUittredingMandatarisAchterstal",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 898
+  },
+  {
+    "chunk_file": "BerekenBvVakantiegeld.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvVakantiegeld.java",
+    "class_name": "BerekenBvVakantiegeld",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 833
+  },
+  {
+    "chunk_file": "BerekenBvVervangingsInkomen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvVervangingsInkomen.java",
+    "class_name": "BerekenBvVervangingsInkomen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1882
+  },
+  {
+    "chunk_file": "BerekenBvVrijwilligeBrandweer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvVrijwilligeBrandweer.java",
+    "class_name": "BerekenBvVrijwilligeBrandweer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1770
+  },
+  {
+    "chunk_file": "BerekenBvWinstPremie.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenBvWinstPremie.java",
+    "class_name": "BerekenBvWinstPremie",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 741
+  },
+  {
+    "chunk_file": "BerekenInhoudingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenInhoudingen.java",
+    "class_name": "BerekenInhoudingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 6514
+  },
+  {
+    "chunk_file": "BerekenNettoLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenNettoLoon.java",
+    "class_name": "BerekenNettoLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1584
+  },
+  {
+    "chunk_file": "BerekenRuwBelastbaar.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenRuwBelastbaar.java",
+    "class_name": "BerekenRuwBelastbaar",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 590
+  },
+  {
+    "chunk_file": "BerekenTheoretischJaarWedde.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenTheoretischJaarWedde.java",
+    "class_name": "BerekenTheoretischJaarWedde",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3130
+  },
+  {
+    "chunk_file": "BerekenTotaalBelastbaar.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenTotaalBelastbaar.java",
+    "class_name": "BerekenTotaalBelastbaar",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1931
+  },
+  {
+    "chunk_file": "BerekenVoorschot.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenVoorschot.java",
+    "class_name": "BerekenVoorschot",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1085
+  },
+  {
+    "chunk_file": "BerekenWerkuitkeringInhoudingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\BerekenWerkuitkeringInhoudingen.java",
+    "class_name": "BerekenWerkuitkeringInhoudingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2615
+  },
+  {
+    "chunk_file": "bijzinderebijdrage__BijzondereBijdrageConstant.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bijzinderebijdrage\\BijzondereBijdrageConstant.java",
+    "class_name": "BijzondereBijdrageConstant",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1040
+  },
+  {
+    "chunk_file": "bruto__AbstractLoonCodeCalculator.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\AbstractLoonCodeCalculator.java",
+    "class_name": "AbstractLoonCodeCalculator",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2984
+  },
+  {
+    "chunk_file": "bruto__BerekenSupplementen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\BerekenSupplementen.java",
+    "class_name": "BerekenSupplementen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1791
+  },
+  {
+    "chunk_file": "bruto__BerekenVergoedingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\BerekenVergoedingen.java",
+    "class_name": "BerekenVergoedingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4428
+  },
+  {
+    "chunk_file": "bruto__DiplomaToeslag.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\DiplomaToeslag.java",
+    "class_name": "DiplomaToeslag",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3196
+  },
+  {
+    "chunk_file": "bruto__Disponibiliteit.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\Disponibiliteit.java",
+    "class_name": "Disponibiliteit",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1079
+  },
+  {
+    "chunk_file": "bruto__FlexiJobs.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\FlexiJobs.java",
+    "class_name": "FlexiJobs",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1479
+  },
+  {
+    "chunk_file": "bruto__FlexiJobsControleOndergrens.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\FlexiJobsControleOndergrens.java",
+    "class_name": "FlexiJobsControleOndergrens",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1752
+  },
+  {
+    "chunk_file": "bruto__FlexiJobsUtil.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\FlexiJobsUtil.java",
+    "class_name": "FlexiJobsUtil",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1343
+  },
+  {
+    "chunk_file": "bruto__LoonCodeCalculatorDiploma.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\LoonCodeCalculatorDiploma.java",
+    "class_name": "LoonCodeCalculatorDiploma",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 579
+  },
+  {
+    "chunk_file": "bruto__LoonCodeCalculatorFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\LoonCodeCalculatorFactory.java",
+    "class_name": "LoonCodeCalculatorFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1619
+  },
+  {
+    "chunk_file": "bruto__LoonCodeCalculatorHasta.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\LoonCodeCalculatorHasta.java",
+    "class_name": "LoonCodeCalculatorHasta",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1019
+  },
+  {
+    "chunk_file": "bruto__LoonCodeCalculatorOnregelmatigWerkgeverUurloon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\LoonCodeCalculatorOnregelmatigWerkgeverUurloon.java",
+    "class_name": "LoonCodeCalculatorOnregelmatigWerkgeverUurloon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 700
+  },
+  {
+    "chunk_file": "bruto__PrestatiesDeeltijdseWerkhervatting.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\PrestatiesDeeltijdseWerkhervatting.java",
+    "class_name": "PrestatiesDeeltijdseWerkhervatting",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1535
+  },
+  {
+    "chunk_file": "bruto__PrestatiesDisponibiliteit.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\PrestatiesDisponibiliteit.java",
+    "class_name": "PrestatiesDisponibiliteit",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1354
+  },
+  {
+    "chunk_file": "bruto__PrestatiesEuropeseVakantie.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\PrestatiesEuropeseVakantie.java",
+    "class_name": "PrestatiesEuropeseVakantie",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1052
+  },
+  {
+    "chunk_file": "bruto__PrestatiesGewaarborgdLoon100PctOfDispo.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\PrestatiesGewaarborgdLoon100PctOfDispo.java",
+    "class_name": "PrestatiesGewaarborgdLoon100PctOfDispo",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 706
+  },
+  {
+    "chunk_file": "bruto__PrestatiesGewoneBezoldiging.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\PrestatiesGewoneBezoldiging.java",
+    "class_name": "PrestatiesGewoneBezoldiging",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3234
+  },
+  {
+    "chunk_file": "bruto__PrestatiesZiekte.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\PrestatiesZiekte.java",
+    "class_name": "PrestatiesZiekte",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 686
+  },
+  {
+    "chunk_file": "bruto__RkmPrestatieVerhouding.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\RkmPrestatieVerhouding.java",
+    "class_name": "RkmPrestatieVerhouding",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1858
+  },
+  {
+    "chunk_file": "bruto__VerwerkPrestaties.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bruto\\VerwerkPrestaties.java",
+    "class_name": "VerwerkPrestaties",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1626
+  },
+  {
+    "chunk_file": "bv__BerekenVerminderingBvWerkbonus.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bv\\BerekenVerminderingBvWerkbonus.java",
+    "class_name": "BerekenVerminderingBvWerkbonus",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4746
+  },
+  {
+    "chunk_file": "bv__BvPensioenZorgSector.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bv\\BvPensioenZorgSector.java",
+    "class_name": "BvPensioenZorgSector",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1425
+  },
+  {
+    "chunk_file": "bv__BvTools.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bv\\BvTools.java",
+    "class_name": "BvTools",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 8000
+  },
+  {
+    "chunk_file": "bv__BvTools.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bv\\BvTools.java",
+    "class_name": "BvTools",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 898
+  },
+  {
+    "chunk_file": "bv__BvVoluntariaat.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bv\\BvVoluntariaat.java",
+    "class_name": "BvVoluntariaat",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1330
+  },
+  {
+    "chunk_file": "bv__VerminderingBvPersonenTenLaste.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\bv\\VerminderingBvPersonenTenLaste.java",
+    "class_name": "VerminderingBvPersonenTenLaste",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 502
+  },
+  {
+    "chunk_file": "cache__AbstractCachedRegimeRszppoService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\AbstractCachedRegimeRszppoService.java",
+    "class_name": "AbstractCachedRegimeRszppoService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1387
+  },
+  {
+    "chunk_file": "cache__CachedAardKodeExtensieService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedAardKodeExtensieService.java",
+    "class_name": "CachedAardKodeExtensieService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2982
+  },
+  {
+    "chunk_file": "cache__CachedAkeVervalService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedAkeVervalService.java",
+    "class_name": "CachedAkeVervalService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1218
+  },
+  {
+    "chunk_file": "cache__CachedApkConstant2Service.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedApkConstant2Service.java",
+    "class_name": "CachedApkConstant2Service",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1257
+  },
+  {
+    "chunk_file": "cache__CachedApkConstantService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedApkConstantService.java",
+    "class_name": "CachedApkConstantService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1504
+  },
+  {
+    "chunk_file": "cache__CachedApkPrincipeService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedApkPrincipeService.java",
+    "class_name": "CachedApkPrincipeService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1682
+  },
+  {
+    "chunk_file": "cache__CachedArtikelDeelService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedArtikelDeelService.java",
+    "class_name": "CachedArtikelDeelService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1834
+  },
+  {
+    "chunk_file": "cache__CachedArtikelService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedArtikelService.java",
+    "class_name": "CachedArtikelService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3555
+  },
+  {
+    "chunk_file": "cache__CachedBasisAardKodeExtensieService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedBasisAardKodeExtensieService.java",
+    "class_name": "CachedBasisAardKodeExtensieService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1870
+  },
+  {
+    "chunk_file": "cache__CachedConstantService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedConstantService.java",
+    "class_name": "CachedConstantService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3025
+  },
+  {
+    "chunk_file": "cache__CachedDmfapplBasisBijdrageService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedDmfapplBasisBijdrageService.java",
+    "class_name": "CachedDmfapplBasisBijdrageService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3668
+  },
+  {
+    "chunk_file": "cache__CachedDmfaVerminderingsPercentageService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedDmfaVerminderingsPercentageService.java",
+    "class_name": "CachedDmfaVerminderingsPercentageService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1573
+  },
+  {
+    "chunk_file": "cache__CachedFiscaleConstantService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedFiscaleConstantService.java",
+    "class_name": "CachedFiscaleConstantService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1089
+  },
+  {
+    "chunk_file": "cache__CachedLooncodeGroepService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedLooncodeGroepService.java",
+    "class_name": "CachedLooncodeGroepService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1082
+  },
+  {
+    "chunk_file": "cache__CachedLooncodeInclusiefService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedLooncodeInclusiefService.java",
+    "class_name": "CachedLooncodeInclusiefService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1256
+  },
+  {
+    "chunk_file": "cache__CachedRszConstantOldService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedRszConstantOldService.java",
+    "class_name": "CachedRszConstantOldService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1185
+  },
+  {
+    "chunk_file": "cache__CachedRszConstantService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedRszConstantService.java",
+    "class_name": "CachedRszConstantService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3020
+  },
+  {
+    "chunk_file": "cache__CachedRszPlafondPercentageService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\CachedRszPlafondPercentageService.java",
+    "class_name": "CachedRszPlafondPercentageService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1630
+  },
+  {
+    "chunk_file": "cache__StandaardALCachedService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\StandaardALCachedService.java",
+    "class_name": "StandaardALCachedService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 515
+  },
+  {
+    "chunk_file": "cache__StandaardLOCachedService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\cache\\StandaardLOCachedService.java",
+    "class_name": "StandaardLOCachedService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 547
+  },
+  {
+    "chunk_file": "check__CheckDubbelePrestaties.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\check\\CheckDubbelePrestaties.java",
+    "class_name": "CheckDubbelePrestaties",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1379
+  },
+  {
+    "chunk_file": "check__CheckInhoudingZonderVergoedingen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\check\\CheckInhoudingZonderVergoedingen.java",
+    "class_name": "CheckInhoudingZonderVergoedingen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1577
+  },
+  {
+    "chunk_file": "check__CheckRegimeLoonElementen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\check\\CheckRegimeLoonElementen.java",
+    "class_name": "CheckRegimeLoonElementen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 590
+  },
+  {
+    "chunk_file": "check__NieuweResultatenMetBvRelatedBedragen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\check\\NieuweResultatenMetBvRelatedBedragen.java",
+    "class_name": "NieuweResultatenMetBvRelatedBedragen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1028
+  },
+  {
+    "chunk_file": "check__VermijdenFiche25.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\check\\VermijdenFiche25.java",
+    "class_name": "VermijdenFiche25",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 719
+  },
+  {
+    "chunk_file": "CheckSchoolVerlater.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\CheckSchoolVerlater.java",
+    "class_name": "CheckSchoolVerlater",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1279
+  },
+  {
+    "chunk_file": "ControleRegulBelastbaar.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\ControleRegulBelastbaar.java",
+    "class_name": "ControleRegulBelastbaar",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 764
+  },
+  {
+    "chunk_file": "ControlesBelastbaarVrijwilligeBrandweer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\ControlesBelastbaarVrijwilligeBrandweer.java",
+    "class_name": "ControlesBelastbaarVrijwilligeBrandweer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1812
+  },
+  {
+    "chunk_file": "ControlesRekenResultaten.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\ControlesRekenResultaten.java",
+    "class_name": "ControlesRekenResultaten",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 5700
+  },
+  {
+    "chunk_file": "datamanager__DataUitInvoerModule.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\datamanager\\DataUitInvoerModule.java",
+    "class_name": "DataUitInvoerModule",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2234
+  },
+  {
+    "chunk_file": "datamanager__PersoonsDataManagerFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\datamanager\\PersoonsDataManagerFactoryImp.java",
+    "class_name": "PersoonsDataManagerFactoryImp",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 7607
+  },
+  {
+    "chunk_file": "datamanager__PersoonsDataManagerFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\datamanager\\PersoonsDataManagerFactoryImp.java",
+    "class_name": "PersoonsDataManagerFactoryImp",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 1804
+  },
+  {
+    "chunk_file": "datamanager__PersoonsDataManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\datamanager\\PersoonsDataManagerImp.java",
+    "class_name": "PersoonsDataManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4715
+  },
+  {
+    "chunk_file": "factory__BepaalWerkbonusOverdrachtData.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\BepaalWerkbonusOverdrachtData.java",
+    "class_name": "BepaalWerkbonusOverdrachtData",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 655
+  },
+  {
+    "chunk_file": "factory__NeutraliseerChainFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\NeutraliseerChainFactory.java",
+    "class_name": "NeutraliseerChainFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 730
+  },
+  {
+    "chunk_file": "factory__PreBerekeningInterpreterImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\PreBerekeningInterpreterImp.java",
+    "class_name": "PreBerekeningInterpreterImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3095
+  },
+  {
+    "chunk_file": "factory__RekenChainFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\RekenChainFactoryImp.java",
+    "class_name": "RekenChainFactoryImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 7940
+  },
+  {
+    "chunk_file": "factory__RekenMotorStrategyFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\RekenMotorStrategyFactoryImp.java",
+    "class_name": "RekenMotorStrategyFactoryImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3033
+  },
+  {
+    "chunk_file": "factory__RekenStrategyImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\RekenStrategyImp.java",
+    "class_name": "RekenStrategyImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 635
+  },
+  {
+    "chunk_file": "factory__SociaalRekenenChainFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\factory\\SociaalRekenenChainFactory.java",
+    "class_name": "SociaalRekenenChainFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 618
+  },
+  {
+    "chunk_file": "feestdagen__BerekenVergoedingFeestDag.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\feestdagen\\BerekenVergoedingFeestDag.java",
+    "class_name": "BerekenVergoedingFeestDag",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1264
+  },
+  {
+    "chunk_file": "feestdagen__VergoedingFeestDagData.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\feestdagen\\VergoedingFeestDagData.java",
+    "class_name": "VergoedingFeestDagData",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 662
+  },
+  {
+    "chunk_file": "feestdagen__VergoedingFeestDagMain.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\feestdagen\\VergoedingFeestDagMain.java",
+    "class_name": "VergoedingFeestDagMain",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 855
+  },
+  {
+    "chunk_file": "feestdagen__VergoedingFeestdagServiceImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\feestdagen\\VergoedingFeestdagServiceImp.java",
+    "class_name": "VergoedingFeestdagServiceImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1589
+  },
+  {
+    "chunk_file": "FixManueleTussenkomstBeslagOpLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\FixManueleTussenkomstBeslagOpLoon.java",
+    "class_name": "FixManueleTussenkomstBeslagOpLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 568
+  },
+  {
+    "chunk_file": "LoonElementVerwerker.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\LoonElementVerwerker.java",
+    "class_name": "LoonElementVerwerker",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 914
+  },
+  {
+    "chunk_file": "main__StandAloneBerekenen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\main\\StandAloneBerekenen.java",
+    "class_name": "StandAloneBerekenen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 951
+  },
+  {
+    "chunk_file": "main__StandAloneHerberekenen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\main\\StandAloneHerberekenen.java",
+    "class_name": "StandAloneHerberekenen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 982
+  },
+  {
+    "chunk_file": "main__StandAloneNeutralisatie.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\main\\StandAloneNeutralisatie.java",
+    "class_name": "StandAloneNeutralisatie",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2492
+  },
+  {
+    "chunk_file": "main__StandAloneReken.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\main\\StandAloneReken.java",
+    "class_name": "StandAloneReken",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2221
+  },
+  {
+    "chunk_file": "manueletussenkomst__AutoTussenkomstBeslagOpLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\AutoTussenkomstBeslagOpLoon.java",
+    "class_name": "AutoTussenkomstBeslagOpLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1516
+  },
+  {
+    "chunk_file": "manueletussenkomst__AutoTussenkomstBvEjtOfVakgeld.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\AutoTussenkomstBvEjtOfVakgeld.java",
+    "class_name": "AutoTussenkomstBvEjtOfVakgeld",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1466
+  },
+  {
+    "chunk_file": "manueletussenkomst__DoeSleutelTussenkomst.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\DoeSleutelTussenkomst.java",
+    "class_name": "DoeSleutelTussenkomst",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1935
+  },
+  {
+    "chunk_file": "manueletussenkomst__DoeTussenkomst.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\DoeTussenkomst.java",
+    "class_name": "DoeTussenkomst",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2803
+  },
+  {
+    "chunk_file": "manueletussenkomst__GenereerNeutraliserendeSleutelTussenkomst.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\GenereerNeutraliserendeSleutelTussenkomst.java",
+    "class_name": "GenereerNeutraliserendeSleutelTussenkomst",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1578
+  },
+  {
+    "chunk_file": "manueletussenkomst__GenereerNeutraliserendeTussenkomst.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\GenereerNeutraliserendeTussenkomst.java",
+    "class_name": "GenereerNeutraliserendeTussenkomst",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2921
+  },
+  {
+    "chunk_file": "manueletussenkomst__TussenkomstManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\manueletussenkomst\\TussenkomstManagerImp.java",
+    "class_name": "TussenkomstManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1246
+  },
+  {
+    "chunk_file": "mapkeys__DetectSleutelTussenkomstKey.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\mapkeys\\DetectSleutelTussenkomstKey.java",
+    "class_name": "DetectSleutelTussenkomstKey",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 594
+  },
+  {
+    "chunk_file": "mapkeys__ManueleTussenkomstKey.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\mapkeys\\ManueleTussenkomstKey.java",
+    "class_name": "ManueleTussenkomstKey",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 771
+  },
+  {
+    "chunk_file": "OvernemenBijAchterstal.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\OvernemenBijAchterstal.java",
+    "class_name": "OvernemenBijAchterstal",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4169
+  },
+  {
+    "chunk_file": "OvernemenBijzondereBijdrage.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\OvernemenBijzondereBijdrage.java",
+    "class_name": "OvernemenBijzondereBijdrage",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 522
+  },
+  {
+    "chunk_file": "planningsuren__UitzonderlijkPerUurNew.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\planningsuren\\UitzonderlijkPerUurNew.java",
+    "class_name": "UitzonderlijkPerUurNew",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2057
+  },
+  {
+    "chunk_file": "planningsuren__UitzonderlijkPerUurOld.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\planningsuren\\UitzonderlijkPerUurOld.java",
+    "class_name": "UitzonderlijkPerUurOld",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2169
+  },
+  {
+    "chunk_file": "PostRekenControles.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\PostRekenControles.java",
+    "class_name": "PostRekenControles",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1256
+  },
+  {
+    "chunk_file": "PreRekenControles.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\PreRekenControles.java",
+    "class_name": "PreRekenControles",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 7297
+  },
+  {
+    "chunk_file": "results__AbstractResultaatHandler.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\AbstractResultaatHandler.java",
+    "class_name": "AbstractResultaatHandler",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1903
+  },
+  {
+    "chunk_file": "results__BerekenNettoFiscaalVorigJaarResultaatHandlerImpl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\BerekenNettoFiscaalVorigJaarResultaatHandlerImpl.java",
+    "class_name": "BerekenNettoFiscaalVorigJaarResultaatHandlerImpl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1028
+  },
+  {
+    "chunk_file": "results__BijsturenEurocentResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\BijsturenEurocentResultaatHandlerImp.java",
+    "class_name": "BijsturenEurocentResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1340
+  },
+  {
+    "chunk_file": "results__MaandTotaalBeheer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalBeheer.java",
+    "class_name": "MaandTotaalBeheer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2222
+  },
+  {
+    "chunk_file": "results__MaandTotaalBeheerBasis.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalBeheerBasis.java",
+    "class_name": "MaandTotaalBeheerBasis",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 7787
+  },
+  {
+    "chunk_file": "results__MaandTotaalBeheerBasis.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalBeheerBasis.java",
+    "class_name": "MaandTotaalBeheerBasis",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 3713
+  },
+  {
+    "chunk_file": "results__MaandtotaalResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandtotaalResultaatHandlerImp.java",
+    "class_name": "MaandtotaalResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1796
+  },
+  {
+    "chunk_file": "results__MaandTotaalUtil.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalUtil.java",
+    "class_name": "MaandTotaalUtil",
+    "chunk_index": 0,
+    "total_chunks": 3,
+    "tokens": 7743
+  },
+  {
+    "chunk_file": "results__MaandTotaalUtil.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalUtil.java",
+    "class_name": "MaandTotaalUtil",
+    "chunk_index": 1,
+    "total_chunks": 3,
+    "tokens": 7749
+  },
+  {
+    "chunk_file": "results__MaandTotaalUtil.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalUtil.java",
+    "class_name": "MaandTotaalUtil",
+    "chunk_index": 2,
+    "total_chunks": 3,
+    "tokens": 2568
+  },
+  {
+    "chunk_file": "results__MaandTotaalVormer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MaandTotaalVormer.java",
+    "class_name": "MaandTotaalVormer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4593
+  },
+  {
+    "chunk_file": "results__MetArtikelResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\MetArtikelResultaatHandlerImp.java",
+    "class_name": "MetArtikelResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1163
+  },
+  {
+    "chunk_file": "results__NeutraliseerResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\NeutraliseerResultaatHandlerImp.java",
+    "class_name": "NeutraliseerResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1674
+  },
+  {
+    "chunk_file": "results__RekenElementBeheer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\RekenElementBeheer.java",
+    "class_name": "RekenElementBeheer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3594
+  },
+  {
+    "chunk_file": "results__RekenResultaatUtil.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\RekenResultaatUtil.java",
+    "class_name": "RekenResultaatUtil",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1995
+  },
+  {
+    "chunk_file": "results__RekenResultatenBeheer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\RekenResultatenBeheer.java",
+    "class_name": "RekenResultatenBeheer",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 7703
+  },
+  {
+    "chunk_file": "results__RekenResultatenBeheer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\RekenResultatenBeheer.java",
+    "class_name": "RekenResultatenBeheer",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 1506
+  },
+  {
+    "chunk_file": "results__ResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\ResultaatHandlerImp.java",
+    "class_name": "ResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3058
+  },
+  {
+    "chunk_file": "results__SociaalRekenenResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\SociaalRekenenResultaatHandlerImp.java",
+    "class_name": "SociaalRekenenResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1263
+  },
+  {
+    "chunk_file": "results__VermijdenFiche25RekenResultatenBeheer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\VermijdenFiche25RekenResultatenBeheer.java",
+    "class_name": "VermijdenFiche25RekenResultatenBeheer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 5584
+  },
+  {
+    "chunk_file": "results__VermijdenFiche25ResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\VermijdenFiche25ResultaatHandlerImp.java",
+    "class_name": "VermijdenFiche25ResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1788
+  },
+  {
+    "chunk_file": "results__VermijdenFicheResultaatHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\VermijdenFicheResultaatHandlerImp.java",
+    "class_name": "VermijdenFicheResultaatHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1123
+  },
+  {
+    "chunk_file": "results__VormArtikelsHandlerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\results\\VormArtikelsHandlerImp.java",
+    "class_name": "VormArtikelsHandlerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1671
+  },
+  {
+    "chunk_file": "rsz__AbstractBerekenSocialeBijdragen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\AbstractBerekenSocialeBijdragen.java",
+    "class_name": "AbstractBerekenSocialeBijdragen",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 7608
+  },
+  {
+    "chunk_file": "rsz__AbstractBerekenSocialeBijdragen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\AbstractBerekenSocialeBijdragen.java",
+    "class_name": "AbstractBerekenSocialeBijdragen",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 1375
+  },
+  {
+    "chunk_file": "rsz__AbstractBijdragePercentages.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\AbstractBijdragePercentages.java",
+    "class_name": "AbstractBijdragePercentages",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 7394
+  },
+  {
+    "chunk_file": "rsz__AbstractGewoonLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\AbstractGewoonLoon.java",
+    "class_name": "AbstractGewoonLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1856
+  },
+  {
+    "chunk_file": "rsz__BijdragePercentagesFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\BijdragePercentagesFactoryImp.java",
+    "class_name": "BijdragePercentagesFactoryImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 767
+  },
+  {
+    "chunk_file": "rsz__CategorieKengetalStatuutFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\CategorieKengetalStatuutFactory.java",
+    "class_name": "CategorieKengetalStatuutFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 539
+  },
+  {
+    "chunk_file": "rsz__CategorieKengetalStatuutPensioenstelselFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\CategorieKengetalStatuutPensioenstelselFactory.java",
+    "class_name": "CategorieKengetalStatuutPensioenstelselFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 622
+  },
+  {
+    "chunk_file": "rsz__dmfa__BasisRszVerdelerDmfa.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\BasisRszVerdelerDmfa.java",
+    "class_name": "BasisRszVerdelerDmfa",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4745
+  },
+  {
+    "chunk_file": "rsz__dmfa__BerekenPatronaleVermindering707.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\BerekenPatronaleVermindering707.java",
+    "class_name": "BerekenPatronaleVermindering707",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1858
+  },
+  {
+    "chunk_file": "rsz__dmfa__BerekenPatronaleVerminderingOnthaalOuders.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\BerekenPatronaleVerminderingOnthaalOuders.java",
+    "class_name": "BerekenPatronaleVerminderingOnthaalOuders",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 521
+  },
+  {
+    "chunk_file": "rsz__dmfa__BerekenSocialeBijdragenDmfa.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\BerekenSocialeBijdragenDmfa.java",
+    "class_name": "BerekenSocialeBijdragenDmfa",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2046
+  },
+  {
+    "chunk_file": "rsz__dmfa__BerekenTerugbetalingSocialeBijdragen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\BerekenTerugbetalingSocialeBijdragen.java",
+    "class_name": "BerekenTerugbetalingSocialeBijdragen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1184
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__AbstractBijdrageMetPercentageBase.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\AbstractBijdrageMetPercentageBase.java",
+    "class_name": "AbstractBijdrageMetPercentageBase",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 541
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__AbstractSectoraalPensioenFonds.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\AbstractSectoraalPensioenFonds.java",
+    "class_name": "AbstractSectoraalPensioenFonds",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1032
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__gewaarborgdloon__AbstractGewaarborgdLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\gewaarborgdloon\\AbstractGewaarborgdLoon.java",
+    "class_name": "AbstractGewaarborgdLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 857
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__BijdrageFso.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\BijdrageFso.java",
+    "class_name": "BijdrageFso",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 665
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__BijdrageSectoraalPensioenfondsArbeiders.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\BijdrageSectoraalPensioenfondsArbeiders.java",
+    "class_name": "BijdrageSectoraalPensioenfondsArbeiders",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 880
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__pensioenpijler2__validatie__PensioenPijler2ValidatorDmfa.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\pensioenpijler2\\validatie\\PensioenPijler2ValidatorDmfa.java",
+    "class_name": "PensioenPijler2ValidatorDmfa",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 529
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__pensioenpijler2__validatie__PensioenPijler2ValidatorDmfa2023.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\pensioenpijler2\\validatie\\PensioenPijler2ValidatorDmfa2023.java",
+    "class_name": "PensioenPijler2ValidatorDmfa2023",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 775
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__Vakbondspremie.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\Vakbondspremie.java",
+    "class_name": "is",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1093
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__VakbondspremieMraVoorwaarden.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\VakbondspremieMraVoorwaarden.java",
+    "class_name": "VakbondspremieMraVoorwaarden",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 533
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__VakbondsPremieOpdracht.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\VakbondsPremieOpdracht.java",
+    "class_name": "VakbondsPremieOpdracht",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1122
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__VakbondsPremieResultatenVoorwaarden.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\VakbondsPremieResultatenVoorwaarden.java",
+    "class_name": "VakbondsPremieResultatenVoorwaarden",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1007
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__VerbrekingsvergoedingenSluitingsfonds.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\VerbrekingsvergoedingenSluitingsfonds.java",
+    "class_name": "VerbrekingsvergoedingenSluitingsfonds",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1727
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__patronaal__WerkgelegenheidEnVorming.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\patronaal\\WerkgelegenheidEnVorming.java",
+    "class_name": "of",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 715
+  },
+  {
+    "chunk_file": "rsz__dmfa__bijdrage__RegelingSpeciaalPensioenStelsel.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\bijdrage\\RegelingSpeciaalPensioenStelsel.java",
+    "class_name": "RegelingSpeciaalPensioenStelsel",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1475
+  },
+  {
+    "chunk_file": "rsz__dmfa__DmfaBijdragePercentages.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\DmfaBijdragePercentages.java",
+    "class_name": "DmfaBijdragePercentages",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3189
+  },
+  {
+    "chunk_file": "rsz__dmfa__GewoonLoonDmfa.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\GewoonLoonDmfa.java",
+    "class_name": "GewoonLoonDmfa",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 821
+  },
+  {
+    "chunk_file": "rsz__dmfa__HeeftPatronaleVermindering707.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\HeeftPatronaleVermindering707.java",
+    "class_name": "HeeftPatronaleVermindering707",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1197
+  },
+  {
+    "chunk_file": "rsz__dmfa__IsPool2TerDmfa.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfa\\IsPool2TerDmfa.java",
+    "class_name": "IsPool2TerDmfa",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 528
+  },
+  {
+    "chunk_file": "rsz__dmfappl__BasisRszVerdelerDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\BasisRszVerdelerDmfappl.java",
+    "class_name": "BasisRszVerdelerDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4285
+  },
+  {
+    "chunk_file": "rsz__dmfappl__BerekenPens2Antwerpen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\BerekenPens2Antwerpen.java",
+    "class_name": "BerekenPens2Antwerpen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3500
+  },
+  {
+    "chunk_file": "rsz__dmfappl__BerekenSocialeBijdragenDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\BerekenSocialeBijdragenDmfappl.java",
+    "class_name": "BerekenSocialeBijdragenDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 6759
+  },
+  {
+    "chunk_file": "rsz__dmfappl__BerekenVerminderingHerstructureringDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\BerekenVerminderingHerstructureringDmfappl.java",
+    "class_name": "BerekenVerminderingHerstructureringDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 6606
+  },
+  {
+    "chunk_file": "rsz__dmfappl__bijdrage__patronaal__pensioenpijler2__PensioenPijler2BonusAncienniteitDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\bijdrage\\patronaal\\pensioenpijler2\\PensioenPijler2BonusAncienniteitDmfappl.java",
+    "class_name": "PensioenPijler2BonusAncienniteitDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1352
+  },
+  {
+    "chunk_file": "rsz__dmfappl__bijdrage__patronaal__pensioenpijler2__PensioenPijler2BonusBijdrageDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\bijdrage\\patronaal\\pensioenpijler2\\PensioenPijler2BonusBijdrageDmfappl.java",
+    "class_name": "PensioenPijler2BonusBijdrageDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 771
+  },
+  {
+    "chunk_file": "rsz__dmfappl__ControleRszKwartaalGrensVrijwilligeBrandweerDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\ControleRszKwartaalGrensVrijwilligeBrandweerDmfappl.java",
+    "class_name": "ControleRszKwartaalGrensVrijwilligeBrandweerDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1309
+  },
+  {
+    "chunk_file": "rsz__dmfappl__DmfapplBijdragePercentages.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\DmfapplBijdragePercentages.java",
+    "class_name": "DmfapplBijdragePercentages",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1183
+  },
+  {
+    "chunk_file": "rsz__dmfappl__GewoonLoonDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\GewoonLoonDmfappl.java",
+    "class_name": "GewoonLoonDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2509
+  },
+  {
+    "chunk_file": "rsz__dmfappl__IsPool2TerDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\IsPool2TerDmfappl.java",
+    "class_name": "IsPool2TerDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 500
+  },
+  {
+    "chunk_file": "rsz__dmfappl__SocialeBijdragenDmfapplVrijwilligeBrandweer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\SocialeBijdragenDmfapplVrijwilligeBrandweer.java",
+    "class_name": "SocialeBijdragenDmfapplVrijwilligeBrandweer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2014
+  },
+  {
+    "chunk_file": "rsz__dmfappl__SocialeBijdrageVoertuig.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\dmfappl\\SocialeBijdrageVoertuig.java",
+    "class_name": "SocialeBijdrageVoertuig",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1803
+  },
+  {
+    "chunk_file": "rsz__pensioenpijler2__PensioenPijler2TypeBijdrage.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\pensioenpijler2\\PensioenPijler2TypeBijdrage.java",
+    "class_name": "PensioenPijler2TypeBijdrage",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1257
+  },
+  {
+    "chunk_file": "rsz__pensioenpijler2__validatie__PensioenPijler2Validator2010.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\pensioenpijler2\\validatie\\PensioenPijler2Validator2010.java",
+    "class_name": "PensioenPijler2Validator2010",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3109
+  },
+  {
+    "chunk_file": "rsz__pensioenpijler2__validatie__PensioenPijler2ValidatorFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\pensioenpijler2\\validatie\\PensioenPijler2ValidatorFactory.java",
+    "class_name": "PensioenPijler2ValidatorFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 630
+  },
+  {
+    "chunk_file": "rsz__PostControleRsz.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\PostControleRsz.java",
+    "class_name": "PostControleRsz",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 690
+  },
+  {
+    "chunk_file": "rsz__rszppo__BerekenSocialeBijdragenRszppo.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\rszppo\\BerekenSocialeBijdragenRszppo.java",
+    "class_name": "BerekenSocialeBijdragenRszppo",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3401
+  },
+  {
+    "chunk_file": "rsz__rszppo__ControleRszKwartaalGrensVrijwilligeBrandweerOld.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\rszppo\\ControleRszKwartaalGrensVrijwilligeBrandweerOld.java",
+    "class_name": "ControleRszKwartaalGrensVrijwilligeBrandweerOld",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2744
+  },
+  {
+    "chunk_file": "rsz__rszppo__GewoonLoonRszppo.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\rszppo\\GewoonLoonRszppo.java",
+    "class_name": "GewoonLoonRszppo",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 722
+  },
+  {
+    "chunk_file": "rsz__rszppo__RszppoBijdragePercentages.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\rszppo\\RszppoBijdragePercentages.java",
+    "class_name": "RszppoBijdragePercentages",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 5328
+  },
+  {
+    "chunk_file": "rsz__werkbonus__basisbedrag__WerkbonusBasisBedragFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\basisbedrag\\WerkbonusBasisBedragFactory.java",
+    "class_name": "WerkbonusBasisBedragFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1557
+  },
+  {
+    "chunk_file": "rsz__werkbonus__basisbedrag__WerkbonusBasisBedragVanaf2008.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\basisbedrag\\WerkbonusBasisBedragVanaf2008.java",
+    "class_name": "WerkbonusBasisBedragVanaf2008",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 724
+  },
+  {
+    "chunk_file": "rsz__werkbonus__basisbedrag__WerkbonusBasisBedragVoor2008.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\basisbedrag\\WerkbonusBasisBedragVoor2008.java",
+    "class_name": "WerkbonusBasisBedragVoor2008",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 713
+  },
+  {
+    "chunk_file": "rsz__werkbonus__BerekenWerkbonus.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\BerekenWerkbonus.java",
+    "class_name": "BerekenWerkbonus",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2311
+  },
+  {
+    "chunk_file": "rsz__werkbonus__BerekenWerkbonusGepensioneerd.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\BerekenWerkbonusGepensioneerd.java",
+    "class_name": "BerekenWerkbonusGepensioneerd",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 990
+  },
+  {
+    "chunk_file": "rsz__werkbonus__dmfappl__BerekenWerkbonusDmfapplHelper.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\dmfappl\\BerekenWerkbonusDmfapplHelper.java",
+    "class_name": "BerekenWerkbonusDmfapplHelper",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 756
+  },
+  {
+    "chunk_file": "rsz__werkbonus__dmfappl__WerkbonusKomtInAanmerkingDmfappl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\dmfappl\\WerkbonusKomtInAanmerkingDmfappl.java",
+    "class_name": "WerkbonusKomtInAanmerkingDmfappl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1366
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusCalculator.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusCalculator.java",
+    "class_name": "WerkbonusCalculator",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2553
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusGepensioneerdOpdracht.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusGepensioneerdOpdracht.java",
+    "class_name": "WerkbonusGepensioneerdOpdracht",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 812
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusGepensioneerdOpper.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusGepensioneerdOpper.java",
+    "class_name": "WerkbonusGepensioneerdOpper",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 798
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusGepensioneerdUitbreidingOpdrachtNodig.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusGepensioneerdUitbreidingOpdrachtNodig.java",
+    "class_name": "WerkbonusGepensioneerdUitbreidingOpdrachtNodig",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 657
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusKomtInAanmerkingFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusKomtInAanmerkingFactory.java",
+    "class_name": "WerkbonusKomtInAanmerkingFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 541
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusReferentieLoon.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusReferentieLoon.java",
+    "class_name": "WerkbonusReferentieLoon",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 649
+  },
+  {
+    "chunk_file": "rsz__werkbonus__WerkbonusVerdeler.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\werkbonus\\WerkbonusVerdeler.java",
+    "class_name": "WerkbonusVerdeler",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2754
+  },
+  {
+    "chunk_file": "rsz__WerknemersKengetalFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\rsz\\WerknemersKengetalFactory.java",
+    "class_name": "WerknemersKengetalFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 620
+  },
+  {
+    "chunk_file": "service__GewaarborgdLoonProcesCentral.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\GewaarborgdLoonProcesCentral.java",
+    "class_name": "GewaarborgdLoonProcesCentral",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 989
+  },
+  {
+    "chunk_file": "service__GewaarborgdLoonServiceImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\GewaarborgdLoonServiceImp.java",
+    "class_name": "GewaarborgdLoonServiceImp",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 7992
+  },
+  {
+    "chunk_file": "service__GewaarborgdLoonServiceImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\GewaarborgdLoonServiceImp.java",
+    "class_name": "GewaarborgdLoonServiceImp",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 1487
+  },
+  {
+    "chunk_file": "service__RekenmotorDtoConverter.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\RekenmotorDtoConverter.java",
+    "class_name": "RekenmotorDtoConverter",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2758
+  },
+  {
+    "chunk_file": "service__RekenRszConstantService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\RekenRszConstantService.java",
+    "class_name": "RekenRszConstantService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1215
+  },
+  {
+    "chunk_file": "service__ResultaatHandlerServiceImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\ResultaatHandlerServiceImp.java",
+    "class_name": "ResultaatHandlerServiceImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 517
+  },
+  {
+    "chunk_file": "service__RkmCoreHrConfiguratieMapper.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\RkmCoreHrConfiguratieMapper.java",
+    "class_name": "RkmCoreHrConfiguratieMapper",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 566
+  },
+  {
+    "chunk_file": "service__RkmPlanningsurenConfiguratieMapper.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\RkmPlanningsurenConfiguratieMapper.java",
+    "class_name": "RkmPlanningsurenConfiguratieMapper",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 597
+  },
+  {
+    "chunk_file": "service__StandaardControlesRekenResultatenService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardControlesRekenResultatenService.java",
+    "class_name": "StandaardControlesRekenResultatenService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 6138
+  },
+  {
+    "chunk_file": "service__StandaardEjtAanvraagBerekenService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardEjtAanvraagBerekenService.java",
+    "class_name": "StandaardEjtAanvraagBerekenService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 624
+  },
+  {
+    "chunk_file": "service__StandaardExtraSqlService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardExtraSqlService.java",
+    "class_name": "StandaardExtraSqlService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3451
+  },
+  {
+    "chunk_file": "service__StandaardGewaarborgdLoonSupplementImportBestandService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardGewaarborgdLoonSupplementImportBestandService.java",
+    "class_name": "StandaardGewaarborgdLoonSupplementImportBestandService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 607
+  },
+  {
+    "chunk_file": "service__StandaardNlpGlobalService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardNlpGlobalService.java",
+    "class_name": "StandaardNlpGlobalService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1578
+  },
+  {
+    "chunk_file": "service__StandaardPens2AntwerpenService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardPens2AntwerpenService.java",
+    "class_name": "StandaardPens2AntwerpenService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1203
+  },
+  {
+    "chunk_file": "service__StandaardRekenenHelpService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRekenenHelpService.java",
+    "class_name": "StandaardRekenenHelpService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2033
+  },
+  {
+    "chunk_file": "service__StandaardRekenmotorService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRekenmotorService.java",
+    "class_name": "StandaardRekenmotorService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 6807
+  },
+  {
+    "chunk_file": "service__StandaardRekenUitAgendaService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRekenUitAgendaService.java",
+    "class_name": "StandaardRekenUitAgendaService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4117
+  },
+  {
+    "chunk_file": "service__StandaardRekenUitArtikelAgendaService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRekenUitArtikelAgendaService.java",
+    "class_name": "StandaardRekenUitArtikelAgendaService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3663
+  },
+  {
+    "chunk_file": "service__StandaardRekenUitBerekendenService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRekenUitBerekendenService.java",
+    "class_name": "StandaardRekenUitBerekendenService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2074
+  },
+  {
+    "chunk_file": "service__StandaardRekenViaBoekDatumService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRekenViaBoekDatumService.java",
+    "class_name": "StandaardRekenViaBoekDatumService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3834
+  },
+  {
+    "chunk_file": "service__StandaardRmControleLijstService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardRmControleLijstService.java",
+    "class_name": "StandaardRmControleLijstService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4821
+  },
+  {
+    "chunk_file": "service__StandaardTegenBoekenSnummerService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardTegenBoekenSnummerService.java",
+    "class_name": "StandaardTegenBoekenSnummerService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2467
+  },
+  {
+    "chunk_file": "service__StandaardVrijeBrandweerService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardVrijeBrandweerService.java",
+    "class_name": "StandaardVrijeBrandweerService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2080
+  },
+  {
+    "chunk_file": "service__StandaardWerkBonusFiscaalJaarService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\StandaardWerkBonusFiscaalJaarService.java",
+    "class_name": "StandaardWerkBonusFiscaalJaarService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 667
+  },
+  {
+    "chunk_file": "service__VormArtikelsRekenmotorService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\VormArtikelsRekenmotorService.java",
+    "class_name": "VormArtikelsRekenmotorService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1582
+  },
+  {
+    "chunk_file": "service__web__ApoInputBedragTypes.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\ApoInputBedragTypes.java",
+    "class_name": "ApoInputBedragTypes",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3382
+  },
+  {
+    "chunk_file": "service__web__RekenActionFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\RekenActionFactoryImp.java",
+    "class_name": "RekenActionFactoryImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 666
+  },
+  {
+    "chunk_file": "service__web__RekenProcesCentral.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\RekenProcesCentral.java",
+    "class_name": "RekenProcesCentral",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1926
+  },
+  {
+    "chunk_file": "service__web__RekenProcesImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\RekenProcesImp.java",
+    "class_name": "RekenProcesImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2211
+  },
+  {
+    "chunk_file": "service__web__StandaardInputService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\StandaardInputService.java",
+    "class_name": "StandaardInputService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4169
+  },
+  {
+    "chunk_file": "service__web__StandaardPersoonOpdrachtWebService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\StandaardPersoonOpdrachtWebService.java",
+    "class_name": "StandaardPersoonOpdrachtWebService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 737
+  },
+  {
+    "chunk_file": "service__web__StandaardRegulAgendaWebService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\StandaardRegulAgendaWebService.java",
+    "class_name": "StandaardRegulAgendaWebService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 607
+  },
+  {
+    "chunk_file": "service__web__StandaardRekenmotorWebService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\StandaardRekenmotorWebService.java",
+    "class_name": "StandaardRekenmotorWebService",
+    "chunk_index": 0,
+    "total_chunks": 2,
+    "tokens": 7370
+  },
+  {
+    "chunk_file": "service__web__StandaardRekenmotorWebService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\service\\web\\StandaardRekenmotorWebService.java",
+    "class_name": "StandaardRekenmotorWebService",
+    "chunk_index": 1,
+    "total_chunks": 2,
+    "tokens": 2623
+  },
+  {
+    "chunk_file": "Sommaties.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\Sommaties.java",
+    "class_name": "Sommaties",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1731
+  },
+  {
+    "chunk_file": "SommatiesAchterstal.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\SommatiesAchterstal.java",
+    "class_name": "SommatiesAchterstal",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1596
+  },
+  {
+    "chunk_file": "util__AantalRszDagen.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\AantalRszDagen.java",
+    "class_name": "AantalRszDagen",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 554
+  },
+  {
+    "chunk_file": "util__AbstractPrestatieSamenvatting.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\AbstractPrestatieSamenvatting.java",
+    "class_name": "AbstractPrestatieSamenvatting",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2578
+  },
+  {
+    "chunk_file": "util__ApoGegevensConvertor.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\ApoGegevensConvertor.java",
+    "class_name": "ApoGegevensConvertor",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 6671
+  },
+  {
+    "chunk_file": "util__ArtikelLoonElementManagerFactoryImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\ArtikelLoonElementManagerFactoryImp.java",
+    "class_name": "ArtikelLoonElementManagerFactoryImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2876
+  },
+  {
+    "chunk_file": "util__ArtikelLoonElementManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\ArtikelLoonElementManagerImp.java",
+    "class_name": "ArtikelLoonElementManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1058
+  },
+  {
+    "chunk_file": "util__CheckRegulTool.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\CheckRegulTool.java",
+    "class_name": "CheckRegulTool",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 753
+  },
+  {
+    "chunk_file": "util__CodeExtensie.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\CodeExtensie.java",
+    "class_name": "CodeExtensie",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 831
+  },
+  {
+    "chunk_file": "util__ConstantManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\ConstantManagerImp.java",
+    "class_name": "ConstantManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 969
+  },
+  {
+    "chunk_file": "util__Indexator.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\Indexator.java",
+    "class_name": "Indexator",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1831
+  },
+  {
+    "chunk_file": "util__LoonafwerkingConfigMapper.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\LoonafwerkingConfigMapper.java",
+    "class_name": "LoonafwerkingConfigMapper",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 574
+  },
+  {
+    "chunk_file": "util__LoonCodeManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\LoonCodeManagerImp.java",
+    "class_name": "LoonCodeManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 714
+  },
+  {
+    "chunk_file": "util__LoonCodeTools.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\LoonCodeTools.java",
+    "class_name": "LoonCodeTools",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1567
+  },
+  {
+    "chunk_file": "util__LoonElementManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\LoonElementManagerImp.java",
+    "class_name": "LoonElementManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1294
+  },
+  {
+    "chunk_file": "util__MockRegulManager.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\MockRegulManager.java",
+    "class_name": "MockRegulManager",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 727
+  },
+  {
+    "chunk_file": "util__OpdrachtenGroepBuilder.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\OpdrachtenGroepBuilder.java",
+    "class_name": "OpdrachtenGroepBuilder",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1116
+  },
+  {
+    "chunk_file": "util__OverrideConstantManager.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\OverrideConstantManager.java",
+    "class_name": "OverrideConstantManager",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1953
+  },
+  {
+    "chunk_file": "util__PrestatieSamenvattingUitzPerUur.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\PrestatieSamenvattingUitzPerUur.java",
+    "class_name": "PrestatieSamenvattingUitzPerUur",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 516
+  },
+  {
+    "chunk_file": "util__RegulManagerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\RegulManagerImp.java",
+    "class_name": "RegulManagerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2682
+  },
+  {
+    "chunk_file": "util__RekenTools.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\RekenTools.java",
+    "class_name": "RekenTools",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 7520
+  },
+  {
+    "chunk_file": "util__RkmCoreHrConfiguratieManagerImpl.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\RkmCoreHrConfiguratieManagerImpl.java",
+    "class_name": "RkmCoreHrConfiguratieManagerImpl",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1025
+  },
+  {
+    "chunk_file": "util__RszTools.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\RszTools.java",
+    "class_name": "RszTools",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3206
+  },
+  {
+    "chunk_file": "util__SleutelGegevensImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\SleutelGegevensImp.java",
+    "class_name": "SleutelGegevensImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 3218
+  },
+  {
+    "chunk_file": "util__TimeTools.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\TimeTools.java",
+    "class_name": "TimeTools",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2041
+  },
+  {
+    "chunk_file": "util__ToegepasteTussenkomstFixerImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\ToegepasteTussenkomstFixerImp.java",
+    "class_name": "ToegepasteTussenkomstFixerImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 4483
+  },
+  {
+    "chunk_file": "util__verdeler__AbstractBedragVerdeler.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\verdeler\\AbstractBedragVerdeler.java",
+    "class_name": "AbstractBedragVerdeler",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 759
+  },
+  {
+    "chunk_file": "util__verdeler__BedragVerdelerFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\verdeler\\BedragVerdelerFactory.java",
+    "class_name": "BedragVerdelerFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1029
+  },
+  {
+    "chunk_file": "util__verdeler__EvenredigeVerdelerFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\util\\verdeler\\EvenredigeVerdelerFactory.java",
+    "class_name": "EvenredigeVerdelerFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 694
+  },
+  {
+    "chunk_file": "validators__SchaalVersieValidator.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\validators\\SchaalVersieValidator.java",
+    "class_name": "SchaalVersieValidator",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 526
+  },
+  {
+    "chunk_file": "VerzamelGegevens.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\VerzamelGegevens.java",
+    "class_name": "VerzamelGegevens",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 7175
+  },
+  {
+    "chunk_file": "voorbereiding__AlgemeneRekenUitVoorbereidingService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\AlgemeneRekenUitVoorbereidingService.java",
+    "class_name": "AlgemeneRekenUitVoorbereidingService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1763
+  },
+  {
+    "chunk_file": "voorbereiding__RekenAtomenCollectorImp.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\RekenAtomenCollectorImp.java",
+    "class_name": "RekenAtomenCollectorImp",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2031
+  },
+  {
+    "chunk_file": "voorbereiding__RekenVoorbereiding.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\RekenVoorbereiding.java",
+    "class_name": "RekenVoorbereiding",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1884
+  },
+  {
+    "chunk_file": "voorbereiding__RekenVoorbereidingFactory.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\RekenVoorbereidingFactory.java",
+    "class_name": "RekenVoorbereidingFactory",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1034
+  },
+  {
+    "chunk_file": "voorbereiding__StandaardRekenUitVoorbereidingService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\StandaardRekenUitVoorbereidingService.java",
+    "class_name": "StandaardRekenUitVoorbereidingService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2145
+  },
+  {
+    "chunk_file": "voorbereiding__StandaardRekenUitVoorbereidingService2.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\StandaardRekenUitVoorbereidingService2.java",
+    "class_name": "StandaardRekenUitVoorbereidingService2",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 2692
+  },
+  {
+    "chunk_file": "voorbereiding__VoorbereidingStatusService.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\voorbereiding\\VoorbereidingStatusService.java",
+    "class_name": "VoorbereidingStatusService",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 1109
+  },
+  {
+    "chunk_file": "ZetAfwijkendRegimeVoorMonitoren.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\ZetAfwijkendRegimeVoorMonitoren.java",
+    "class_name": "ZetAfwijkendRegimeVoorMonitoren",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 641
+  },
+  {
+    "chunk_file": "ZetAfwijkendRegimeVrijwilligeBrandweer.java.chunks.json",
+    "file": "C:\\Users\\kvo\\Desktop\\lpbunified-master\\spring\\lima\\lima-server\\src\\main\\java\\be\\schaubroeck\\lpb\\rkm\\rekenmotor\\ZetAfwijkendRegimeVrijwilligeBrandweer.java",
+    "class_name": "ZetAfwijkendRegimeVrijwilligeBrandweer",
+    "chunk_index": 0,
+    "total_chunks": 1,
+    "tokens": 526
+  }
+]
