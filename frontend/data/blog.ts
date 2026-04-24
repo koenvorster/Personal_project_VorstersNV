@@ -24,6 +24,139 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'sprint-26-7-samen-bouwen-slimmer-werken',
+    titel: '🚀 Sprint 26/7: Samen bouwen, slimmer werken en veel leren',
+    excerpt:
+      'De voorbije sprint was er eentje om even bij stil te staan. Niet alleen omwille van wat we technisch hebben opgeleverd, maar vooral hoe we het samen hebben gedaan — met AI als trouwe copiloot én veel vertrouwen in elkaar.',
+    datum: '24 april 2026',
+    datumISO: '2026-04-24',
+    leestijd: '6 min',
+    categorie: 'Team & Agile',
+    categorieKleur: 'bg-green-500/20 text-green-400 border-green-500/30',
+    afbeelding:
+      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
+    inhoud: [
+      {
+        type: 'paragraph',
+        text: 'De voorbije sprint was er eentje om even bij stil te staan. Niet alleen omwille van wat we technisch hebben opgeleverd, maar vooral hoe we het samen hebben gedaan. Met veel samenwerking, korte feedbackloops, een stevige portie nieuwsgierigheid en — ja — AI als trouwe copiloot hebben we mooie stappen gezet voor onze gebruikers én voor onszelf als team.',
+      },
+      {
+        type: 'heading',
+        text: '👥 Gebruikers eerst (en vooral: beter)',
+      },
+      {
+        type: 'paragraph',
+        text: 'Wat mij persoonlijk het meest bijblijft, is hoe sterk de focus lag op gebruikerservaring. Schermen die vroeger complex en "druk" aanvoelden, zijn nu veel overzichtelijker opgebouwd. Denk aan logisch gegroepeerde tabs, duidelijkere structuren en minder cognitieve overload.',
+      },
+      {
+        type: 'quote',
+        text: 'Goede software voelt rustig aan, slechte software vraagt uitleg.',
+      },
+      {
+        type: 'paragraph',
+        text: 'De verbeteringen rond mappings, delete-bevestigingen en deelbare links zorgen er bovendien voor dat gebruikers zich veiliger voelen in wat ze doen en sneller kunnen samenwerken — exact waar we naartoe willen.',
+      },
+      {
+        type: 'grid2',
+        items: [
+          {
+            icon: '🧭',
+            title: 'Altijd weten waar je bent',
+            text: 'Breadcrumbs en URL-reflectie zorgen dat gebruikers nooit verloren lopen én een scherm kunnen delen via een simpele link.',
+          },
+          {
+            icon: '🛡️',
+            title: 'Veilig en consistent handelen',
+            text: 'Eén herkenbaar patroon voor delete-bevestigingen doorheen de hele module — minder verrassingen, meer vertrouwen.',
+          },
+          {
+            icon: '📋',
+            title: 'Audit altijd zichtbaar',
+            text: 'Het auditvenster heeft nu een vaste breedte en elke configuratiewijziging in de Attractiviteitspremie wordt bijgehouden.',
+          },
+          {
+            icon: '🧮',
+            title: 'Berekeningen die kloppen',
+            text: 'De PVH-breuk voor de maandelijkse rekenwijze is correct verwerkt — de basis voor alle vervolgberekeningen ligt nu stevig.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🤖 AI als versneller, niet als vervanger',
+      },
+      {
+        type: 'paragraph',
+        text: 'Deze sprint heeft nogmaals bevestigd wat we eigenlijk al aanvoelden: AI werkt het best wanneer het het vakmanschap van mensen versterkt.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Het stap-voor-stap refactoren van UI-componenten',
+          'Het versnellen van testautomatisatie — van nul naar 27 Cypress E2E tests',
+          'Het genereren van relevantere testdata voor edge cases',
+          'Het voorbereiden van stories, analyses en demo scripts',
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'Telkens zagen we hetzelfde patroon: minder repetitief werk, meer focus op inhoud en kwaliteit. En misschien nog belangrijker: AI werd niet "erin geduwd", maar organisch gebruikt waar het zin had. Dat maakt het duurzaam.',
+      },
+      {
+        type: 'infobox',
+        icon: '🧪',
+        title: '27/27 Cypress tests — van idee naar CI in één sprint',
+        text: 'Van nul naar een volledige E2E testsuite met app-load, berekeningen, validatieoverzicht en detailnavigatie — inclusief Jenkins CI integratie en Xray koppeling. AI hielp met de setup, het team valideerde de inhoud.',
+        color: 'border-green-500/30 bg-green-500/5',
+      },
+      {
+        type: 'heading',
+        text: '🙏 Dankjewel, collega\'s',
+      },
+      {
+        type: 'paragraph',
+        text: 'Een paar expliciete dankwoorden mogen hier écht niet ontbreken.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Kristof',
+            text: 'Chapeau voor de UI-rework en vooral voor de manier waarop je AI stap-voor-stap inzette. Het was tegelijk leerzaam, indrukwekkend én inspirerend voor de rest van het team.',
+          },
+          {
+            title: 'Dieter',
+            text: 'Dank je wel voor het vele werk achter de schermen en de technische voortgang die misschien minder zichtbaar is, maar wél essentieel voor alles wat we vandaag tonen.',
+          },
+          {
+            title: 'Het hele team',
+            text: 'Developers, testers, PO\'s, SME\'s — bedankt voor de openheid, de feedback, het meedenken en de bereidheid om nieuwe dingen uit te proberen. Dit voelde echt aan als samen bouwen, niet als "elk zijn stukje".',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🙋‍♂️ Nog een persoonlijke noot',
+      },
+      {
+        type: 'paragraph',
+        text: 'Ik wil me hier ook oprecht nog eens verontschuldigen bij Karen. In alle enthousiasme en snelheid van de sprint ben ik op een moment wat te kort door de bocht gegaan. Dank je wel voor je geduld, je professionaliteit en je kritische blik — die maken het eindresultaat alleen maar beter. 🙏',
+      },
+      {
+        type: 'heading',
+        text: '🌱 Wat nemen we mee?',
+      },
+      {
+        type: 'quote',
+        text: 'We zijn niet alleen features aan het bouwen, we zijn ook aan het leren hoe we als team slimmer kunnen werken.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Met AI als hulpmiddel, maar vooral met vertrouwen in elkaar, ruimte om te proberen, en aandacht voor de gebruiker. Op naar de volgende sprint — met evenveel goesting, samenwerking en nieuwsgierigheid. 🚀',
+      },
+    ],
+  },
+  {
     slug: 'rovo-agents-software-team-prompting',
     titel: 'Rovo Agents in je software team: de ultieme prompting gids per rol',
     excerpt:
