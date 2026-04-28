@@ -259,10 +259,11 @@ class ControlPlane:
         tokens = _CAPABILITY_TOKENS.get(capability, _DEFAULT_TOKENS)
 
         # Model selectie op basis van risico en budget
+        # Budget-check: gebruik goedkoper model als budget bijna op is
+        budget_constrained = context.remaining_budget_eur < 10
         use_escalation = (
-            context.risk_score >= 75
-            or context.is_production
-            or context.remaining_budget_eur > 50
+            not budget_constrained
+            and (context.risk_score >= 75 or context.is_production)
         )
         primary_model = (
             models["escalation"] if use_escalation else models["preferred"]

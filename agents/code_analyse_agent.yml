@@ -4,7 +4,7 @@ type: standalone_agent
 description: "Agent voor het analyseren van broncode en genereren van leesbare documentatie voor klantprojecten"
 model: codellama
 temperature: 0.1
-max_tokens: 512
+max_tokens: 4096
 language: nl
 
 system_prompt_ref: "prompts/system/code_analyse_v1.txt"

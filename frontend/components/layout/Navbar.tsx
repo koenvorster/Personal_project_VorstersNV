@@ -4,33 +4,29 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Code2, ShoppingCart, LogOut, LogIn, LayoutDashboard, User } from 'lucide-react'
+import { Menu, X, Code2, LogOut, LogIn, LayoutDashboard, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useCartStore } from '@/lib/cartStore'
 import { useSession, signIn, signOut } from 'next-auth/react'
 
 const publicLinks = [
   { href: '/', label: 'Home' },
-  { href: '/projecten', label: 'Projecten' },
   { href: '/diensten', label: 'Diensten' },
+  { href: '/case-studies', label: 'Case Studies' },
+  { href: '/projecten', label: 'Projecten' },
   { href: '/ai-lab', label: 'AI Lab' },
+  { href: '/over-mij', label: 'Over mij' },
   { href: '/blog', label: 'Blog' },
-  { href: '/how-tos', label: "How-to's" },
-  { href: '/uses', label: 'Uses' },
   { href: '/contact', label: 'Contact' },
 ]
 
 const adminLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/shop', label: 'Shop', icon: null },
 ]
 
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { data: session, status } = useSession()
-  const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.aantal, 0))
-
   const isAdmin = session?.user?.rol === 'admin' || session?.user?.rol === 'tester'
   const visibleLinks = [...publicLinks, ...(isAdmin ? adminLinks : [])]
 
@@ -87,20 +83,6 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Cart */}
-            <Link
-              href="/winkelwagen"
-              aria-label="Winkelwagen"
-              className="relative ml-1 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] flex items-center justify-center text-[10px] font-bold bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-1">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
             {/* Auth area */}
             {status === 'loading' ? (
               <div className="ml-1 w-8 h-8 rounded-full bg-white/5 animate-pulse" />
@@ -141,20 +123,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile: cart + hamburger */}
+          {/* Mobile: hamburger */}
           <div className="md:hidden flex items-center gap-1">
-            <Link
-              href="/winkelwagen"
-              aria-label="Winkelwagen"
-              className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] flex items-center justify-center text-[10px] font-bold bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-1">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
             <button
               className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -218,7 +188,7 @@ export default function Navbar() {
                     onClick={() => { setMobileOpen(false); signIn('keycloak', { callbackUrl: '/dashboard' }) }}
                     className="w-full flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
                   >
-                    <LogIn className="w-4 h-4" /> Aanmelden met Keycloak
+                    <LogIn className="w-4 h-4" /> Aanmelden
                   </button>
                 )}
               </div>
