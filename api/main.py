@@ -52,10 +52,12 @@ Gebruik de `Authorization: Bearer <token>` header voor beveiligde endpoints.
     openapi_url="/openapi.json",
 )
 
-# CORS – sta frontend toe
+# CORS – sta frontend toe (via settings, inclusief dev-poorten)
+from api.config import settings as _settings
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://vorstersNV.be"],
+    allow_origins=_settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

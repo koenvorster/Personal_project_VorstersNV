@@ -1,0 +1,191 @@
+================================================================================
+VORSTERSNV AI CONSULTANCY PLATFORM
+VERBETERPLAN — REVISIE 6
+================================================================================
+Datum:      28 april 2026
+Status:     W10 GEPLAND
+Basis:      Revisie 5 volledig (Waves W1-W9, 1649 tests, 0 failures)
+================================================================================
+
+
+1. PROJECTOVERZICHT
+────────────────────
+VorstersNV is een freelance IT/AI-consultancy platform voor Belgische KMOs.
+
+Stack:
+  Frontend    Next.js 16.2 (TypeScript, App Router, Tailwind)   frontend/
+  Backend     FastAPI (Python 3.12), SQLAlchemy async, Alembic   api/
+  Lokale AI   Ollama — llama3, mistral (47 modules)              ollama/
+  AI Agents   32 YAML-definities + agent_runner.py               agents/
+  Database    PostgreSQL 16 + Redis 7                            Docker (WSL)
+  Betalingen  Mollie webhooks                                    api/routers/betalingen.py
+  Auth        Keycloak (dev)                                     Docker
+  CI/CD       GitHub Actions                                     .github/workflows/
+
+Huidige architectuur:
+  - 49 Claude agents        (.claude/agents/)
+  - 32 Ollama runtime agents (agents/)
+  - 47 ollama/ modules      (Control Plane, RAG, Knowledge Graph, Compliance
+                             Engine GDPR/NIS2/BTW, DiagramRenderer, ReasoningLogger)
+  - 13 FastAPI routers      (portal, feedback, streaming, ai_platform, leads...)
+  - 15 databasetabellen     (Alembic up-to-date)
+  - Consultancy tooling     (scripts/analyse_project.py, code_analyse_agent,
+                             consultancy_orchestrator)
+
+
+================================================================================
+2. LOKALE ONTWIKKELOMGEVING
+================================================================================
+
+Start commando:
+  .\Start-VorstersNV.ps1
+
+Vereisten:
+  - WSL2 met Ubuntu (actief)
+  - Docker in WSL (Docker 29.4.1)
+  - Node.js 22+ op Windows
+  - Python 3.12+ op Windows (uvicorn, alembic, asyncpg)
+
+Services en poorten:
+  Service              URL                         Opmerking
+  ───────────────────────────────────────────────────────────────────
+  Frontend (Next.js)   http://localhost:3001        POORT 3001 — 3000 bezet door Grafana
+  FastAPI Backend      http://localhost:8000        uvicorn api.main:app --reload
+  Swagger UI           http://localhost:8000/docs   Automatisch gegenereerd
+  PostgreSQL           localhost:5432               Docker (WSL) — vorstersNV-db
+  Redis                localhost:6379               Docker (WSL) — vorstersNV-redis
+  Grafana              http://localhost:3000        Ander project — niet VorstersNV
+
+Verbeteringen doorgevoerd op 28/04/2026:
+  - CORS via settings: api/main.py gebruikt settings.cors_origins i.p.v. hardcoded
+  - Poort 3001 voor Next.js: geen conflict meer met Grafana
+  - Start-VorstersNV.ps1: automatische opstart van alle services
+  - .env: CORS_ORIGINS en NEXTAUTH_URL=http://localhost:3001 toegevoegd
+
+
+================================================================================
+3. GAP ANALYSE — REVISIE 6 (G-47..G-58)
+================================================================================
+
+ID     Naam                                    Klasse          Prioriteit
+──────────────────────────────────────────────────────────────────────────
+G-47   Portal Authentication Gate ontbreekt   Auth/Security   BLOCKER
+       /portal/* routes zijn publiek. middleware.ts ontbreekt.
+
+G-48   Geen multi-tenant isolatie in Portal    Data/Privacy    BLOCKER
+       portal.py retourneert ALLE rijen zonder WHERE tenant_id filter.
+       GDPR-risico bij meerdere klanten.
+
+G-49   FastAPI niet gedeployd in CI/CD         Deployment      BLOCKER
+       deploy.yml deployt Java + webhooks + frontend maar NIET FastAPI.
+
+G-50   Mermaid.js niet geinstalleerd           Frontend        HIGH
+       diagram_renderer.py genereert Mermaid-syntax maar frontend
+       rendert als <pre> code.
+
+G-51   Notificaties niet geimplementeerd       Integratie      HIGH
+       SMTP-config aanwezig maar geen implementatie. Klant weet niet
+       dat rapport klaar is.
+
+G-52   Klant self-service project aanmaken     Frontend/UX     HIGH
+       POST /api/portal/projects bestaat maar geen frontend-form.
+
+G-53   Portal rapport-pagina ontbreekt         Frontend        HIGH
+       /portal/projects/{id}/rapport pagina bestaat niet.
+
+G-54   Secrets management voor Cloud Run       Deployment      HIGH
+       .env werkt niet op Cloud Run. GCP Secret Manager vereist.
+
+G-55   GPU server integratie                   Performance     MEDIUM
+       ~290s/chunk op CPU -> ~15s/chunk op GPU = 19x sneller.
+       OLLAMA_GPU_URL=http://<desktop-ip>:11434
+
+G-56   Rapport export / PDF download           Frontend/Value  MEDIUM
+       Geen download-knop, geen PDF-export.
+
+G-57   Keycloak productie-setup                Auth            MEDIUM
+       Keycloak draait lokaal. Niet schaalbaar op Cloud Run.
+
+G-58   CostForecaster v2 ML                    AI/Intelligence LOW
+       Vereist minimaal 20 historische projecten. Bewust uitgesteld.
+
+
+================================================================================
+4. ROADMAP
+================================================================================
+
+WAVE W10 — PRODUCTION FOUNDATION (GEPLAND)
+Thema: Van localhost naar live demo
+
+  G-47  middleware.ts aanmaken — bescherm /portal/* routes
+  G-48  portal.py: WHERE tenant_id = current_user toevoegen
+  G-49  deploy.yml: FastAPI Cloud Run deploy stap toevoegen
+  G-54  GCP Secret Manager + GitHub Secrets koppelen
+  G-50  npm install mermaid + MermaidDiagram React component
+
+WAVE W11 — CLIENT EXPERIENCE (BACKLOG)
+Doel: Één betalende klant bedienen
+
+  G-53  Portal rapport-pagina (/portal/projects/{id}/rapport)
+  G-52  Self-service project aanmaken (frontend form)
+  G-56  PDF export (weasyprint of reportlab)
+  G-51  Email notificaties (aiosmtplib)
+
+WAVE W12 — DIFFERENTIATIE (BACKLOG)
+
+  G-55  GPU server integratie (RTX 3090 gaming desktop)
+  G-57  Keycloak productie-setup
+  G-58  CostForecaster v2 ML
+        Cypress E2E tests portal frontend
+
+
+================================================================================
+5. TECHNISCHE VERBETERPUNTEN
+================================================================================
+
+DevOps / Lokale omgeving:
+  - Poortconflict Grafana: Next.js altijd op 3001 (permanent instellen)
+  - Alembic sync driver: DB_URL_SYNC=postgresql+psycopg2://... toevoegen in .env
+    en db/migrations/env.py aanpassen (asyncpg werkt niet met Alembic sync)
+  - npm warnings: ~/.npmrc entries //config en no-proxy verwijderen
+
+Backend (FastAPI):
+  - @app.on_event deprecated -> vervangen door @asynccontextmanager lifespan
+  - Keycloak VERIFY_AUD=false: acceptabel voor dev, BLOCKER voor productie
+  - DB_URL_SYNC toevoegen voor Alembic
+
+Frontend (Next.js):
+  - npm install mermaid + React component voor architectuurdiagrammen
+  - data-testid attributen ontbreken op interactieve elementen (Cypress/Playwright)
+  - npx tsc --noEmit periodiek uitvoeren om type drift te vermijden
+
+AI / Ollama:
+  - Laptop (Intel Iris Xe, geen GPU) -> ~290s/chunk — bottleneck
+  - Gaming desktop als remote Ollama server configureren
+  - Starcoder 3B: geen instructie-ondersteuning -> niet voor analyse gebruiken
+  - GPT-OSS 20B: MXFP4 incompatibel met CPU -> niet gebruiken
+
+
+================================================================================
+6. ACTIEPUNTEN — W10 SPRINT
+================================================================================
+
+[ ] G-47  frontend/middleware.ts aanmaken
+[ ] G-48  api/routers/portal.py aanpassen met tenant isolatie
+[ ] G-49  .github/workflows/deploy.yml uitbreiden met FastAPI Cloud Run stap
+[ ] G-54  GCP Secret Manager setup + GitHub Secrets
+[ ] G-50  npm install mermaid + MermaidDiagram component
+[ ]       DB_URL_SYNC in .env + db/migrations/env.py aanpassen
+[ ]       @app.on_event -> @asynccontextmanager lifespan migreren
+[ ]       Gaming desktop configureren als remote Ollama endpoint
+
+
+================================================================================
+7. REPOSITORY
+================================================================================
+
+GitHub:         https://github.com/koenvorsters/Personal_project_VorstersNV
+Lokale map:     C:\Users\kvo\IdeaProjects\VorstersNV
+Start script:   .\Start-VorstersNV.ps1
+Masterplan R5:  documentatie\AI_OPTIMALISATIEPLAN_REVISIE5.TXT
+Masterplan R6:  documentatie\AI_OPTIMALISATIEPLAN_REVISIE6.TXT

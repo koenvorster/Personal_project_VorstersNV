@@ -1,0 +1,645 @@
+Agent completed. agent_id: vorstersnv-orde, agent_type: ai-architect, status: completed, description: VorstersNV project cleanup plan, elapsed: 169s, total_turns: 0, duration: 165s
+
+Nu heb ik genoeg context voor een grondig en concreet actieplan. Hier is het volledige rapport:
+
+---
+
+# ACTIEPLAN: STRUCTUURHERSTEL VORSTERSNV — FASE 6
+**Datum:** 2025-07 | **Status:** Ontwerp | **Auteur:** AI Architect Agent
+
+---
+
+## 📋 EXECUTIVE SUMMARY
+
+Het project bevindt zich in een transitiefase: van een brede full-stack webshop naar een gefocust **IT/AI consultancy platform voor Belgische KMOs**. De codebase weerspiegelt die transitie niet — er zit historische vervuiling in de root, een vestigiele Java-backend, 44 flat Python modules zonder structuur, en inconsistente documentatienaming. Dit plan brengt de structuur in lijn met Fase 6.
+
+**Geschatte tijdsinvestering:** ±4 uur voor volledige uitvoering  
+**Risico:** Laag — geen functionele code wordt verwijderd, alleen gereorganiseerd of gearchiveerd
+
+---
+
+## 🔴 PRIORITEIT 1 — ROOT-VERVUILING (doe dit eerst, 30 min)
+
+De root van een Python/Next.js project moet enkel bevatten: `pyproject.toml`, `requirements.txt`, `docker-compose.yml`, `Makefile`, `README.md`, `.gitignore`, `Dockerfile.*`, `alembic*.ini`, `.env.example` en de projectmappen.
+
+### 1.1 — Verplaats `setup_backend.py` → `scripts/`
+
+```powershell
+Move-Item setup_backend.py scripts\setup_backend.py
+```
+
+**Reden:** Het is een uitvoerbaar setup-script, niet een package-configuratie. Hoort thuis bij de andere scripts.
+
+### 1.2 — Archiveer `create_gems.cjs` + bijbehorende Node.js bestanden
+
+```powershell
+# Maak archief-map aan
+New-Item -ItemType Directory -Path scripts\gems -Force
+
+# Verplaats bestanden
+Move-Item create_gems.cjs scripts\gems\create_gems.cjs
+Move-Item package.json scripts\gems\package.json
+Move-Item package-lock.json scripts\gems\package-lock.json
+```
+
+**Reden:** `create_gems.cjs` is een eenmalig Gemini Gems setup-script dat Playwright gebruikt. Het heeft geen plaats in de root van een Python/Next.js project. De root `node_modules/` verdwijnt daarmee vanzelf zodra je `npm install` alleen in `scripts/gems/` uitvoert.
+
+> ⚠️ **Opgelet:** Verwijder `node_modules/` in de root NIET handmatig vóór je de move doet — eerst committen, daarna `node_modules/` laten verdwijnen via `.gitignore` (staat er al in).
+
+### 1.3 — Twee startup scripts rationaliseren
+
+Huidige situatie:
+- `START_PHASE_1.ps1` — oud (Fase 1 naam), waarschijnlijk verouderd
+- `Start-VorstersNV.ps1` — nieuwer, actiever
+
+**Actie:**
+```powershell
+# Verplaats het oudere script naar archief
+Move-Item START_PHASE_1.ps1 scripts\archief\START_PHASE_1.ps1
+```
+
+`Start-VorstersNV.ps1` blijft in de root — dit is het enige "quick start" script voor Windows-gebruikers.
+
+### 1.4 — Root na opruiming (doelstructuur)
+
+```
+VorstersNV/
+├── .claude/              # Claude AI ecosystem
+├── .devcontainer/        # Dev container config
+├── .env.example          # Template (nooit .env zelf)
+├── .github/              # CI/CD + Copilot agents
+├── .gitignore            ← VERBETEREN (zie sectie 6)
+├── alembic.ini           # Hoofd-DB migraties
+├── alembic_analytics.ini # Analytics-DB migraties
+├── api/                  # FastAPI backend
+├── agents/               # Runtime Ollama YAML agents
+├── backend/              ← ARCHIVEREN (zie sectie 4)
+├── CLAUDE.md             # Claude context
+├── db/                   # SQLAlchemy modellen + migraties
+├── docker-compose.yml    # Service orchestratie
+├── Dockerfile.api        
+├── Dockerfile.webhooks   
+├── documentatie/         ← OPRUIMEN (zie sectie 3)
+├── frontend/             # Next.js app
+├── keycloak/             # SSO config
+├── logs/                 # Gegenereerd — in .gitignore
+├── Makefile              
+├── mcp-config.json       
+├── mcp-server/           
+├── ollama/               ← HERSTRUCTUREREN (zie sectie 2)
+├── plan/                 
+├── policies/             
+├── prompts/              
+├── pyproject.toml        
+├── README.md             ← UPDATEN (zie sectie 7)
+├── requirements.txt      
+├── scripts/              ← REORGANISEREN (zie sectie 5)
+├── Start-VorstersNV.ps1  # Enig startup script
+├── tests/                
+└── webhooks/             
+```
+
+---
+
+## 🔴 PRIORITEIT 2 — OLLAMA MODULE CLUSTERING (kritiek, 60 min)
+
+De `ollama/` map bevat 44 modules direct in de root. Dit schaalt niet. Voorgestelde clustering in **9 logische subpakketten**:
+
+### Doelstructuur `ollama/`
+
+```
+ollama/
+├── __init__.py
+│
+├── core/                    # Fundament: runtime engine
+│   ├── __init__.py
+│   ├── client.py            ← was ollama/client.py
+│   ├── contracts.py         ← was ollama/contracts.py
+│   ├── events.py            ← was ollama/events.py
+│   ├── event_bridge.py      ← was ollama/event_bridge.py
+│   ├── orchestrator.py      ← was ollama/orchestrator.py
+│   └── state_machine.py     ← was ollama/state_machine.py
+│
+├── agents/                  # Agent runtime & compositie
+│   ├── __init__.py
+│   ├── agent_groups.py      ← was ollama/agent_groups.py
+│   ├── agent_runner.py      ← was ollama/agent_runner.py
+│   ├── agent_versioning.py  ← was ollama/agent_versioning.py
+│   ├── capability_registry.py
+│   └── mixture_of_agents.py
+│
+├── memory/                  # Kennisopslag & retrieval
+│   ├── __init__.py
+│   ├── adaptive_chunker.py
+│   ├── knowledge_graph.py
+│   ├── memory.py
+│   └── rag_engine.py
+│
+├── platform/                # Multi-tenant platform laag
+│   ├── __init__.py
+│   ├── client_project_space.py
+│   ├── control_plane.py
+│   ├── deployment_rings.py
+│   ├── mcp_registry.py
+│   ├── platform_adapter.py
+│   └── platform_report.py
+│
+├── quality/                 # Kwaliteitsbeheer & zelfevaluatie
+│   ├── __init__.py
+│   ├── ab_tester.py
+│   ├── prompt_iterator.py
+│   ├── quality_gates.py
+│   ├── quality_monitor.py
+│   ├── review_loop.py
+│   ├── schema_validator.py
+│   └── self_improvement.py
+│
+├── compliance/              # Regelgeving & veiligheid
+│   ├── __init__.py
+│   ├── ai_act_compliance.py
+│   ├── compliance_engine.py
+│   ├── pii_scanner.py
+│   └── policy_engine.py
+│
+├── observability/           # Monitoring, kosten & logging
+│   ├── __init__.py
+│   ├── cost_forecaster.py
+│   ├── cost_governance.py
+│   ├── decision_journal.py
+│   ├── observability.py
+│   └── reasoning_logger.py
+│
+├── tooling/                 # Hulpmiddelen & loaders
+│   ├── __init__.py
+│   ├── diagram_renderer.py
+│   ├── skill_chain_orchestrator.py
+│   ├── skill_loader.py
+│   ├── tool_executor.py
+│   ├── workflow_loader.py
+│   └── workflow_lanes.py
+│
+├── business/                # Bedrijfslogica & KMO-specifiek
+│   ├── __init__.py
+│   ├── auto_promoter.py
+│   ├── maturity_engine.py
+│   ├── recommendation_engine.py
+│   └── sector_benchmarks.py
+│
+├── skills/                  # Bestaand — behouden
+│   ├── rate_limiter.py
+│   ├── response_cache.py
+│   └── tracing.py
+│
+├── evals/                   # Bestaand — behouden
+│   ├── hierarchy.py
+│   └── judge.py
+│
+└── workflows/               # Bestaand — behouden
+    ├── chains/
+    ├── fraud_pipeline.yml
+    ├── order_pipeline.yml
+    └── product_pipeline.yml
+```
+
+### PowerShell commando's voor de clustering
+
+```powershell
+# Maak subpakketten aan
+$dirs = @("core","agents","memory","platform","quality","compliance","observability","tooling","business")
+foreach ($d in $dirs) {
+    New-Item -ItemType Directory -Path "ollama\$d" -Force
+    New-Item -ItemType File -Path "ollama\$d\__init__.py" -Force
+}
+
+# core/
+Move-Item ollama\client.py          ollama\core\client.py
+Move-Item ollama\contracts.py       ollama\core\contracts.py
+Move-Item ollama\events.py          ollama\core\events.py
+Move-Item ollama\event_bridge.py    ollama\core\event_bridge.py
+Move-Item ollama\orchestrator.py    ollama\core\orchestrator.py
+Move-Item ollama\state_machine.py   ollama\core\state_machine.py
+
+# agents/
+Move-Item ollama\agent_groups.py        ollama\agents\agent_groups.py
+Move-Item ollama\agent_runner.py        ollama\agents\agent_runner.py
+Move-Item ollama\agent_versioning.py    ollama\agents\agent_versioning.py
+Move-Item ollama\capability_registry.py ollama\agents\capability_registry.py
+Move-Item ollama\mixture_of_agents.py   ollama\agents\mixture_of_agents.py
+
+# memory/
+Move-Item ollama\adaptive_chunker.py ollama\memory\adaptive_chunker.py
+Move-Item ollama\knowledge_graph.py  ollama\memory\knowledge_graph.py
+Move-Item ollama\memory.py           ollama\memory\memory.py
+Move-Item ollama\rag_engine.py       ollama\memory\rag_engine.py
+
+# platform/
+Move-Item ollama\client_project_space.py ollama\platform\client_project_space.py
+Move-Item ollama\control_plane.py        ollama\platform\control_plane.py
+Move-Item ollama\deployment_rings.py     ollama\platform\deployment_rings.py
+Move-Item ollama\mcp_registry.py         ollama\platform\mcp_registry.py
+Move-Item ollama\platform_adapter.py     ollama\platform\platform_adapter.py
+Move-Item ollama\platform_report.py      ollama\platform\platform_report.py
+
+# quality/
+Move-Item ollama\ab_tester.py       ollama\quality\ab_tester.py
+Move-Item ollama\prompt_iterator.py ollama\quality\prompt_iterator.py
+Move-Item ollama\quality_gates.py   ollama\quality\quality_gates.py
+Move-Item ollama\quality_monitor.py ollama\quality\quality_monitor.py
+Move-Item ollama\review_loop.py     ollama\quality\review_loop.py
+Move-Item ollama\schema_validator.py ollama\quality\schema_validator.py
+Move-Item ollama\self_improvement.py ollama\quality\self_improvement.py
+
+# compliance/
+Move-Item ollama\ai_act_compliance.py ollama\compliance\ai_act_compliance.py
+Move-Item ollama\compliance_engine.py ollama\compliance\compliance_engine.py
+Move-Item ollama\pii_scanner.py       ollama\compliance\pii_scanner.py
+Move-Item ollama\policy_engine.py     ollama\compliance\policy_engine.py
+
+# observability/
+Move-Item ollama\cost_forecaster.py  ollama\observability\cost_forecaster.py
+Move-Item ollama\cost_governance.py  ollama\observability\cost_governance.py
+Move-Item ollama\decision_journal.py ollama\observability\decision_journal.py
+Move-Item ollama\observability.py    ollama\observability\observability.py
+Move-Item ollama\reasoning_logger.py ollama\observability\reasoning_logger.py
+
+# tooling/
+Move-Item ollama\diagram_renderer.py         ollama\tooling\diagram_renderer.py
+Move-Item ollama\skill_chain_orchestrator.py ollama\tooling\skill_chain_orchestrator.py
+Move-Item ollama\skill_loader.py             ollama\tooling\skill_loader.py
+Move-Item ollama\tool_executor.py            ollama\tooling\tool_executor.py
+Move-Item ollama\workflow_loader.py          ollama\tooling\workflow_loader.py
+Move-Item ollama\workflow_lanes.py           ollama\tooling\workflow_lanes.py
+
+# business/
+Move-Item ollama\auto_promoter.py         ollama\business\auto_promoter.py
+Move-Item ollama\maturity_engine.py       ollama\business\maturity_engine.py
+Move-Item ollama\recommendation_engine.py ollama\business\recommendation_engine.py
+Move-Item ollama\sector_benchmarks.py     ollama\business\sector_benchmarks.py
+```
+
+### ⚠️ KRITIEKE VERVOLGSTAP NA VERPLAATSEN
+
+Alle interne imports in de verplaatste modules moeten worden bijgewerkt. Zoek en vervang met:
+
+```powershell
+# Zoek alle imports die nog naar de oude flat structuur verwijzen
+Select-String -Path "ollama\**\*.py" -Pattern "from ollama\." -Recurse
+Select-String -Path "api\**\*.py"    -Pattern "from ollama\." -Recurse
+Select-String -Path "tests\**\*.py"  -Pattern "from ollama\." -Recurse
+```
+
+Update vervolgens imports van bijv.:
+- `from ollama.orchestrator import ...` → `from ollama.core.orchestrator import ...`
+- `from ollama.memory import ...` → `from ollama.memory.memory import ...`
+- `from ollama.agent_runner import ...` → `from ollama.agents.agent_runner import ...`
+
+---
+
+## 🟡 PRIORITEIT 3 — DOCUMENTATIE OPRUIMEN (30 min)
+
+### 3.1 — Naming convention afdwingen
+
+**Regel:** Alle documentatiebestanden worden lowercase met koppeltekens: `naam-van-bestand.md`
+
+| Huidig bestand | Nieuw bestand | Actie |
+|---|---|---|
+| `AI_OPTIMALISATIEPLAN.TXT` | `archief/ai-optimalisatieplan-v1.md` | Verplaats + hernoem |
+| `AI_OPTIMALISATIEPLAN_REVISIE5.TXT` | `archief/ai-optimalisatieplan-revisie5.md` | Verplaats + hernoem |
+| `AI_OPTIMALISATIEPLAN_REVISIE6.TXT` | `ontwikkeling/ai-optimalisatieplan-revisie6.md` | Hernoem (actief) |
+| `VERBETERPLAN_REVISIE6.TXT` | `ontwikkeling/verbeterplan-revisie6.md` | Hernoem (actief) |
+| `EGOV_TESTOMGEVING_ANALYSE_Q2.TXT` | `analyse/egov-testomgeving-analyse-q2.md` | Hernoem + verplaats |
+| `BACKEND_SECURITY_AUDIT.md` | `rapporten/backend-security-audit.md` | Verplaats |
+| `LOONSCHALEN_ANALYSE.txt` | `analyse/loonschalen-analyse.md` | Hernoem + verplaats |
+| `REKENMOTOR_GRONDIGE_ANALYSE.txt` | `analyse/rekenmotor-grondige-analyse.md` | Hernoem + verplaats |
+| `PRODUCTIE_GEREED_ANALYSE_PLAN.md` | `rapporten/productie-gereed-analyse-plan.md` | Verplaats |
+
+### 3.2 — Persoonlijke/externe bestanden verplaatsen
+
+```powershell
+# Maak een "extern" submap aan voor niet-projectgebonden documenten
+New-Item -ItemType Directory -Path "documentatie\extern" -Force
+
+Move-Item "documentatie\GOOGLE_GEMS_PLAN.md"  "documentatie\extern\google-gems-plan.md"
+Move-Item "documentatie\PERSONAL_GEMS_PLAN.md" "documentatie\extern\personal-gems-plan.md"
+```
+
+**Reden:** `GOOGLE_GEMS_PLAN.md` en `PERSONAL_GEMS_PLAN.md` beschrijven persoonlijke Google Gemini Gems — niet relevant voor het VorstersNV platform zelf. Ze verdienen een `extern/` submap of kunnen worden verwijderd als ze niet meer actueel zijn.
+
+### 3.3 — Doelstructuur `documentatie/`
+
+```
+documentatie/
+├── README.md                    # Index van alle documenten
+├── analyse/                     # Technische analyses
+│   ├── egov-testomgeving-analyse-q2.md
+│   ├── loonschalen-analyse.md
+│   └── rekenmotor-grondige-analyse.md
+├── archief/                     # Verouderde versies
+│   ├── ai-optimalisatieplan-v1.md
+│   └── ai-optimalisatieplan-revisie5.md
+├── architectuur/                # Architectuurdiagrammen en -beslissingen
+├── diagrammen/
+├── diensten/                    # Dienstbeschrijvingen voor KMO-klanten
+├── extern/                      # Externe/persoonlijke referentiedocumenten
+│   ├── google-gems-plan.md
+│   └── personal-gems-plan.md
+├── marketing/
+├── ontwikkeling/                # Actieve plannen en revisies
+│   ├── ai-optimalisatieplan-revisie6.md
+│   └── verbeterplan-revisie6.md
+└── rapporten/                   # Gegenereerde rapporten
+    ├── backend-security-audit.md
+    └── productie-gereed-analyse-plan.md
+```
+
+---
+
+## 🟡 PRIORITEIT 4 — BACKEND ARCHIVEREN (15 min)
+
+De `backend/` map bevat een Spring Boot 3.3.5 Java-applicatie die niet meer actief is. FastAPI (`api/`) heeft de backend-rol volledig overgenomen.
+
+### Optie A: Git-archief tag (AANBEVOLEN)
+
+```powershell
+# Tag de huidige staat vóór archivering
+git tag archive/spring-boot-backend-v1 HEAD -m "Spring Boot backend gearchiveerd — vervangen door FastAPI"
+git push origin archive/spring-boot-backend-v1
+```
+
+Daarna verplaatsen naar een archief-map:
+
+```powershell
+New-Item -ItemType Directory -Path "archief" -Force
+Move-Item backend archief\backend-spring-boot
+```
+
+### Optie B: Volledige verwijdering (als je zeker bent)
+
+```powershell
+git rm -r backend/
+git commit -m "chore: verwijder vestigiele Spring Boot backend — vervangen door FastAPI"
+```
+
+### Keuzeadvies
+
+Kies **Optie A** als je de Java-code mogelijk nog wil raadplegen voor referentie (domeinlogica, businessregels). Kies **Optie B** als je de repo wil afslanken en de domeinkennis volledig in FastAPI/documentatie zit.
+
+> 📝 **Ongeacht de keuze:** Verwijder de Spring Boot badge uit `README.md` (zie sectie 7).
+
+---
+
+## 🟡 PRIORITEIT 5 — SCRIPTS REORGANISEREN (20 min)
+
+### Doelstructuur `scripts/`
+
+```
+scripts/
+├── python/                  # Alle Python utility scripts
+│   ├── analyse_project.py   ← was scripts/analyse_project.py
+│   ├── java_extractor.py    ← was scripts/java_extractor.py (kan weg na backend-archivering)
+│   ├── seed_dev.py          ← was scripts/seed_dev.py
+│   ├── seed_products.py     ← was scripts/seed_products.py
+│   ├── set_mode.py          ← was scripts/set_mode.py
+│   ├── setup_backend.py     ← was root/setup_backend.py
+│   └── setup_ollama.py      ← was scripts/setup_ollama.py
+│   └── test_agent.py        ← was scripts/test_agent.py
+│
+├── node/                    # Alle Node.js scripts
+│   ├── check_gems_page.mjs  ← was scripts/check_gems_page.mjs
+│   ├── create_gemini_gems.mjs ← was scripts/create_gemini_gems.mjs
+│   └── setup_java_dirs.js   ← was scripts/setup_java_dirs.js (kan weg na backend-archivering)
+│
+├── gems/                    # Gemini Gems tooling (was root)
+│   ├── create_gems.cjs      ← was root/create_gems.cjs
+│   ├── package.json         ← was root/package.json
+│   └── package-lock.json    ← was root/package-lock.json
+│
+└── archief/                 # Verouderde/niet-actieve scripts
+    └── START_PHASE_1.ps1    ← was root/START_PHASE_1.ps1
+```
+
+> 📝 `java_extractor.py` en `setup_java_dirs.js` zijn Java/Spring Boot gerelateerd. Na backend-archivering kunnen ze mee naar `scripts/archief/` of worden verwijderd.
+
+---
+
+## 🟢 PRIORITEIT 6 — .GITIGNORE VERBETEREN (10 min)
+
+Huidige `.gitignore` mist een aantal kritieke patronen:
+
+```gitignore
+# Huidig (behouden)
+.env
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+logs/
+!frontend/app/api/logs/
+!frontend/app/api/logs/**
+*.log
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+node_modules/
+backend/target/
+*.class
+*.jar
+!backend/mvnw
+*.code-workspace
+
+# TOEVOEGEN:
+
+# Gegenereerde output van scripts
+scripts/output/
+scripts/gems/node_modules/
+scripts/node/node_modules/
+
+# Gemini/Playwright artifacts
+scripts/gems/gem_screenshots/
+scripts/node/gem_screenshots/
+gem_screenshots/
+
+# Database bestanden (lokaal)
+*.db
+*.sqlite
+*.sqlite3
+
+# Test en coverage rapporten
+htmlcov/
+coverage.xml
+.coverage
+junit*.xml
+
+# OS bestanden
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE bestanden
+.idea/
+*.suo
+*.user
+
+# Ollama cache
+ollama/__pycache__/
+ollama/**/__pycache__/
+
+# Alembic gegenereerd
+alembic/versions/__pycache__/
+
+# Tijdelijke bestanden
+*.tmp
+*.temp
+*.bak
+
+# Keycloak volumes (als lokaal gemount)
+keycloak/data/
+```
+
+---
+
+## 🟢 PRIORITEIT 7 — README.MD UPDATEN (30 min)
+
+De `README.md` bevat een aantal verouderde items:
+
+### Wat moet weg / veranderen
+
+| Item | Probleem | Actie |
+|------|---------|-------|
+| Spring Boot badge `[![Spring Boot](...)]` | Niet meer actief | **Verwijderen** |
+| "32 agents" in Ollama badge | Controleer huidig aantal YAML files | **Bijwerken** (nu 31 YAML agents in `agents/`) |
+| "1649 passing" tests badge | Stale getal | **Bijwerken** of dynamisch maken |
+| Vermelding van `backend/` in projectstructuur | Gearchiveerd | **Verwijderen of aanpassen** |
+| Startup instructies die verwijzen naar `START_PHASE_1.ps1` | Oud script | **Vervangen** door `Start-VorstersNV.ps1` |
+| "Node.js scripts in root" implicatie | Geen meer na opruiming | **Aanpassen** |
+
+### Wat moet worden toegevoegd
+
+```markdown
+## 🗂️ Projectstructuur (Fase 6)
+
+| Map | Doel |
+|-----|------|
+| `api/` | FastAPI backend — 13 routers, JWT auth, SSO |
+| `ollama/` | AI engine — 9 subpakketten, 44+ modules |
+| `agents/` | 31 Ollama YAML agent definities (runtime) |
+| `frontend/` | Next.js 16.2 App Router UI |
+| `db/` | SQLAlchemy modellen + Alembic migraties |
+| `tests/` | pytest testsuite (50+ tests) |
+| `webhooks/` | FastAPI webhook handlers |
+| `policies/` | HITL, NIS2, tool- en maturity policies |
+| `scripts/` | Python + Node.js utility scripts |
+| `documentatie/` | Projectdocumentatie (NL) |
+| `.claude/` | Claude AI ecosystem (agents + skills) |
+| `.github/` | CI/CD workflows + Copilot agents |
+```
+
+---
+
+## 🔵 PRIORITEIT 8 — PROMPTS OVERLAP OPLOSSEN (optioneel, 20 min)
+
+Huidige situatie:
+- `prompts/` (root): `preprompt/`, `promptbooks/`, `system/` 
+- `.claude/preprompts/`: Claude-specifieke preprompts
+
+**Aanbeveling:** Laat beide bestaan maar documenteer het onderscheid duidelijk:
+
+| Map | Doel |
+|-----|------|
+| `prompts/` | **Runtime prompts** voor Ollama agents (ingeladen door `ollama/tooling/skill_loader.py`) |
+| `.claude/preprompts/` | **Ontwikkelaar-context** voor Claude Code sessions (niet runtime) |
+
+Voeg een `prompts/README.md` toe met:
+```markdown
+# Runtime Prompts
+
+Deze map bevat prompts die runtime worden ingeladen door de Ollama AI engine.
+Niet te verwarren met `.claude/preprompts/` — dat zijn Claude Code ontwikkelaarshints.
+
+## Structuur
+- `system/`      — Systeem-level instructies voor agents
+- `preprompt/`   — Context-injectie voor sessie-initialisatie  
+- `promptbooks/` — Samengestelde prompt-sequenties
+```
+
+---
+
+## 📊 SAMENVATTING UITVOERVOLGORDE
+
+```
+FASE A — Root opruimen (vandaag, 30 min)
+  ✓ setup_backend.py → scripts/python/
+  ✓ create_gems.cjs + package*.json → scripts/gems/
+  ✓ START_PHASE_1.ps1 → scripts/archief/
+  ✓ .gitignore uitbreiden
+
+FASE B — Structuur (deze week, 90 min)
+  ✓ ollama/ subpakketten aanmaken + bestanden verplaatsen
+  ✓ imports bijwerken na verplaatsing
+  ✓ tests draaien: pytest tests/ (verifieer dat imports nog werken)
+  ✓ scripts/ herindelen (python/ + node/ submappen)
+
+FASE C — Archivering (deze week, 30 min)
+  ✓ backend/ → archief/backend-spring-boot (of verwijderen)
+  ✓ git tag archive/spring-boot-backend-v1
+
+FASE D — Documentatie (volgende week, 45 min)
+  ✓ Bestanden hernoemen naar lowercase kebab-case .md
+  ✓ Persoonlijke bestanden naar documentatie/extern/
+  ✓ documentatie/README.md aanmaken als index
+
+FASE E — README + badges (volgende week, 30 min)
+  ✓ Spring Boot badge verwijderen
+  ✓ Agent-count bijwerken
+  ✓ Projectstructuur tabel actualiseren
+
+FASE F — Optioneel (wanneer tijd is, 20 min)
+  ✓ prompts/README.md toevoegen
+  ✓ scripts/gems/ npm install testen
+```
+
+---
+
+## ✅ VERIFICATIE NA UITVOERING
+
+Voer deze checks uit na elke fase:
+
+```powershell
+# 1. Controleer dat root schoon is
+Get-ChildItem -Path . -File | Where-Object { $_.Name -notmatch "^(README|CLAUDE|Makefile|docker-compose|pyproject|requirements|alembic|\.gitignore|Start-VorstersNV|Dockerfile|mcp-config)" }
+
+# 2. Controleer dat ollama imports werken
+python -c "from ollama.core.orchestrator import *; print('OK')"
+python -c "from ollama.agents.agent_runner import *; print('OK')"
+python -c "from ollama.compliance.ai_act_compliance import *; print('OK')"
+
+# 3. Draai de volledige testsuite
+python -m pytest tests/ -x --tb=short
+
+# 4. Controleer dat FastAPI nog start
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+# 5. Controleer git status
+git status
+git diff --name-only HEAD
+```
+
+---
+
+## 🚨 RISICO'S & MITIGATIE
+
+| Risico | Kans | Impact | Mitigatie |
+|--------|------|--------|-----------|
+| Import-fouten na ollama herstructurering | Hoog | Hoog | Volledig pytest draaien na stap B |
+| CI/CD faalt door gewijzigde paden | Middel | Middel | `.github/workflows/` controleren op `ollama/` paden |
+| node_modules-conflict in root vs scripts/gems | Laag | Laag | Root node_modules verwijderen NA commit |
+| Verlies van backend code | Laag | Middel | Git tag vóór archivering |
+| Alembic migraties breken | Laag | Hoog | Alembic.ini blijft in root — geen wijziging |
+
+---
+
+*Plan gegenereerd door: AI Architect Agent (Claude Opus) — VorstersNV Fase 6*  
+*Sla dit op als: `documentatie/ontwikkeling/structuurherstel-actieplan-2025.md`*

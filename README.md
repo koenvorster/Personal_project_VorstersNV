@@ -7,11 +7,10 @@
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=nextdotjs)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![Ollama](https://img.shields.io/badge/Ollama-32%20agents-black?logo=ollama)](agents/)
-[![Tests](https://img.shields.io/badge/Tests-1649%20passing-brightgreen?logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-45%20files-brightgreen?logo=pytest)](tests/)
 [![License](https://img.shields.io/badge/License-Privé-red)](LICENSE)
 
 </div>

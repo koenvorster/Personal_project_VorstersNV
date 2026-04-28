@@ -1,0 +1,27 @@
+{
+  "name": "vorstersnv",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/koenvorster/Personal_project_VorstersNV.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/koenvorster/Personal_project_VorstersNV/issues"
+  },
+  "homepage": "https://github.com/koenvorster/Personal_project_VorstersNV#readme",
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
+}

@@ -7,6 +7,7 @@ Create Date: 2026-04-23
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 revision = 'f6g7h8i9j0k1'
 down_revision = 'e5f6g7h8i9j0'
@@ -19,7 +20,7 @@ def upgrade() -> None:
         'agent_reasoning_logs',
         sa.Column('id', sa.String(36), primary_key=True),
         sa.Column('agent_name', sa.String(100), nullable=False),
-        sa.Column('project_id', sa.String(36), sa.ForeignKey('client_projects.id', ondelete='SET NULL'), nullable=True),
+        sa.Column('project_id', postgresql.UUID(as_uuid=False), sa.ForeignKey('client_projects.id', ondelete='SET NULL'), nullable=True),
         sa.Column('session_id', sa.String(36), nullable=True),
         sa.Column('reasoning_text', sa.Text, nullable=False),
         sa.Column('input_tokens', sa.Integer, default=0),

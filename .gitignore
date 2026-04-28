@@ -24,3 +24,35 @@ backend/target/
 
 # VS Code workspace bestanden
 *.code-workspace
+.idea/
+*.suo
+*.user
+
+# Gegenereerde output van scripts
+scripts/output/
+scripts/gems/node_modules/
+gem_screenshots/
+
+# Database bestanden (lokaal)
+*.db
+*.sqlite
+*.sqlite3
+
+# Test en coverage rapporten
+htmlcov/
+coverage.xml
+.coverage
+junit*.xml
+
+# OS bestanden
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Tijdelijke bestanden
+*.tmp
+*.temp
+*.bak
+
+# Keycloak volumes
+keycloak/data/

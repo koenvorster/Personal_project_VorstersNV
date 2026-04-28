@@ -1,0 +1,258 @@
+================================================================================
+  EGOV TESTOMGEVING — ANALYSE & Q2 PLANVRAGEN
+  EGov / Exchange Swagger endpoints — LTDS readiness, mocking, exchange view
+  Project:  Lima NextGen (LN) — Cipal Schaubroeck
+  Analist:  Koen Vorsters
+  Datum:    2026-04-28
+  Bronnen:  Confluence LN-space (Gap analysis LTDS, How to test, Phase 2, FGS)
+================================================================================
+
+CONTEXT
+──────────────────────────────────────────────────────────────────────────────
+EGov 3.0 is de integratie van Cipal Schaubroeck's PayrollHR-platform met het
+RSZ e-gov-platform. Phase 1 (live): flexijob-aangiften. Phase 2 (in ontwikkeling):
+LTDS — declaraties voor iedereen als vervanging van de klassieke DMFA-aangifte.
+
+De Swagger-testendpoints zijn toegankelijk via phr-exchange-backend:
+  Lokaal:  http://exchange.asse.localhost.cipalschaubroeck.be:8088/
+             phr-exchange-backend/swagger-ui/index.html
+  TST:     https://exchange.asse.tst-docker-26.test.payrollhr.be/
+             phr-exchange-backend/swagger-ui/index.html
+  NB-10:   https://exchange.asse.nb-docker-10.test.payrollhr.be/
+             phr-exchange-backend/swagger-ui/index.html
+             (NB: dit endpoint geeft momenteel een 502 — zie LN-3674)
+
+Authenticatie via OAuth2 client credentials:
+  client_secret = egov.oauth.client.secret (in tenant properties van phr-exchange)
+
+================================================================================
+  VRAAG 1 — IS DIT LTDS READY?
+  Kunnen we LTDS-formulieren doorsturen via de huidige testendpoints?
+================================================================================
+
+KORT ANTWOORD
+──────────────
+  NEE — de huidige Swagger-endpoints zijn nog NIET volledig LTDS-ready.
+  De endpoints ondersteunen vandaag Phase 1 (flexijob XML-formulieren).
+  LTDS-forms zijn onderdeel van Phase 2, die nog in actieve ontwikkeling zit.
+
+WAT IS AL AANWEZIG
+──────────────────
+  - Alle velden die nodig zijn voor de huidige XML-forms (Phase 1) worden
+    al opgehaald én opgeslagen in de egov-service.
+  - De Lima invoermodule-API levert al:
+      • overeenkomst: algemeen, weddeberekening, dmfa rsz, vaste gegevens
+        (tabellen: hr_overeenkomst_master, hr_overeenkomst_slice,
+                   hr_dmfa_info_slice, hr_overeenkomst_vast_slice)
+      • persoon: personaliainfo
+        (tabellen: hr_persoon_master, hr_persoon_slice)
+  - De bestaande API-structuur laat toe om extra velden relatief eenvoudig
+    toe te voegen — de databasis is er al, de mapping moet worden uitgebreid.
+
+WAT ONTBREEKT VOOR LTDS
+───────────────────────
+  Uit de Gap Analysis (Confluence — "Gap analysis lima API for LTDS"):
+  1. FISCALE INFO van de persoon ontbreekt in de huidige API-koppeling
+  2. Extra DMFA-tabs/-tabellen zijn nog niet gekoppeld
+  3. Er is GEEN eventing/triggering-mechanisme voor wijzigingen die geen
+     nieuwe berekening triggeren maar wel de egov-aangifte beïnvloeden
+     (bv. adreswijziging, contractwijziging zonder loonimpact)
+     → Dit is een apart mechanisme dat nog volledig ontworpen/gebouwd moet worden.
+
+LTDS FASE 2 TIJDSLIJN (RSZ-kant)
+─────────────────────────────────
+  Eind juni 2025    : publicatie informatie door RSZ
+  November 2025     : mogelijkheid om nieuw kanaal te testen (REST+JSON)
+  April 2026        : testen nieuwe LTDS-aangiften voor bepaalde soc. secretariaten
+  Juli 2026         : testen voor alle sociale secretariaten
+  Januari 2027      : GO LIVE LTDS bij RSZ
+
+  → Cipal is nu in de "april 2026"-fase: beperkte LTDS-testing mogelijk
+    met specifieke sociale secretariaten. Nog NIET voor iedereen.
+
+CONCLUSIE VRAAG 1
+─────────────────
+  De huidige testendpoints zijn NIET direct geschikt voor LTDS-forms doorsturen.
+  Om dit klaar te krijgen zijn minimaal 3 stappen nodig:
+    A. Uitbreiden Lima API met LTDS-specifieke velden (fiscaal, extra DMFA-tabs)
+    B. Implementeren van een apart eventing-mechanisme
+    C. LTDS-formulierstructuur (JSON, REST) integreren in phr-egov
+  Verwachte doorlooptijd: afhankelijk van prioritering, geschat 2-4 sprints
+  voor A+B, daarna Phase 2 user stories voor C.
+
+================================================================================
+  VRAAG 2 — KUNNEN WE ALLES MOCKEN ZONDER LIMA INPUT?
+================================================================================
+
+KORT ANTWOORD
+──────────────
+  GEDEELTELIJK — het is technisch mogelijk om test-data rechtstreeks in de
+  egov-database te injecteren en de exchange-flow te simuleren, maar er is
+  GEEN ingebouwde "mock mode" en de volledige chain vereist normaal Lima.
+
+HOE DE DATAKETEN WERKT
+───────────────────────
+  Lima (invoermodule) → phr-egov (gather + berekening) → phr-exchange (view/status)
+                                     ↑
+                           Hier haal je Lima-data op
+
+  Zonder Lima:
+    - De "gather"-stap (ophalen data voor aangifte) kan niet normaal lopen
+    - De rekenmotor en Lima-specifieke tabellen zijn niet beschikbaar
+    - Berekeningresultaten (calculation) ontbreken
+
+WAT WEL MOGELIJK IS ZONDER LIMA
+────────────────────────────────
+  1. DIRECTE DATABASE INJECTIE
+     De egov-database kan leeg gemaakt en gevuld worden via SQL:
+
+       delete from calculation;
+       delete from form;
+       delete from gather;
+       delete from bnr_contract;
+       -- (volledige clear-script staat in Confluence)
+
+     Je kan dan zelf mock-records injecteren in de juiste tabellen en zo
+     een "form" of "gather" simuleren zonder Lima-call.
+
+  2. SWAGGER DIRECT AANROEPEN
+     Via de Swagger-UI kan je endpoints rechtstreeks aanroepen met zelf
+     opgestelde JSON-payloads. Dit werkt voor het valideren van de exchange-
+     backend onafhankelijk van Lima, zolang je geldige data meestuurt.
+
+  3. PREDEFINED TEST USERS
+     De volgende testgebruikers zijn voorzien in de Lima-testomgeving
+     (kunnen ook manueel aangemaakt worden voor mocking-doeleinden):
+       egov_po_user       (Egov PO — full CRUD)
+       egov_helpdesk_user (Egov Helpdesk — read + retrigger)
+       egov_prc_user      (Egov PRC — read + retrigger)
+       egov_EB_klant_user (Egov EB Klant — read)
+       egov_GS_klant_user (Egov GS Klant — read)
+
+WAT NIET WERKT ZONDER LIMA
+───────────────────────────
+  - De volledige "gather"-flow (opvragen overeenkomst/persoon data)
+  - Triggering via payslip-events (de normale productieflow)
+  - Validatie van de RSZ-aangifte met echte BSN-nummers
+
+AANBEVELING VOOR Q2 TESTPLAN
+──────────────────────────────
+  - Gebruik een lichte Lima-stub (of tst-docker met Lima in minimale config)
+    in combinatie met directe DB-injectie voor specifieke scenario's
+  - Documenteer welke velden in de DB gezet moeten worden voor een minimale
+    "happy path" mock-flow — dit is herbruikbaar als testfixture
+  - Bespreek met Kristof Van Cleemput of er een formele "test mode" of
+    "seed data" mechanisme voorzien kan worden in phr-egov
+
+================================================================================
+  VRAAG 3 — KUNNEN WE FORMULIEREN/ANTWOORDEN INZICHTELIJK KRIJGEN
+            IN EEN EXCHANGE VIEW?
+================================================================================
+
+KORT ANTWOORD
+──────────────
+  JA — de Exchange-frontend biedt een volledige view op aangiften en hun
+  status. Indien er data beschikbaar is (via Lima of mock-injectie), is alles
+  zichtbaar via de Exchange-UI.
+
+EXCHANGE FRONTEND
+─────────────────
+  URL (lokaal): http://exchange.asse.localhost.cipalschaubroeck.be:54211/overview/person
+  URL (TST-26): https://exchange.asse.tst-docker-26.test.payrollhr.be/ (front-end)
+
+  De Exchange-view toont per gebruikersrol:
+
+  ┌─────────────────────────────────────┬──────┬──────────┬─────┬──────────┬──────┐
+  │ Feature                             │ PO   │ Helpdesk │ PRC │ EB-klant │ GS   │
+  ├─────────────────────────────────────┼──────┼──────────┼─────┼──────────┼──────┤
+  │ Overzicht alle aangiften (status)   │  ✓   │    ✓     │  ✓  │    ✓     │  ✓   │
+  │ Details van de aangifte             │  ✓   │    ✓     │  ✓  │    ✓     │  ✓   │
+  │ Fouten van de aangifte              │  ✓   │    ✓     │  ✓  │    ✓     │  ✓   │
+  │ Overzicht vorige aangiften          │  ✓   │    ✓     │  ✓  │    ✓     │  ✓   │
+  │ Geschiedenis (elke stap)            │  ✓   │    ✓     │  ✓  │    ✗     │  ✗   │
+  │ Manual retrigger aangifte           │  ✓   │    ✓     │  ✓  │    ✓     │  ✗   │
+  │ Manual trigger aangifte             │  ✓   │    ✓     │  ✗  │    ✗     │  ✗   │
+  │ Bulk acties (lokaal)                │  ✓   │    ✓     │  ✓  │    ✓     │  ✗   │
+  │ Bulk acties (globaal)               │  ✓   │    ✗     │  ✗  │    ✗     │  ✗   │
+  │ XML visualiseren (voor verzenden)   │  ✓   │    ✓     │  ✗  │    ✗     │  ✗   │
+  │ XML downloaden (verzonden naar RSZ) │  ✓   │    ✓     │  ✗  │    ✗     │  ✗   │
+  └─────────────────────────────────────┴──────┴──────────┴─────┴──────────┴──────┘
+
+VOORWAARDEN VOOR INZICHT
+─────────────────────────
+  1. phr-exchange-backend + frontend moeten draaien
+  2. Er moeten formulieren/aangiften aanwezig zijn in de egov-database
+  3. Authenticatie met een geldig test-account (zie predefined users hierboven)
+
+  → Als de mock-data uit Vraag 2 correct is ingejected, ZAL de exchange view
+    die data tonen. De view is ontkoppeld van de Lima-bron — het toont wat
+    er in de egov-database staat, ongeacht de herkomst.
+
+CONCLUSIE VRAAG 3
+─────────────────
+  Volledig inzicht in formulieren + antwoorden is mogelijk via Exchange view.
+  Als PO/SME (egov_po_user) heb je de meest volledige view inclusief XML-download.
+  Dit is dus een geschikte tool voor Q2-testsessies en validatie.
+
+================================================================================
+  SAMENVATTING & AANBEVELINGEN Q2 PLAN
+================================================================================
+
+SAMENVATTING VAN DE 3 ANTWOORDEN
+─────────────────────────────────
+  Vraag 1 — LTDS ready?
+    → NEE. Fase 1 (flexijob) werkt. LTDS (Fase 2) is in ontwikkeling.
+      Ontbrekend: LTDS-velden in Lima API, eventing-mechanisme, LTDS-forms.
+      RSZ-deadline go-live: januari 2027.
+
+  Vraag 2 — Mocken zonder Lima?
+    → GEDEELTELIJK. Via directe DB-injectie + Swagger kan je scenario's
+      simuleren, maar een echte Lima-stub of minimale Lima-instantie is
+      nodig voor de volledige gather-flow. Geen ingebouwde mock-mode.
+
+  Vraag 3 — Exchange view voor formulieren/antwoorden?
+    → JA. De Exchange frontend toont alles wat in de egov-DB staat.
+      Met de juiste test-user (egov_po_user) is alles zichtbaar.
+
+AANBEVELINGEN VOOR Q2 TESTPLAN
+────────────────────────────────
+  P1 — Breng nb-docker-10 Exchange terug online (502-bug → LN-3674)
+        Nodig voor enig testwerk op die omgeving.
+
+  P2 — Documenteer een "minimal seed data set" voor de egov-DB
+        Zodat testers een form kunnen aanmaken en bekijken via Exchange,
+        zonder afhankelijk te zijn van een volledige Lima-flow.
+
+  P3 — Definieer scope Phase 2 LTDS testing voor Q2
+        Welke LTDS-formulieren zijn beschikbaar in april 2026?
+        Coördineer met Wouter Janssens (eigenaar Gap Analysis) en
+        Catharina Mys (meeting RSZ 27/04).
+
+  P4 — Zet een exchange-testomgeving op met de 5 predefined test-users
+        En valideer de rol-matrix (tabel hierboven) praktisch via Cypress.
+
+  P5 — Bepaal of Phase 2 LTDS in Q2 als "exploratory testing" of
+        als gestructureerde testcases wordt aangepakt.
+        Gezien de RSZ-tijdslijn is april 2026 het eerste testmoment —
+        nu dus het ideale moment om de testinfrastructuur klaar te maken.
+
+RELEVANTE LINKS
+───────────────
+  Gap analysis LTDS Lima API:
+    https://cipalschaubroeck.atlassian.net/wiki/spaces/LN/pages/2038300767
+  Datamodel LTDS Declaration:
+    https://cipalschaubroeck.atlassian.net/wiki/spaces/LN/pages/1467351302
+  Phase 2 egov declaration:
+    https://cipalschaubroeck.atlassian.net/wiki/spaces/LN/pages/1210908772
+  How to start/test egov chain locally:
+    https://cipalschaubroeck.atlassian.net/wiki/spaces/LN/pages/848691285
+  FGS op Egov Exchange (LN-622):
+    https://cipalschaubroeck.atlassian.net/wiki/spaces/LN/pages/929923090
+  Swagger Exchange TST-26:
+    https://exchange.asse.tst-docker-26.test.payrollhr.be/phr-exchange-backend/swagger-ui/index.htm
+  Bug LN-3674 (502 nb-docker-10):
+    https://cipalschaubroeck.atlassian.net/browse/LN-3674
+
+================================================================================
+  EINDE DOCUMENT
+================================================================================

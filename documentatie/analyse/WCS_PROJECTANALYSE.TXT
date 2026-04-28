@@ -1,0 +1,820 @@
+================================================================================
+  WCS — PROJECTANALYSE CIPAL SCHAUBROECK
+  Web Client Security — Identity & Access Management Platform
+  Klant:    Cipal Schaubroeck NV — Business Unit Payroll & HR (PHR)
+  Analist:  VorstersNV Consultancy
+  Datum:    2026-05-30
+  Status:   DEFINITIEF — Gebaseerd op Confluence-documentatie
+================================================================================
+
+INHOUDSOPGAVE
+─────────────────────────────────────────────────────────────────────────────
+  1.  PROJECTOVERZICHT
+  2.  TECHNISCHE ARCHITECTUUR
+  3.  KERN CONCEPTEN
+      3.1  Multi-tenant architectuur
+      3.2  Authorization (Action-based RBAC)
+      3.3  Identity Brokering
+      3.4  Service-to-service communicatie
+      3.5  User lifecycle flows
+  4.  OMGEVINGEN & DEPLOYMENT
+      4.1  Omgevingsoverzicht
+      4.2  CI/CD pipeline
+      4.3  Operationele procedures
+  5.  USE-CASES & FUNCTIONALITEIT
+      5.1  Afgeronde use-cases
+      5.2  In ontwikkeling
+      5.3  Niet gestart
+  6.  BEKENDE ISSUES & WORKAROUNDS
+  7.  VERBETERPUNTEN & AANBEVELINGEN
+  8.  AI-AGENT KANSEN (VorstersNV perspectief)
+  9.  SAMENVATTING
+─────────────────────────────────────────────────────────────────────────────
+
+
+================================================================================
+  1. PROJECTOVERZICHT
+================================================================================
+
+NAAM EN DOEL
+──────────────
+  Project:    WCS — Web Client Security (ook aangeduid als "Security WCS")
+  Eigenaar:   Cipal Schaubroeck NV, Business Unit Payroll & HR (PHR)
+  Repository: https://git.int.cipal.be/phr/development/projects/wcs
+
+  WCS is een centraal Identity & Access Management (IAM) beheerplatform voor
+  Belgische lokale besturen die gebruik maken van de PayrollHR-toepassingen
+  van Cipal Schaubroeck. Het platform bedient gemeenten, OCMW's, steden en
+  provincies en vormt de beheerslaag bovenop Keycloak.
+
+CONTEXT
+────────
+  WCS vervangt het oudere CAPE-systeem en biedt:
+    • Gecentraliseerd gebruikersbeheer per bestuur (tenant)
+    • Fine-grained access control via action-based RBAC
+    • Ondersteuning voor Identity Brokering (externe IdPs zoals ADFS/AD)
+    • Self-service portaal voor eindgebruikers
+    • Beheersinterface voor admins (intern PHR-team + klantbeheerders)
+
+STRATEGISCH BELANG
+───────────────────
+  WCS is een kritieke infrastructuurcomponent. Zonder WCS kunnen de
+  PayrollHR-toepassingen van Cipal Schaubroeck (HR, payroll, DIMONA,
+  fietslease, …) niet worden gebruikt door eindgebruikers van klantbesturen.
+  Elke downtime of beveiligingsincident in WCS heeft directe impact op
+  honderden Belgische overheidsinstellingen.
+
+SUBPROJECTEN IN DE REPOSITORY
+───────────────────────────────
+  ┌────────────────────┬──────────────────────────────────────────────────┐
+  │ Module             │ Beschrijving                                     │
+  ├────────────────────┼──────────────────────────────────────────────────┤
+  │ wcs-backend        │ Java Spring Boot backend — centrale logica       │
+  │ wcs-portal         │ Angular frontend — portaal voor eindgebruikers   │
+  │ wcs-account        │ Angular frontend — account-instellingen          │
+  │ wcs-management     │ Angular frontend — beheer door admins            │
+  │ wcs-tools          │ Hulpprogramma's: UpdateKeycloak, AdminCLI        │
+  │ wcs-dev-setup      │ Docker Compose lokale ontwikkelomgeving          │
+  └────────────────────┴──────────────────────────────────────────────────┘
+
+
+================================================================================
+  2. TECHNISCHE ARCHITECTUUR
+================================================================================
+
+TECHNOLOGY STACK
+─────────────────
+  Backend:
+    • Java Spring Boot (applicatieserver)
+    • MariaDB (relationele database)
+    • Liquibase (database-migraties en schema-versioning)
+
+  Frontend:
+    • Angular (3 afzonderlijke apps: portal, account, management)
+
+  Identity & Access:
+    • Keycloak (meerdere realms — één per tenant)
+    • Custom Keycloak SPI providers (WCS-specifieke authenticatie-flows)
+
+  Infrastructure:
+    • Docker Compose (lokale + testomgevingen)
+    • Nginx (load balancer)
+    • Let's Encrypt (automatische SSL-certificaatprovisionering)
+
+  Ontwikkeltools:
+    • IntelliJ IDEA (backend + tools development)
+    • Angular CLI (frontend development)
+    • Portainer op http://localhost:59000/
+    • Index pagina lokaal: http://localhost:50000/index-local-wcs
+
+ARCHITECTUURDIAGRAM (logisch)
+──────────────────────────────
+
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │                         Nginx Load Balancer                         │
+  │                       (phr-prod-lb01 / Let's Encrypt SSL)           │
+  └───────────────┬──────────────────────────────────────────┬──────────┘
+                  │                                          │
+        ┌─────────▼──────────┐                   ┌──────────▼──────────┐
+        │   Angular Frontends │                   │    Keycloak         │
+        │   ─────────────────│                   │   (per-tenant realm) │
+        │   • wcs-portal      │                   │   Identity Broker    │
+        │   • wcs-account     │                   │   SPI Providers      │
+        │   • wcs-management  │                   └──────────┬──────────┘
+        └─────────┬──────────┘                              │
+                  │  REST/OIDC                               │ Keycloak Admin API
+        ┌─────────▼──────────────────────────────────────────▼──────────┐
+        │                    wcs-backend (Spring Boot)                   │
+        │   • TenantService, UserService, GroupService, RoleService      │
+        │   • AuthorizationService (@AuthorizeAction aspect)             │
+        │   • Liquibase-beheerde MariaDB schema-migraties                │
+        └────────────────────────────┬───────────────────────────────────┘
+                                     │
+                          ┌──────────▼──────────┐
+                          │      MariaDB         │
+                          │  (per-tenant data)   │
+                          └─────────────────────┘
+
+DATABEHEER
+───────────
+  • Alle domeindata (tenants, users, groups, roles, applications) wordt
+    opgeslagen in MariaDB.
+  • Keycloak beheert authenticatiedata (credentials, sessions, tokens).
+  • Liquibase verzorgt alle schema-migraties — geen handmatige DDL.
+  • Soft delete patroon: gebruikers worden in MariaDB enkel gemarkeerd als
+    verwijderd (audit trail bewaard). In Keycloak worden ze wél hard verwijderd.
+  • Let's Encrypt-certificaten worden automatisch geprovisioneerd per tenant.
+
+
+================================================================================
+  3. KERN CONCEPTEN
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────
+  3.1  MULTI-TENANT ARCHITECTUUR
+────────────────────────────────────────────────────────────────────────────
+
+TENANT MODEL
+─────────────
+  Elke klant (bestuur) = aparte tenant met eigen Keycloak realm.
+
+  Tenant types:
+    • FSSC   — Fullservice klant (Cipal beheert alles)
+    • SC     — Softwareklant (klant beheert zelf)
+
+  TenantGroup = groepering van tenants:
+    • Master tenant fungeert als centrale entiteit van een groep.
+    • Maakt multi-tenant service calls mogelijk (één token → meerdere tenants).
+
+  Tenant URI:
+    • Unieke identifier per tenant (bijv. "ohalle" voor OCMW Halle).
+    • Wordt gebruikt in URLs, realm-namen en certificaatdomein.
+
+SSL PER TENANT
+───────────────
+  • Elke tenant krijgt een eigen SSL-certificaat via Let's Encrypt.
+  • Certificaatprovisionering is volledig geautomatiseerd.
+  • Nginx-configuratie wordt gegenereerd bij aanmaken nieuwe tenant.
+
+TENANT AANMAKEN (procedure)
+────────────────────────────
+  Stap 1: createTenantGroup
+  Stap 2: createWorkArea
+  Stap 3: createTenant
+  Stap 4: addInternalIdpConnection
+  Stap 5: markTenantReady
+  Stap 6: SSL-certificaat provisioning
+  Stap 7: Nginx-configuratie bijwerken
+
+TENANT MIGRATIE
+────────────────
+  • SC → FSSC: aparte migratieprocedure gedocumenteerd
+  • FSSC → SC: aparte migratieprocedure gedocumenteerd
+
+────────────────────────────────────────────────────────────────────────────
+  3.2  AUTHORIZATION — ACTION-BASED RBAC
+────────────────────────────────────────────────────────────────────────────
+
+DESIGN PRINCIPE
+────────────────
+  WCS gebruikt GEEN standaard @RolesAllowed annotaties.
+  In plaats daarvan: @AuthorizeAction(Action.XXX) op elke endpoint.
+
+AUTORISATIESTROOM
+──────────────────
+  @AuthorizeAction(Action.XXX)
+         │
+         ▼
+  AuthorizeActionAspect  (AOP aspect)
+         │
+         ▼
+  AuthorizationService
+         │
+         ▼
+  Action enum  (elke Action definieert welke ROLE_xxx toegang heeft)
+
+FRONTEND AUTORISATIE
+─────────────────────
+  Zelfde patroon gemirrord in Angular frontends:
+  AuthzService.can(AuthzAction.XXX) → bepaalt UI-elementzichtbaarheid
+
+  ⚠ OPMERKING: Backend én frontend bevatten elk een kopie van de
+    autorisatieregels. Dit is een gedocumenteerde verbeteroppor­tuniteit
+    (zie sectie 7).
+
+ACCESS LEVELS
+──────────────
+  Level 1:  PHR intern medewerkers
+  Level 2:  Eigen beheer door klant
+  Level 3:  Gemengde service klant
+
+  Hiërarchisch model: level 3 impliceert ook level 1 en 2.
+
+ROLLEN
+───────
+  Meer dan 80 ROLE_xxx rollen gedocumenteerd, gegroepeerd per domein:
+    • WQM rollen (rapportage/autorisatiesysteem)
+    • CoreHR rollen
+    • EVI rollen (loopbaan)
+    • DIMONA rollen (RSZ-aangifte)
+    • BEHEER rollen (platformbeheer)
+    • Diverse applicatiespecifieke rollen
+
+NIEUWE ROL TOEVOEGEN (procedure)
+──────────────────────────────────
+  Stap 1: Access level bepalen voor de rol
+  Stap 2: Liquibase-migratiescript schrijven
+  Stap 3: Code aanpassen (Action enum, AuthorizationService)
+
+────────────────────────────────────────────────────────────────────────────
+  3.3  IDENTITY BROKERING
+────────────────────────────────────────────────────────────────────────────
+
+CONCEPT
+────────
+  Keycloak ondersteunt federatie met externe Identity Providers (IdPs):
+    • OIDC-gebaseerde IdPs
+    • SAML-gebaseerde IdPs (bijv. ADFS van Provincie Antwerpen)
+
+PROVISIONING STRATEGIEËN
+──────────────────────────
+  MAP_THROUGH:
+    Alle rollen uit het IdP-token worden blindeling overgenomen.
+    Gebruik: volledige delegatie aan externe directory.
+
+  GROUP_MAPPER:
+    Enkel PHR_-groepen worden gemapt bij eerste login.
+    Gebruik: gecontroleerde selectieve import van groepen.
+
+CUSTOM KEYCLOAK SPI PROVIDERS
+───────────────────────────────
+  WCS heeft custom authenticatie-authenticatoren ontwikkeld als Keycloak SPI:
+
+  WcsIdpMissingAttributesAuthenticator
+    → Detecteert ontbrekende verplichte attributen bij brokered login.
+
+  WcsIdpExistingUserRequiredAuthenticator
+    → Vereist dat een bestaande WCS-gebruiker aanwezig is bij IdP-login.
+
+  WcsRedirectToIdpAuthenticator
+    → Stuurt gebruikers automatisch door naar de juiste externe IdP.
+
+ACCOUNT COLLISION FLOW
+───────────────────────
+  Probleemsituatie: meerdere externe IdPs gebruiken dezelfde username.
+  WCS bevat een gedocumenteerde flow voor deze collision-afhandeling.
+  Huidige workaround: handmatige verwijdering van de Keycloak-gebruiker.
+  (Zie sectie 6 voor details.)
+
+────────────────────────────────────────────────────────────────────────────
+  3.4  SERVICE-TO-SERVICE COMMUNICATIE
+────────────────────────────────────────────────────────────────────────────
+
+4 PATRONEN GEDOCUMENTEERD
+──────────────────────────
+
+  Patroon 1: User token forwarding
+    De gebruikerstoken wordt doorgestuurd naar downstream services.
+    Gebruik: calls waarbij de gebruikersidentiteit behouden moet blijven.
+
+  Patroon 2: Offline tokens
+    Langlevende tokens voor achtergrondprocessen.
+    Gebruik: batch jobs, nachtelijke verwerking.
+
+  Patroon 3: Service accounts (client credentials grant)
+    Machine-to-machine communicatie zonder gebruikerscontext.
+    Gebruik: interne systeemcalls.
+
+  Patroon 4: Multi-tenant service accounts
+    Service account bij de masterTenant voor calls over meerdere tenants.
+    Gebruik: cross-tenant operaties.
+
+GEDOCUMENTEERDE SERVICE ACCOUNTS
+──────────────────────────────────
+  wcs-keycloak service account:
+    Rol: ROLE_WCS_KEYCLOAK
+    Gebruik: Keycloak → WCS backend synchronisatie-calls
+
+  wdc-corehr-wcs service account:
+    Gebruik: WCS → CoreHR data profile calls
+
+  masterTenant service account:
+    Gebruik: multi-tenant operaties
+
+CONFUSED DEPUTY PROBLEEM
+──────────────────────────
+  Gedocumenteerd beveiligingsrisico bij service-to-service calls:
+  een service kan onbedoeld machtigingen gebruiken die niet bedoeld zijn
+  voor de huidige request-context.
+  3 oplossingsstrategieën zijn gedocumenteerd in de Confluence.
+
+────────────────────────────────────────────────────────────────────────────
+  3.5  USER LIFECYCLE FLOWS
+────────────────────────────────────────────────────────────────────────────
+
+GEBRUIKER AANMAKEN
+───────────────────
+  • Aanmaken via wcs-management frontend (admin) of provisioning vanuit IdP.
+  • Gebruiker wordt aangemaakt in MariaDB EN gesynchroniseerd naar Keycloak.
+  • Activatie-e-mail wordt verstuurd.
+
+GEBRUIKER ACTIVEREN
+────────────────────
+  • Activatie via activatielink in e-mail.
+  • Keycloak-credential wordt ingesteld.
+
+GEBRUIKER DEACTIVEREN
+──────────────────────
+  • Account wordt uitgeschakeld in MariaDB en Keycloak.
+  • Bestaande sessies worden beëindigd.
+
+GEBRUIKER VERWIJDEREN (soft delete)
+────────────────────────────────────
+  • In MariaDB: soft delete — audittrail blijft bewaard.
+  • In Keycloak: hard delete — gebruiker wordt volledig verwijderd.
+  ⚠ Geheractiveerd worden na soft delete: NIET GEÏMPLEMENTEERD.
+
+WACHTWOORDBEHEER
+─────────────────
+  • Wachtwoord vergeten flow
+  • Wachtwoord updaten
+  • "Remember me" functionaliteit
+
+IMPERSONATION
+──────────────
+  • Admin kan een andere gebruiker impersoneren.
+  ⚠ Werkt momenteel enkel via de Keycloak admin console.
+    Niet beschikbaar via wcs-management UI (verbeterpunt).
+
+USER PROVISIONING (brokered IdPs)
+───────────────────────────────────
+  • Bij eerste login via brokered IdP → automatische provisioning.
+  • Strategie bepaald door MAP_THROUGH of GROUP_MAPPER configuratie.
+
+
+================================================================================
+  4. OMGEVINGEN & DEPLOYMENT
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────
+  4.1  OMGEVINGSOVERZICHT
+────────────────────────────────────────────────────────────────────────────
+
+  ┌─────────────────┬──────────────────────────────────────┬──────────────────────────────────┐
+  │ Omgeving        │ URL / Host                           │ Beschrijving                     │
+  ├─────────────────┼──────────────────────────────────────┼──────────────────────────────────┤
+  │ Lokaal          │ localhost                            │ IntelliJ + Docker Compose        │
+  │ tst-docker-40   │ schwdc@gedtaphr-envs01               │ development-snapshot branch      │
+  │ tst-docker-9-12 │ schwdc@gedtaphr-envs01               │ staging (acceptatie)             │
+  │ tst-docker-xx   │ schwdc@gedtaphr-envs01               │ test-latest (nightly update)     │
+  │ Int (staging)   │ cspayrollhr.int.payrollhr.be         │ Productiekopie + staging images  │
+  │ Poc             │ cspayrollhr.poc.payrollhr.be         │ Fietslease V2 — extern bereikbaar│
+  │ Demo            │ cspayrollhr.demo.payrollhr.be        │ Fietslease V1 — extern bereikbaar│
+  │ Opl             │ cspayrollhr.opl.payrollhr.be         │ Opleiding — extern bereikbaar    │
+  │ Productie       │ cspayrollhr.payrollhr.be             │ Hoofdproductie                   │
+  └─────────────────┴──────────────────────────────────────┴──────────────────────────────────┘
+
+PRODUCTIE INFRASTRUCTUUR
+─────────────────────────
+  Server     phr-prod-sec01  → Productie omgeving
+  Server     phr-prod-sec02  → Int / Poc / Demo / Opl
+  Loadbalancer               → phr-prod-lb01 (Nginx)
+
+────────────────────────────────────────────────────────────────────────────
+  4.2  CI/CD PIPELINE
+────────────────────────────────────────────────────────────────────────────
+
+JENKINS
+────────
+  • wcs-update-test-environments: nightly update van alle testomgevingen.
+  • Automatische deployment bij nieuwe commits op bewakingsbranches.
+
+DOCKER IMAGE TAGS
+──────────────────
+  development-snapshot  → Actieve ontwikkelcode (tst-docker-40)
+  staging               → Acceptatiecode (tst-docker-9..12)
+  test-latest           → Nightly-updated test images (tst-docker-xx)
+  latest                → Productiecode
+
+DEPLOYMENT TOOLING
+───────────────────
+  env-manager tool    → Beheer van testomgevingen
+  ./upgrade.sh        → Upgrade per omgeving uitvoeren
+  wcs-admin.sh        → Operationeel omgevingsbeheer
+  ./wcs-mgmt.sh       → Managementoperaties per omgeving
+
+────────────────────────────────────────────────────────────────────────────
+  4.3  OPERATIONELE PROCEDURES
+────────────────────────────────────────────────────────────────────────────
+
+NIEUWE APPLICATIE (CLIENT) TOEVOEGEN — 7 STAPPEN
+──────────────────────────────────────────────────
+  1. Storage type definiëren
+  2. Icoon uploaden
+  3. Backend-relatie configureren
+  4. Required clients instellen
+  5. Liquibase-migratiescript schrijven
+  6. Nginx-configuratie aanpassen
+  7. /etc/hosts entry toevoegen (lokale ontwikkeling)
+
+LOGS & ALERTS
+──────────────
+  • Audit log melding "unknown tenant" is harmless (gedocumenteerd).
+  • Procedures gedocumenteerd voor het ophalen van service account secrets.
+  • Monitoring van actieve MyHR tenants is gedocumenteerd.
+
+TESTING
+────────
+  • Cypress E2E tests in het wcs-e2e project (apart GitLab repo).
+  • cypress:open-local → voor IntelliJ WCS modules.
+  • cypress:open         → voor containers.
+  • Dekking: enkel happy-flow use cases zijn getest.
+  ⚠ Negatieve flows, edge cases en foutscenario's zijn NIET gedekt.
+
+
+================================================================================
+  5. USE-CASES & FUNCTIONALITEIT
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────
+  5.1  AFGERONDE USE-CASES (FINISHED)
+────────────────────────────────────────────────────────────────────────────
+
+  ✅  Gebruiker aanmaken
+  ✅  Gebruiker activeren
+  ✅  Gebruiker deactiveren
+  ✅  Gebruiker verwijderen
+  ✅  Groep aanmaken
+  ✅  Groep wijzigen
+  ✅  Groep verwijderen
+  ✅  Nieuwe applicatierol aanmaken
+
+────────────────────────────────────────────────────────────────────────────
+  5.2  IN ONTWIKKELING (STARTED)
+────────────────────────────────────────────────────────────────────────────
+
+  🔄  Nieuwe applicatie aanmaken (use case is gestart maar nog niet afgerond)
+
+────────────────────────────────────────────────────────────────────────────
+  5.3  NIET GESTART (NOT STARTED)
+────────────────────────────────────────────────────────────────────────────
+
+  ❌  Custom access beheer
+  ❌  Gebruikers importeren (bulk import)
+
+ANALYSE: FUNCTIONALITEITSGATEN
+───────────────────────────────
+  De ontbrekende use-cases zijn niet triviaal:
+
+  Bulk import:
+    In een Belgische overheidscontext wordt bij elke gemeenteverkiezing of
+    fusie een groot aantal gebruikers tegelijkertijd aangemaakt of gemigreerd.
+    Ontbrekende bulk-importfunctionaliteit dwingt beheerders tot handmatig
+    één-voor-één aanmaken — een arbeidsintensief en foutgevoelig proces.
+
+  Custom access beheer:
+    De huidige RBAC-implementatie biedt voorgedefinieerde rollen. Gemeenten
+    met atypische organogramstructuren (bijv. gecombineerde gemeente+OCMW
+    diensten) kunnen nood hebben aan maatwerktoegangsprofie­len die buiten
+    de standaardrollen vallen.
+
+POST-PRODUCTIE SETUP WORKFLOWS (UC-POSTPROD)
+─────────────────────────────────────────────
+  Diverse post-productie use-cases zijn gedocumenteerd als TODO.
+  Dit zijn setup-workflows die bij het in productie nemen van nieuwe
+  besturen worden uitgevoerd. Het ontbreken hiervan vergroot de
+  operationele last bij onboarding van nieuwe klanten.
+
+
+================================================================================
+  6. BEKENDE ISSUES & WORKAROUNDS
+================================================================================
+
+  ┌────┬──────────────────────────────────────────────┬──────────────────────────────────────────┬──────────┐
+  │ ID │ Probleem                                     │ Workaround                               │ Ernst    │
+  ├────┼──────────────────────────────────────────────┼──────────────────────────────────────────┼──────────┤
+  │ B1 │ Account collision bij brokered users:        │ Handmatige verwijdering van de           │ Hoog     │
+  │    │ twee IdPs gebruiken dezelfde username →      │ Keycloak-gebruiker door een beheerder.   │          │
+  │    │ conflicterende accounts in Keycloak.         │ Geen geautomatiseerde oplossing.          │          │
+  ├────┼──────────────────────────────────────────────┼──────────────────────────────────────────┼──────────┤
+  │ B2 │ Failed Keycloak→WCS update bij afgebroken   │ Verwijder de Keycloak-gebruiker manueel  │ Hoog     │
+  │    │ first login: gebruiker bestaat in Keycloak   │ en laat de gebruiker opnieuw beginnen.   │          │
+  │    │ maar WCS-backend heeft onvolledige state.    │                                          │          │
+  ├────┼──────────────────────────────────────────────┼──────────────────────────────────────────┼──────────┤
+  │ B3 │ Duplicate entry MariaDB bij IdP link:        │ Verwijder de IdP-link in Keycloak en     │ Middel   │
+  │    │ Keycloak-bug veroorzaakt dubbele records     │ herstel manueel.                         │          │
+  │    │ bij koppelen van identiteitsprovider.        │                                          │          │
+  ├────┼──────────────────────────────────────────────┼──────────────────────────────────────────┼──────────┤
+  │ B4 │ Password credentials grant wordt verwijderd │ wcs-management-cli moet worden herschreven│ Hoog     │
+  │    │ in Keycloak 2.1. wcs-management-cli gebruikt│ vóór de Keycloak 2.1 upgrade.            │ (blocker)│
+  │    │ dit grant type nog.                          │                                          │          │
+  ├────┼──────────────────────────────────────────────┼──────────────────────────────────────────┼──────────┤
+  │ B5 │ Audit log "unknown tenant" foutmelding.      │ Geen actie nodig — harmless melding.     │ Laag     │
+  │    │                                              │ Gedocumenteerd in Confluence.            │          │
+  └────┴──────────────────────────────────────────────┴──────────────────────────────────────────┴──────────┘
+
+ANALYSE VAN DE ISSUES
+──────────────────────
+  Issue B1 en B2 vereisen handmatige interventie door een beheerder die
+  toegang heeft tot de Keycloak admin console. Dit is niet schaalbaar bij
+  toenemend gebruik van Identity Brokering (externe AD-koppelingen).
+
+  Issue B4 is een tikkende tijdbom: zodra Keycloak 2.1 uitgerold wordt,
+  stopt wcs-management-cli met werken. Dit vereist proactieve aanpak.
+
+  Issue B3 is een upstream Keycloak-bug. Een structurele oplossing vereist
+  ofwel een fix in Keycloak zelf, ofwel een compenserende transactielaag
+  in de WCS-backend die duplicate entries detecteert en corrigeert.
+
+
+================================================================================
+  7. VERBETERPUNTEN & AANBEVELINGEN
+================================================================================
+
+  ┌────┬──────────────────────────────────────────────────────────────────┬────────┬──────────┬──────────┐
+  │ ID │ Verbeterpunt                                                     │ Impact │ Inspanning│ Prioriteit│
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V1 │ wcs-management-cli aanpassen voor Keycloak 2.1                   │ Kritiek│ Middel   │ P0       │
+  │    │ (password grant removal). Blocker voor platform-upgrade.         │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V2 │ Frontend policy-duplicatie elimineren:                           │ Hoog   │ Groot    │ P1       │
+  │    │ Backend + frontend bevatten elk een kopie van autorisatieregels. │        │          │          │
+  │    │ Ideaal: één API-call bij frontend-init om toegestane actions op  │        │          │          │
+  │    │ te halen (policy-as-a-service patroon).                          │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V3 │ Sanity test via reflectie:                                       │ Hoog   │ Klein    │ P1       │
+  │    │ Test die via Java-reflectie controleert of ALLE REST-endpoints   │        │          │          │
+  │    │ @AuthorizeAction hebben. Voorkomt onbeveiligde endpoints bij     │        │          │          │
+  │    │ nieuwe feature-ontwikkeling.                                     │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V4 │ Impersonation beschikbaar maken via wcs-management UI:           │ Middel │ Middel   │ P2       │
+  │    │ Nu enkel via Keycloak admin console. Beheerders moeten twee      │        │          │          │
+  │    │ tools gebruiken voor hun dagelijks werk.                         │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V5 │ Heractivatie van soft-deleted gebruikers implementeren:          │ Middel │ Middel   │ P2       │
+  │    │ Gebruikers zijn soft-deleted in MariaDB maar kunnen niet         │        │          │          │
+  │    │ worden heractiveerd. Dit ontbreekt als use case.                 │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V6 │ Geautomatiseerde account collision resolutie:                    │ Hoog   │ Groot    │ P2       │
+  │    │ Huidige workaround (handmatige Keycloak-verwijdering) is niet    │        │          │          │
+  │    │ schaalbaar. Geautomatiseerde detectie + afhandeling nodig.       │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V7 │ Bulk gebruikersimport implementeren:                             │ Hoog   │ Groot    │ P2       │
+  │    │ Essentieel voor gemeentefusies en grote onboardings.             │        │          │          │
+  │    │ CSV/Excel import met validatie en rollback-mogelijkheid.         │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V8 │ E2E testdekking uitbreiden naar negatieve flows:                 │ Middel │ Middel   │ P3       │
+  │    │ Enkel happy paths zijn getest. Foutscenario's (ongeldige tokens, │        │          │          │
+  │    │ dubbele gebruikers, afgebroken flows) zijn ongetesd.             │        │          │          │
+  ├────┼──────────────────────────────────────────────────────────────────┼────────┼──────────┼──────────┤
+  │ V9 │ UC-POSTPROD workflows automatiseren:                             │ Middel │ Groot    │ P3       │
+  │    │ Post-productie setup workflows voor nieuwe tenants zijn          │        │          │          │
+  │    │ manuele procedures. Automatisering reduceert onboardingduur.     │        │          │          │
+  └────┴──────────────────────────────────────────────────────────────────┴────────┴──────────┴──────────┘
+
+TOELICHTING PRIORITEITEN
+──────────────────────────
+  P0 — Moet DIRECT worden opgepakt. Blokkeert platform-upgrade.
+  P1 — Hoge waarde, relatief beheersbaar risico. Aanpak binnen sprint.
+  P2 — Belangrijk voor schaalbaarheid en operationele efficiëntie.
+  P3 — Kwaliteitsverbeteringen met lange-termijn impact.
+
+
+================================================================================
+  8. AI-AGENT KANSEN (VORSTERNV PERSPECTIEF)
+================================================================================
+
+  Als externe AI-consultancy identificeert VorstersNV de volgende concrete
+  kansen voor automatisering en AI-ondersteuning binnen het WCS-project.
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 1: INTELLIGENT TENANT ONBOARDING AGENT
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    Het aanmaken van een nieuwe tenant is een 7-staps procedure met manuele
+    stappen (Liquibase scripts, Nginx configuratie, SSL provisioning, Keycloak
+    realm setup). Fouten zijn moeilijk te debuggen en tijdrovend.
+
+  AI-oplossing:
+    Een orkestratieagent die:
+      • De 7-staps procedure stap-voor-stap uitvoert via API-calls
+      • Bij elke stap valideert of de vorige stap succesvol was
+      • Foutcondities detecteert en remediation-acties voorstelt
+      • Audit-log genereert per tenant-aanmaak voor compliance
+
+  Technologie: LLM-gestuurde orchestrator + wcs-backend API + Keycloak Admin API
+  Geschatte tijdsbesparing: 60-80% reductie in manuele onboardingtijd
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 2: ACCOUNT COLLISION DETECTIE & RESOLUTIE AGENT
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    Account collisions bij brokered IdPs vereisen momenteel handmatige
+    interventie door een beheerder met Keycloak admin toegang.
+
+  AI-oplossing:
+    Een detectie- en resolutieagent die:
+      • Keycloak events monitort op mogelijke collision-patronen
+      • Automatisch de collision-flow uitvoert indien veilig
+      • Bij twijfelgevallen een ticket aanmaakt voor menselijke beoordeling
+      • Leert van eerdere resoluties om toekomstige gevallen te versnellen
+
+  Technologie: Event-driven agent + Keycloak event listener + HITL review
+  Waarde: elimineert menselijke bottleneck bij schaalvergroting
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 3: BULK IMPORT VALIDATIE & HERSTELASSISTENT
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    Bulk gebruikersimport is nog niet geïmplementeerd. Wanneer het wel komt,
+    is validatie van importbestanden (CSV/Excel) een foutgevoelig handmatig
+    proces.
+
+  AI-oplossing:
+    Een importassistent die:
+      • Uploadbestanden analyseert op structuur, volledigheid en inconsistenties
+      • Rollen en groepen valideert tegen bestaande WCS-configuratie
+      • Potentieel dubbele gebruikers detecteert vóór import
+      • Een pre-importrapport genereert met waarschuwingen per rij
+      • Rollback-plan opstelt voor het geval de import mislukt
+
+  Technologie: File-analyse agent + WCS-backend validatie-API
+  Waarde: kritiek voor gemeentefusies en grote migraties
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 4: @AUTHORIZEACTION COVERAGE SCANNER
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    Gedocumenteerd risico: nieuwe REST-endpoints kunnen worden aangemaakt
+    zonder @AuthorizeAction annotatie. Geen geautomatiseerde bewaking.
+
+  AI-oplossing:
+    Een CI/CD-geïntegreerde scanner die:
+      • Bij elke commit automatisch alle REST-controller-methoden scant
+      • Methoden zonder @AuthorizeAction rapporteert als security-violation
+      • Een lijst genereert van de juiste Action-enum waarden op basis van
+        de methode-naam en context (LLM-suggestie)
+      • Blokkeert de pipeline bij kritieke beveiligingslacunes
+
+  Technologie: Java reflection scan + LLM-suggestieagent + CI/CD integratie
+  Implementatietijd: laag (V3 uit sectie 7 — kleine inspanning, hoge waarde)
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 5: POLICY-AS-A-SERVICE MIDDLEWARE
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    Autorisatieregels zijn gedupliceerd in backend en alle Angular frontends.
+    Bij elke nieuwe rol of actie moeten meerdere codebases worden bijgewerkt.
+
+  AI-oplossing:
+    Een policy middleware die:
+      • Bij frontend-init één API-call doet naar wcs-backend
+      • Een volledige map van AuthzAction → toegestaan/verboden teruggeeft
+      • Frontend-components automatisch enabled/disabled renderen
+      • Backend en frontend altijd in sync houdt via single source of truth
+      • LLM-agent die inconsistenties tussen backend en frontend detecteert
+
+  Technologie: Policy API endpoint + frontend SDK + drift-detectie agent
+  Waarde: elimineert de meest risicovolle vorm van technische schuld in WCS
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 6: RELEASE IMPACT ANALYSE AGENT
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    WCS bedient honderden Belgische besturen. Een verkeerde release kan
+    grootschalige impact hebben. Momenteel zijn er geen geautomatiseerde
+    impact-analyses vóór deployment.
+
+  AI-oplossing:
+    Een pre-release agent die:
+      • Git diff analyseert en impactvolle wijzigingen detecteert
+      • Getroffen tenants, rollen en flows identificeert
+      • Kritieke paden in de gebruikersflow markeert
+      • Aanbevelingen doet voor extra testscenario's
+      • Rollback-risico inschat op basis van de wijziging
+
+  Technologie: Codebase-analyse agent + Confluence-knowledge RAG + LLM
+  Waarde: risicoreductie bij deployments in productie-omgeving
+
+──────────────────────────────────────────────────────────────────────────────
+  KANS 7: ZELFHERSTEL AGENT VOOR BEKENDE KEYCLOAK-ISSUES
+──────────────────────────────────────────────────────────────────────────────
+  Probleem:
+    Issues B1-B3 (collision, failed first login, duplicate entry) vereisen
+    alle handmatige Keycloak-interventie. Dit is kennis die momenteel enkel
+    bij experienced beheerders zit.
+
+  AI-oplossing:
+    Een zelfherstelagent die:
+      • Keycloak- en MariaDB-logs monitort op bekende foutpatronen
+      • Automatisch de gedocumenteerde workarounds uitvoert
+      • Alleen escaleert naar menselijke beheerder bij onbekende situaties
+      • Kennisbank opbouwt van nieuwe foutpatronen voor toekomstige training
+
+  Technologie: Log-monitoring agent + Keycloak API + MariaDB + HITL escalatie
+  Waarde: schaalbaar self-healing platform zonder 24/7 beheerder-aanwezigheid
+
+──────────────────────────────────────────────────────────────────────────────
+  PRIORITEITSMATRIX AI-KANSEN
+──────────────────────────────────────────────────────────────────────────────
+
+  ┌─────────┬──────────────────────────────────────────┬────────┬───────────┐
+  │ Kans    │ Beschrijving                             │ Impact │ Haalbaarh.│
+  ├─────────┼──────────────────────────────────────────┼────────┼───────────┤
+  │ K4      │ @AuthorizeAction Coverage Scanner        │ Hoog   │ Hoog      │
+  │ K3      │ Bulk Import Validatie Assistent          │ Hoog   │ Hoog      │
+  │ K5      │ Policy-as-a-Service Middleware           │ Hoog   │ Middel    │
+  │ K2      │ Account Collision Agent                  │ Hoog   │ Middel    │
+  │ K1      │ Tenant Onboarding Orchestrator           │ Hoog   │ Middel    │
+  │ K7      │ Zelfherstel Agent Keycloak Issues        │ Middel │ Middel    │
+  │ K6      │ Release Impact Analyse Agent             │ Hoog   │ Laag      │
+  └─────────┴──────────────────────────────────────────┴────────┴───────────┘
+
+  Aanbevolen startpunt voor VorstersNV: K4 (laagste inspanning, direct
+  meetbare waarde, draagt bij aan beveiliging van het productieplatform).
+
+
+================================================================================
+  9. SAMENVATTING
+================================================================================
+
+WAT IS WCS?
+────────────
+  WCS is een volwassen, productieklaar Identity & Access Management platform
+  voor Belgische lokale besturen. Het is de kritieke veiligheidslaag voor
+  alle PayrollHR-toepassingen van Cipal Schaubroeck en bedient honderden
+  overheidsorganisaties. De architectuur is doordacht: multi-tenant via
+  Keycloak-realms, action-based RBAC met AOP, identity brokering voor
+  externe Active Directories, en geautomatiseerde SSL per tenant.
+
+STERKTES
+─────────
+  ✅  Doordacht RBAC-model (action-based, niet role-based)
+  ✅  Volledige multi-tenant isolatie via Keycloak realms
+  ✅  Identity Brokering met custom SPI providers
+  ✅  Liquibase voor gecontroleerde database-migraties
+  ✅  Goede documentatie van architectuur en procedures in Confluence
+  ✅  Duidelijke service-to-service patronen met 4 varianten
+  ✅  Soft delete voor audit trail compliance
+
+ZWAKTES
+────────
+  ⚠  Handmatige workarounds voor bekende Keycloak-issues
+  ⚠  Policy-duplicatie tussen backend en alle frontends
+  ⚠  Ontbrekende sanity tests voor endpoint-beveiliging
+  ⚠  Beperkte E2E testdekking (enkel happy paths)
+  ⚠  Bulk import en custom access beheer niet geïmplementeerd
+  ⚠  Wcs-management-cli niet Keycloak 2.1-compatibel (blocker)
+  ⚠  Impersonation enkel via Keycloak admin console
+
+KANSEN VOOR VORSTERNV
+──────────────────────
+  VorstersNV kan directe waarde toevoegen op 7 vlakken, waarvan 3
+  onmiddellijk haalbaar zijn met beperkte investering:
+
+  1. @AuthorizeAction Scanner → Beveiligingsverbetering, lage inspanning
+  2. Bulk Import Assistent    → Kritiek voor gemeentefusies, hoge klantnood
+  3. Tenant Onboarding Agent → Grote operationele tijdsbesparing
+
+  Op langere termijn biedt de Policy-as-a-Service architectuur de grootste
+  structurele verbetering van de codebase (eliminatie technische schuld).
+
+AANBEVOLEN EERSTE GESPREK MET CIPAL SCHAUBROECK
+─────────────────────────────────────────────────
+  Focus op 3 concrete pijnpunten die bewijsbaar zijn vanuit de documentatie:
+    1. "Jullie beheerders moeten handmatig Keycloak-gebruikers verwijderen
+       bij account collisions. Wij kunnen dat automatiseren."
+    2. "Jullie policy-logica staat dubbel: 1 keer in Java, 1 keer in
+       Angular. Bij elke nieuwe rol bestaat het risico op inconsistentie.
+       Wij bieden een concrete architectuuroplossing."
+    3. "Jullie Keycloak 2.1 upgrade heeft een blocker. Wij kunnen de
+       wcs-management-cli moderniseren en tegelijk de testdekking
+       uitbreiden."
+
+  Dit positioneert VorstersNV als een partner die het systeem kent en
+  concrete, bewezen probleemoplossingen levert — geen generieke adviezen.
+
+================================================================================
+  EINDE DOCUMENT — WCS PROJECTANALYSE CIPAL SCHAUBROECK
+  VorstersNV Consultancy — v1.0 — 2026-05-30
+================================================================================

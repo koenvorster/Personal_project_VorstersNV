@@ -1,7 +1,7 @@
 # 📚 VorstersNV — Documentatie Index
 
 > Centrale index van alle projectdocumentatie. Elke map heeft een specifiek doel.
-> **AI Masterplan:** `AI_OPTIMALISATIEPLAN_REVISIE5.TXT` (Revisie 5 — actief)
+> **Actief plan:** `ontwikkeling/AI_OPTIMALISATIEPLAN_REVISIE6.TXT`
 
 ---
 
@@ -9,12 +9,16 @@
 
 ```
 documentatie/
+├── analyse/          ← Technische analyses (codebase, loonschalen, EGov, WCS)
 ├── architectuur/     ← Technische architectuur & AI-design
-├── ontwikkeling/     ← Developer guides, how-to's & projectplan
-├── analyse/          ← Externe analyses (loonschalen, loonberekening, hardware)
+├── archief/          ← Verouderde documentatie (ter referentie)
+├── diagrammen/       ← Architectuurdiagrammen
 ├── diensten/         ← Dienstenaanbod & klantcommunicatie
+├── extern/           ← Externe/persoonlijke referentiedocumenten (niet-projectgebonden)
 ├── marketing/        ← Externe communicatie & LinkedIn content
-└── archief/          ← Verouderde documentatie (ter referentie)
+├── ontwikkeling/     ← Actieve plannen & revisies (Revisie 6)
+├── rapporten/        ← Gegenereerde analyses & auditrapporten
+└── README.md         ← Dit bestand
 ```
 
 ---
@@ -33,67 +37,44 @@ Technische architectuurdocumenten van het VorstersNV platform.
 
 ---
 
-## 🤖 AI Optimalisatieplannen
+## 🤖 AI Optimalisatieplannen (ontwikkeling/)
 
 | Bestand | Revisie | Status | Beschrijving |
 |---------|---------|--------|-------------|
-| `AI_OPTIMALISATIEPLAN_REVISIE5.TXT` | **Revisie 5** | ✅ **Actief** | Enterprise Consultancy Intelligence Fabriek — 15 nieuwe gaps (G-32..G-46), Waves 6–8, EU AI Act |
-| `AI_OPTIMALISATIEPLAN.TXT` | Revisie 4 | 📦 Archief | AI Control Platform strategie — 31 gaps (G-01..G-31), Waves 1–5 |
-
-> **Gebruik Revisie 5** als primaire referentie. Revisie 4 blijft bewaard voor historische context.
+| `ontwikkeling/AI_OPTIMALISATIEPLAN_REVISIE6.TXT` | **Revisie 6** | ✅ **Actief** | Klantklaar platform — portal auth, multi-tenant, Cloud Run, PDF-export |
+| `ontwikkeling/VERBETERPLAN_REVISIE6.TXT` | Revisie 6 | ✅ **Actief** | Verbeterplan W10–W12 roadmap |
+| `archief/AI_OPTIMALISATIEPLAN_REVISIE5.TXT` | Revisie 5 | 📦 Archief | Enterprise Consultancy Intelligence Fabriek — W6–W9 |
+| `archief/AI_OPTIMALISATIEPLAN_V1.TXT` | Revisie 4 | 📦 Archief | AI Control Platform strategie — W1–W5 |
 
 ---
 
 ## 🛠️ ontwikkeling/
 
-Handleidingen en referentiedocumenten voor ontwikkelaars.
+Actieve plannen en ontwikkelaarsdocumentatie (Revisie 6 focus).
 
 | Bestand | Beschrijving |
 |---------|-------------|
-| `PLAN.md` | Projectplan met fases, mode-beheer (plan/build/review) en voortgang |
-| `HOW_TO_AI_WEBSHOP.md` | Stap-voor-stap gids: van nul naar AI-aangedreven webshop |
-| `HOW_TO_AGENTS.md` | Hoe agents werken, aanroepen en uitbreiden |
-| `MASTER_AGENT_PROMPTS_GUIDE.md` | Referentiegids voor agent-prompts en prompt-engineering |
-| `ENV_VARIABELEN.txt` | Overzicht van omgevingsvariabelen en configuratie |
+| `AI_OPTIMALISATIEPLAN_REVISIE6.TXT` | Actief masterplan — W10–W12 roadmap |
+| `VERBETERPLAN_REVISIE6.TXT` | Verbeterplan met concrete deliverables |
 
 ---
 
 ## 📊 analyse/
 
-Externe analyses en onderzoeksmateriaal.
+Technische analyses van externe projecten en codebases.
 
 | Bestand | Beschrijving |
 |---------|-------------|
-| `AI_FLEET_KOSTEN_BATEN_ANALYSE.md` | Kosten/baten analyse van de AI agent fleet |
-| `HARDWARE_ANALYSE_LLM.md` | Hardware-analyse voor lokale LLM inferentie (CPU vs GPU) |
-| `LOKALE_SETUP_WCS_LIMA.md` | Lokale setup-analyse WCS Lima klantproject |
-| `LOONBEREKENING_KRITISCHE_ANALYSE.md` | Kritische analyse loonberekeningssysteem |
-| `LOONSCHALEN_ANALYSE.txt` | Analyse van loonschalen (extern loonberekeningproject) |
-| `LOONBEREKENING_ANALYSE.txt` | Technische analyse loonberekeningssysteem |
+| `WCS_PROJECTANALYSE.TXT` | Analyse van WCS (Web Client Security) — IAM platform Cipal Schaubroeck |
+| `EGOV_TESTOMGEVING_ANALYSE_Q2.TXT` | EGov testomgeving analyse — LTDS readiness, mocking, exchange view (Q2 plan) |
+| `LOONSCHALEN_ANALYSE.TXT` | Analyse van loonschalen (extern loonberekeningproject) |
+| `REKENMOTOR_GRONDIGE_ANALYSE.TXT` | Grondige analyse rekenmotor (extern project) |
 
 ---
 
-## 🏢 diensten/
+## 📋 rapporten/
 
-Dienstenaanbod en klantdocumentatie.
-
-| Bestand | Beschrijving |
-|---------|-------------|
-| `DIENSTEN_AANBOD.md` | Overzicht van IT/AI consultancy diensten van VorstersNV |
-
----
-
-## 📣 marketing/
-
-Externe communicatie en marketingmateriaal.
-
-| Bestand | Beschrijving |
-|---------|-------------|
-| `LINKEDIN_POST.md` | LinkedIn post over het VorstersNV project |
-
----
-
-## 📋 Overige documenten (root van documentatie/)
+Gegenereerde analyses en auditrapporten voor het VorstersNV platform.
 
 | Bestand | Beschrijving |
 |---------|-------------|
@@ -102,14 +83,43 @@ Externe communicatie en marketingmateriaal.
 
 ---
 
+## 🏗️ architectuur/
+
+Technische architectuurdocumenten van het VorstersNV platform.
+
+---
+
+## 🏢 diensten/
+
+Dienstenaanbod en klantdocumentatie voor KMO-klanten.
+
+---
+
+## 📣 marketing/
+
+Externe communicatie en marketingmateriaal.
+
+---
+
+## 📦 extern/
+
+Externe en persoonlijke referentiedocumenten — niet rechtstreeks gerelateerd aan het VorstersNV platform.
+
+| Bestand | Beschrijving |
+|---------|-------------|
+| `GOOGLE_GEMS_PLAN.md` | Persoonlijk plan voor Google Gemini Gems setup |
+| `PERSONAL_GEMS_PLAN.md` | Persoonlijke Gems configuratie referentie |
+
+---
+
 ## 🗄️ archief/
 
-Verouderde documenten die bewaard blijven ter historische referentie. **Niet gebruiken voor actieve ontwikkeling.**
+Verouderde documenten bewaard ter historische referentie. **Niet gebruiken voor actieve ontwikkeling.**
 
-Bevat onder andere:
-- Oude FASE_4 documentatie (Smart Home, Cloud Run deployment)
-- Vroege cloud platform plannen (SaaS, Kubernetes, $576K roadmap)
-- Phase 1 execution checklists uit de opstartfase
+Bevat:
+- `AI_OPTIMALISATIEPLAN_V1.TXT` — Revisie 4 (W1–W5)
+- `AI_OPTIMALISATIEPLAN_REVISIE5.TXT` — Revisie 5 (W6–W9)
+- Oude FASE_4 documentatie, cloud platform plannen, phase 1 checklists
 
 ---
 
@@ -119,10 +129,8 @@ Bevat onder andere:
 |---------|-------------|
 | `../CLAUDE.md` | Claude AI instructies voor dit project |
 | `../README.md` | Project-introductie & quick start |
-| `../agents/README.md` | Ollama agents overzicht (32 runtime agents) |
-| `../frontend/README.md` | Next.js frontend documentatie |
-| `../plan/PLAN.md` | Projectplan met Wave 6–8 roadmap |
+| `../plan/PLAN.md` | Projectplan met roadmap |
 
 ---
 
-*Laatste update: 2026-04-22 — Revisie 5 toegevoegd, duplicaat architectuur/AI_OPTIMALISATIEPLAN.TXT verwijderd, alle secties bijgewerkt.*
+*Laatste update: 2025 — Revisie 6 actief, structuur hergeorganiseerd (extern/, rapporten/, ontwikkeling/)*
