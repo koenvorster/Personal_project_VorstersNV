@@ -1,30 +1,12 @@
 'use client'
 
-import { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
-import {
-  Code2, Brain, Wifi, CheckCircle2, Mail, ArrowRight, Search
-} from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Code2, Brain, Wifi, CheckCircle2, Mail, ArrowRight, Search, Calendar } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import GradientButton from '@/components/ui/GradientButton'
+import AnimatedSection from '@/components/ui/AnimatedSection'
 import Link from 'next/link'
 import Image from 'next/image'
-
-function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-30px' })
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.5, delay }}
-      style={{ willChange: 'opacity, transform' }}
-    >
-      {children}
-    </motion.div>
-  )
-}
 
 const diensten = [
   {
@@ -32,7 +14,6 @@ const diensten = [
     titel: 'AI Consulting & Integratie',
     ondertitel: 'Help bedrijven AI implementeren die écht werkt',
     gradient: 'from-violet-600 to-purple-800',
-    prijs: 'Op maat',
     features: [
       'AI strategie & roadmap',
       'Multi-agent systemen bouwen',
@@ -46,7 +27,6 @@ const diensten = [
     titel: 'Full-Stack Development',
     ondertitel: 'Van concept tot productie — snel, schaalbaar en onderhoudbaar',
     gradient: 'from-blue-600 to-cyan-800',
-    prijs: '€75/u',
     features: [
       'React / Next.js frontends',
       'FastAPI / Python backends',
@@ -60,7 +40,6 @@ const diensten = [
     titel: 'IoT & Embedded Systems',
     ondertitel: 'Hardware en software naadloos laten samenwerken',
     gradient: 'from-emerald-600 to-green-800',
-    prijs: 'Op maat',
     features: [
       'Sensornetwerken & data-acquisitie',
       'MQTT & real-time data',
@@ -74,7 +53,6 @@ const diensten = [
     titel: 'Legacy Code Analyse',
     ondertitel: 'Maak uw ongedocumenteerde systemen begrijpelijk',
     gradient: 'from-amber-600 to-orange-800',
-    prijs: 'Vanaf €500',
     features: [
       'Java, Python, C#, PHP, VBA',
       'Business logic extraheren',
@@ -130,7 +108,9 @@ export default function DienstenPage() {
                     <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
                       <dienst.icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-white/90 font-bold text-lg sm:text-xl">{dienst.prijs}</span>
+                    <span className="px-3 py-1 rounded-full bg-white/20 text-white/90 text-xs font-medium backdrop-blur-sm">
+                      Offerte op maat
+                    </span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">{dienst.titel}</h2>
                   <p className="text-white/70 text-sm leading-relaxed">{dienst.ondertitel}</p>
@@ -148,9 +128,9 @@ export default function DienstenPage() {
                     ))}
                   </ul>
                   <div className="mt-6 pt-6 border-t border-white/10">
-                    <a href="mailto:koen@vorsters.dev" className="flex items-center justify-center gap-2 text-green-400 hover:text-green-300 text-sm font-medium transition-colors">
-                      Interesse? Mail me <ArrowRight className="w-4 h-4" />
-                    </a>
+                    <Link href="/contact" className="flex items-center justify-center gap-2 text-green-400 hover:text-green-300 text-sm font-medium transition-colors">
+                      Neem contact op <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </div>
               </GlassCard>
@@ -220,16 +200,16 @@ export default function DienstenPage() {
             Vertel me over jouw project — ik plan graag een gratis kennismakingsgesprek in.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <a href="mailto:koen@vorsters.dev" className="w-full sm:w-auto">
+            <Link href="/contact" className="w-full sm:w-auto">
               <GradientButton variant="primary" className="w-full sm:w-auto px-8 py-4 text-base flex items-center justify-center gap-2">
+                <Calendar className="w-4 h-4" /> Plan een gesprek
+              </GradientButton>
+            </Link>
+            <a href="mailto:koen@vorsters.dev" className="w-full sm:w-auto">
+              <GradientButton variant="outline" className="w-full sm:w-auto px-8 py-4 text-base flex items-center justify-center gap-2">
                 <Mail className="w-4 h-4" /> Stuur een e-mail
               </GradientButton>
             </a>
-            <Link href="/contact" className="w-full sm:w-auto">
-              <GradientButton variant="outline" className="w-full sm:w-auto px-8 py-4 text-base">
-                Contactpagina
-              </GradientButton>
-            </Link>
           </div>
         </GlassCard>
       </AnimatedSection>
