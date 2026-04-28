@@ -63,7 +63,7 @@ class Agent:
         """Laad een tekstbestand vanuit de prompts map."""
         if not ref:
             return ""
-        path = Path(__file__).parent.parent / ref
+        path = Path(__file__).parent.parent.parent / ref
         if not path.exists():
             logger.warning("Prompt bestand niet gevonden: %s", path)
             return ""

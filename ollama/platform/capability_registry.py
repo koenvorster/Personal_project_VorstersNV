@@ -60,7 +60,7 @@ class CapabilityDefinition:
 class CapabilityRegistry:
     """Loads and manages capability definitions from YAML files."""
 
-    CAPABILITIES_DIR = Path(__file__).parent.parent / ".claude" / "capabilities"
+    CAPABILITIES_DIR = Path(__file__).parent.parent.parent / ".claude" / "capabilities"
 
     def __init__(self, capabilities_dir: Optional[Path] = None):
         self._dir = capabilities_dir or self.CAPABILITIES_DIR

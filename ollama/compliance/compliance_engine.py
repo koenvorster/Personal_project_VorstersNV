@@ -632,7 +632,7 @@ class ComplianceEngine:
 
         # 6. DPA-aanwezigheidscheck voor projecten (Art. 28)
         if project_id:
-            dpa_path = Path(__file__).parent.parent / "logs" / "dpa" / f"{project_id}-dpa.json"
+            dpa_path = Path(__file__).parent.parent.parent / "logs" / "dpa" / f"{project_id}-dpa.json"
             if not dpa_path.exists():
                 violations.append(_nieuwe_violation(
                     laag=ComplianceLaag.GDPR,
