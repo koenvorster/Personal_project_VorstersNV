@@ -2,8 +2,8 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
 from alembic import context
+from sqlalchemy import pool
 
 # Voeg projectroot toe aan sys.path zodat imports werken
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -22,6 +22,8 @@ DB_URL = os.environ.get(
     "DB_URL",
     "postgresql+psycopg2://vorstersNV:dev-password-change-me@localhost:5432/vorstersNV",
 )
+# Alembic vereist een synchrone driver — vervang asyncpg door psycopg2 indien nodig
+DB_URL = DB_URL.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
 config.set_main_option("sqlalchemy.url", DB_URL)
 
 # other values from the config, defined by the needs of env.py,
@@ -55,15 +57,11 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
+    """Run migrations in 'online' mode met een synchrone psycopg2 connectie."""
+    from sqlalchemy import create_engine
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    connectable = create_engine(
+        config.get_main_option("sqlalchemy.url"),  # type: ignore[arg-type]
         poolclass=pool.NullPool,
     )
 

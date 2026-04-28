@@ -2,10 +2,14 @@
 VorstersNV API – Hoofdapplicatie
 FastAPI met Swagger UI, CORS en alle routers.
 """
+import time
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import auth as auth_router
+from api.config import settings as _settings
 from api.routers import (
     agents,
     ai_platform,
@@ -21,9 +25,31 @@ from api.routers import (
     products,
     streaming,
 )
+from api.routers import auth as auth_router
 
+_app_start_time: float = 0.0
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Applicatie-lifecycle: initialiseer services bij opstart, ruim op bij afsluiten."""
+    global _app_start_time
+    _app_start_time = time.time()
+
+    # Initialiseer log buffer
+    from api.routers.logs import setup_log_buffer
+    setup_log_buffer()
+
+    # Laad AgentRunner-singleton (preloadt alle YAML-agents)
+    from ollama.agent_runner import get_runner
+    app.state.agent_runner = get_runner()
+
+    yield
+
+    # Opruimen bij shutdown (toekomst: sluit DB-pool, HTTP-clients, etc.)
 app = FastAPI(
     title="VorstersNV API",
+    lifespan=lifespan,
     description="""
 ## VorstersNV Webshop & Bedrijfsplatform API
 
@@ -53,8 +79,6 @@ Gebruik de `Authorization: Bearer <token>` header voor beveiligde endpoints.
 )
 
 # CORS – sta frontend toe (via settings, inclusief dev-poorten)
-from api.config import settings as _settings
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_settings.cors_origins,
@@ -92,27 +116,16 @@ async def root():
     }
 
 
-_app_start_time: float = 0.0
-
-
-@app.on_event("startup")
-async def _record_start_time():
-    import time
-    from api.routers.logs import setup_log_buffer
-    global _app_start_time
-    _app_start_time = time.time()
-    setup_log_buffer()
-
-
 @app.get("/health", tags=["Algemeen"], summary="Health check")
 async def health():
     """Controleer of de API draait. Geeft ook server start-tijd terug voor uptime-berekening."""
-    import time
-    from datetime import datetime, timezone
     now = time.time()
     return {
         "status": "ok",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "started_at": datetime.fromtimestamp(_app_start_time, tz=timezone.utc).isoformat() if _app_start_time else None,
+        "started_at": (
+            datetime.fromtimestamp(_app_start_time, tz=timezone.utc).isoformat()
+            if _app_start_time else None
+        ),
         "uptime_seconds": int(now - _app_start_time) if _app_start_time else None,
     }
