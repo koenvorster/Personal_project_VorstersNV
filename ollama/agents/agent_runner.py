@@ -155,7 +155,7 @@ class Agent:
         # Valideer outputtegen schema indien aanwezig
         validated: dict[str, Any] | None = None
         if self.output_schema:
-            from .schema_validator import validate_output
+            from ..core.schema_validator import validate_output
             validated = validate_output(response, self.output_schema, self.name)
             if validated is None:
                 logger.warning(
