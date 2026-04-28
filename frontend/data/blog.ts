@@ -24,6 +24,176 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'mcp-ai-avonturen-legacy-codebase-analyseren',
+    titel: '🤖 Mijn MCP AI-avonturen: een volledige codebase analyseren met AI-agents',
+    excerpt:
+      'Hoe ik met Model Context Protocol, GitHub Copilot en lokale Ollama-agents een enterprise IAM-platform van een Belgische softwareleverancier van A tot Z analyseerde — zonder ook maar één lijn code handmatig te lezen.',
+    datum: '28 april 2026',
+    datumISO: '2026-04-28',
+    leestijd: '9 min',
+    categorie: 'AI & Automatisering',
+    categorieKleur: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    afbeelding:
+      'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?auto=format&fit=crop&w=800&q=80',
+    inhoud: [
+      {
+        type: 'paragraph',
+        text: 'Een paar weken geleden kreeg ik een opdracht die mij meteen enthousiast maakte: analyseer de volledige codebase van een enterprise Identity & Access Management platform bij Cipal Schaubroeck. Het project — intern gekend als WCS (Web Client Security) — beheert de toegang tot PayrollHR-toepassingen voor honderden Belgische gemeenten, OCMW\'s en provincies. Geen klein klusje. Maar ik had iets in handen wat een paar jaar geleden ondenkbaar was: een AI-fleet die het zware werk voor mij deed.',
+      },
+      {
+        type: 'infobox',
+        icon: '🔌',
+        title: 'Wat is MCP?',
+        text: 'Model Context Protocol (MCP) is een open standaard van Anthropic waarmee AI-assistenten rechtstreeks met externe tools kunnen praten — Confluence, Jira, GitHub, databases, browsers. In plaats van copy-pasten geef je je AI-assistent gewoon toegang tot de brondata zelf.',
+        color: 'border-purple-500/30 bg-purple-500/5',
+      },
+      {
+        type: 'heading',
+        text: '🏗️ Het project: WCS bij Cipal Schaubroeck',
+      },
+      {
+        type: 'paragraph',
+        text: 'WCS vervangt het verouderde CAPE-systeem en vormt de beheerslaag bovenop Keycloak. Elke klant (bestuur) krijgt een eigen Keycloak realm, met fine-grained action-based RBAC, identity brokering naar ADFS/Active Directory, en een zelfservice-portaal voor eindgebruikers. De stack: Java Spring Boot backend, Angular frontends (portal, account, management), MariaDB met Liquibase-migraties, en een eigen CI/CD-pipeline.',
+      },
+      {
+        type: 'quote',
+        text: 'Kritieke infrastructuur voor honderden Belgische overheidsinstellingen — elke downtime heeft directe impact op gemeenten die hun medewerkers niet meer kunnen aanmelden.',
+      },
+      {
+        type: 'heading',
+        text: '🤖 De AI-aanpak: MCP als centraal zenuwstelsel',
+      },
+      {
+        type: 'paragraph',
+        text: 'In plaats van de Confluence-documentatie handmatig door te spitten, koppelde ik mijn GitHub Copilot CLI aan de Atlassian MCP server. Dat betekent concreet: mijn AI-assistent kon rechtstreeks Confluence-pagina\'s lezen, Jira-tickets opvragen en zelfs nieuwe issues aanmaken — allemaal vanuit één conversatie. Geen tabswitch, geen copy-paste, geen context verlies.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Confluence MCP: documentatie inlezen',
+            text: 'De AI leest alle WCS-pagina\'s en subpagina\'s automatisch uit. Van architectuurdiagrammen tot operationele runbooks — alles wordt context.',
+          },
+          {
+            title: 'Code-analyse agent (Ollama / llama3)',
+            text: 'Mijn lokale code_analyse_agent verwerkt de Java-codebase in chunks. Per module: wat doet het, hoe hangt het samen, waar zitten risico\'s?',
+          },
+          {
+            title: 'Architect agent: synthese',
+            text: 'De architect_agent combineert alle bevindingen tot een samenhangend architectuuroverzicht met bounded contexts, dataflows en kritieke afhankelijkheden.',
+          },
+          {
+            title: 'Rapport agent (Mistral): klantklaar',
+            text: 'De klant_rapport_agent zet alles om naar een helder Nederlands rapport — leesbaar voor zowel technische als niet-technische stakeholders.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '⚡ Wat MCP concreet verandert',
+      },
+      {
+        type: 'grid2',
+        items: [
+          {
+            icon: '📚',
+            title: 'Confluence als live context',
+            text: 'In plaats van 40 pagina\'s handmatig lezen, haalt de AI de relevante secties zelf op. Je stelt gewoon een vraag.',
+          },
+          {
+            icon: '🐛',
+            title: 'Jira direct vanuit analyse',
+            text: 'Bugs die ik ontdek tijdens de analyse maak ik meteen aan als Jira-ticket, met alle context al ingevuld.',
+          },
+          {
+            icon: '🧠',
+            title: 'Geen context verlies',
+            text: 'Alles zit in één conversatie. De AI weet nog steeds wat hij 20 stappen geleden gelezen heeft.',
+          },
+          {
+            icon: '🚀',
+            title: '10× sneller',
+            text: 'Een analyse die vroeger 2 dagen kostte, is nu klaar in een paar uur. Met betere output.',
+          },
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🔍 Concrete bevinding: de 502-bug',
+      },
+      {
+        type: 'paragraph',
+        text: 'Tijdens de analyse van de WCS testomgeving ontdekte ik dat de endpoint /lima-rest/rest/werkgebied/set op de NB10-testserver een 502 Bad Gateway teruggaf. Vroeger zou ik een Slack-bericht sturen, wachten op de juiste persoon, de context opnieuw uitleggen. Nu: ik vroeg mijn AI-assistent om een Jira-ticket aan te maken op het LN-sprintboard — met reproductie-URL, omgeving, severity en alle context die hij al kende vanuit de analyse. Klaar in 30 seconden.',
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        code: `# Copilot CLI met Atlassian MCP
+# Eén commando — van analyse naar Jira-ticket
+
+$ gh copilot suggest "maak een bug ticket voor 502 op NB10 
+  endpoint /lima-rest/rest/werkgebied/set"
+
+# Resultaat: LN-XXXX aangemaakt met:
+# - Reproductie-URL
+# - HTTP status code  
+# - Omgevingsdetails (nb-docker-10.test.payrollhr.be)
+# - Severity: High
+# - Sprint: actief board`,
+      },
+      {
+        type: 'heading',
+        text: '🏠 Mijn lokale AI-platform: VorstersNV',
+      },
+      {
+        type: 'paragraph',
+        text: 'Naast de MCP-integratie via Copilot CLI bouw ik al een tijdje aan mijn eigen AI-platform: VorstersNV. De kern is een fleet van 32 Ollama-agents die elk een specifieke taak hebben — van code-analyse tot klantrapportage, van fraudedetectie tot bedrijfsproces-mapping. Alles draait lokaal: geen data die de organisatie verlaat, geen API-kosten per token.',
+      },
+      {
+        type: 'infobox',
+        icon: '💻',
+        title: 'Hardware realiteit',
+        text: 'Op mijn laptop (Intel i7, geen dedicated GPU) duurt een analyse-chunk 2-5 minuten. Op mijn gaming desktop met RTX GPU: dezelfde analyse in 1-2 seconden. Lokale AI is serieus geworden.',
+        color: 'border-amber-500/30 bg-amber-500/5',
+      },
+      {
+        type: 'heading',
+        text: '📋 Het eindresultaat: WCS projectanalyse',
+      },
+      {
+        type: 'paragraph',
+        text: 'Het eindrapport voor WCS omvatte: een volledig architectuuroverzicht met logisch diagram, een analyse van alle 6 subprojecten (wcs-backend, wcs-portal, wcs-account, wcs-management, wcs-tools, wcs-dev-setup), een overzicht van de 3 tenant-types en hun RBAC-model, use-case status per module, bekende issues en workarounds, en concrete AI-agent kansen voor automatisering van beheer-taken. Allemaal gegenereerd in één sessie.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Multi-tenant Keycloak architectuur volledig gedocumenteerd (FSSC / SC / groepstenants)',
+          'Action-based RBAC model met @AuthorizeAction aspect geanalyseerd',
+          'Identity Brokering flows naar ADFS/Active Directory in kaart gebracht',
+          'CI/CD pipeline en deployment-procedures gedocumenteerd',
+          '8 concrete AI-agent kansen geïdentificeerd voor toekomstige automatisering',
+          'Volledige analyse opgeslagen in Confluence én als PDF-export',
+        ],
+      },
+      {
+        type: 'heading',
+        text: '🔮 Wat nu?',
+      },
+      {
+        type: 'paragraph',
+        text: 'MCP is nog jong maar groeit razendsnel. Elke week komen er nieuwe servers bij: voor databases, voor cloud providers, voor monitoring tools. Wat ik vandaag doe met Confluence en Jira, zal morgen werken met AWS CloudWatch, met Datadog, met SAP. De AI-assistent wordt niet alleen slimmer — hij krijgt ook steeds meer handen om mee te werken. Voor mij als IT-consultant is dat geen bedreiging, maar een verveelvoudiger: ik doe meer, sneller, en met hogere kwaliteit dan ooit.',
+      },
+      {
+        type: 'quote',
+        text: 'De beste AI-tool is niet degene die het meeste weet — maar degene die toegang heeft tot de juiste data op het juiste moment. MCP is die brug.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Ben je benieuwd hoe ik dit ook voor jouw project of codebase kan inzetten? Neem gerust contact op — de eerste analyse is altijd een gesprek waard.',
+      },
+    ],
+  },
+  {
     slug: 'sprint-26-7-samen-bouwen-slimmer-werken',
     titel: '🚀 Sprint 26/7: Samen bouwen, slimmer werken en veel leren',
     excerpt:
