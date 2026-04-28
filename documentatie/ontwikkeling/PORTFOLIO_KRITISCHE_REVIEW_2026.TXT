@@ -1,0 +1,781 @@
+================================================================================
+VORSTERSNV PORTFOLIO — KRITISCHE REVIEW & NEXT LEVEL PLAN
+================================================================================
+Datum: 28 april 2026
+Door: AI Architect Review (Senior Code Architect)
+Gebaseerd op: directe codebase-inspectie (api/, ollama/, agents/, frontend/, tests/)
+================================================================================
+
+
+================================================================================
+DEEL 1: KRITISCHE BEVINDINGEN
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+1.1 STERKE PUNTEN (wat écht goed is)
+────────────────────────────────────────────────────────────────────────────────
+
+A. CONTROL PLANE ARCHITECTUUR — Indrukwekkend en goed doordacht
+   ► control_plane.py implementeert 8-dimensionale routing (event_type, environment,
+     risk_score, budget, latency, maturity, available_models, policy_rules)
+   ► MaturityLevel (L1→L4) + DeploymentRing (0→4) is een enterprise-grade mechanisme
+     dat je zelden ziet in freelance portfolio-projecten
+   ► WorkflowLane (DETERMINISTIC / ADVISORY / GENERATIVE / ACTION) is een elegant
+     klassificatiemodel dat direct overdraagbaar is naar klantprojecten
+   ► HITL-regels (001–004) zijn expliciet en testbaar — niet verstopt in conditionals
+
+B. TYPED DOMAIN CONTRACTS — Architectureel correct
+   ► contracts.py implementeert to_prompt_input() / from_agent_output() / validate()
+     als abstract interface — dit is de juiste pattern voor inter-agent communicatie
+   ► BaseContract met trace_id, timestamp en contract_version zorgt voor auditability
+   ► Dit is het soort code dat klanten overtuigt: "dit is professioneel"
+
+C. YAML AGENT DEFINITIES — Goed gestructureerd
+   ► consultancy_orchestrator.yml: duidelijke intake→parallel analyse→rapport pipeline
+   ► code_analyse_agent.yml: proper input/output schema, capability listing, eval metrics
+   ► Scheiding tussen YAML-definitie (wat) en Python-runtime (hoe) is correct
+   ► 32 agents met eigen system_prompt_ref en iteration_log is een volwassen aanpak
+
+D. TEST COVERAGE — Boven verwachting voor een solo-project
+   ► 45+ pytest bestanden, per module één testbestand — consistente naamgeving
+   ► test_control_plane.py, test_policy_engine.py, test_contracts_events.py
+     testen precies de kritische paden
+   ► eval/ bestanden (fraud_advisor.jsonl, order_analyst.jsonl) tonen dat er nagedacht
+     is over LLM output evaluatie — dit is 2025-niveau
+
+E. FRONTEND UX KWALITEIT — Visueel overtuigend
+   ► GlassCard + GradientButton componentbibliotheek is consistent doorgevoerd
+   ► Framer Motion animaties zijn subtiel en professioneel (geen over-engineering)
+   ► Responsive design goed uitgewerkt (sm:/md:/lg: breakpoints consistent)
+   ► Diensten-pagina toont prijs, features, werkproces én CTA — dat is de juiste structuur
+
+F. FASTAPI STRUCTUUR — Logisch en overzichtelijk
+   ► 13 routers elk met eigen prefix/tag: products, orders, inventory, portal, feedback,
+     streaming, ai_platform, leads, dashboard, notifications, auth, betalingen, logs
+   ► main.py is clean: enkel imports, middleware, router registratie, health endpoint
+   ► On_event("startup") setup is correct maar deprecated (gebruik lifespan= in FastAPI 0.93+)
+
+G. DIENSTEN AANBOD — Commercieel sterk
+   ► DIENSTEN_AANBOD.md is uitstekend: probleem → oplossing → voor wie → prijs → werkwijze
+   ► Prijstabellen met grootteband zijn concreet genoeg voor KMO-klanten
+   ► Referentieproject (loonberekeningssysteem) geeft geloofwaardigheid
+   ► "Eerste gesprek altijd vrijblijvend" — lage drempel, juiste positionering
+
+
+────────────────────────────────────────────────────────────────────────────────
+1.2 ARCHITECTURALE PROBLEMEN — URGENT
+────────────────────────────────────────────────────────────────────────────────
+
+PROBLEEM A — SEVERITY: KRITISCH
+Titel: ollama/ is 48 modules plat — onnavigeerbaar en niet schaalbaar
+Wat: Alle 48 Python modules in één directory zonder subpackages:
+  ab_tester.py, adaptive_chunker.py, agent_groups.py, agent_runner.py,
+  agent_versioning.py, ai_act_compliance.py, auto_promoter.py,
+  capability_registry.py, client.py, client_project_space.py,
+  compliance_engine.py, contracts.py, control_plane.py, cost_forecaster.py,
+  cost_governance.py, decision_journal.py, deployment_rings.py,
+  diagram_renderer.py, event_bridge.py, events.py, knowledge_graph.py,
+  maturity_engine.py, mcp_registry.py, memory.py, mixture_of_agents.py,
+  observability.py, orchestrator.py, pii_scanner.py, platform_adapter.py,
+  platform_report.py, policy_engine.py, prompt_iterator.py, quality_gates.py,
+  quality_monitor.py, rag_engine.py, reasoning_logger.py,
+  recommendation_engine.py, review_loop.py, schema_validator.py,
+  sector_benchmarks.py, self_improvement.py, skill_chain_orchestrator.py,
+  skill_loader.py, state_machine.py, tool_executor.py, workflow_lanes.py,
+  workflow_loader.py (+ skills/, workflows/, evals/ subdirs)
+Waarom urgent: Een developer (of AI-assistant) die iets zoekt gaat door 48 files
+  moeten navigeren. Import-paden zijn fragiel (from ollama.self_improvement import).
+  Nieuwe modules worden gewoon toegevoegd aan de flat lijst — dit is technische schuld
+  die exponentieel groeit.
+Oplossing:
+  ollama/
+  ├── core/           → client.py, agent_runner.py, orchestrator.py, memory.py
+  ├── control/        → control_plane.py, policy_engine.py, state_machine.py,
+  │                     deployment_rings.py, maturity_engine.py
+  ├── agents/         → contracts.py, schema_validator.py, agent_groups.py,
+  │                     agent_versioning.py, capability_registry.py, skill_loader.py
+  ├── pipelines/      → skill_chain_orchestrator.py, workflow_loader.py,
+  │                     workflow_lanes.py, mixture_of_agents.py
+  ├── observability/  → decision_journal.py, reasoning_logger.py, observability.py,
+  │                     review_loop.py, quality_gates.py, quality_monitor.py
+  ├── content/        → rag_engine.py, knowledge_graph.py, recommendation_engine.py
+  ├── compliance/     → compliance_engine.py, ai_act_compliance.py, pii_scanner.py,
+  │                     cost_governance.py, cost_forecaster.py
+  └── platform/       → platform_adapter.py, platform_report.py,
+                        client_project_space.py, sector_benchmarks.py
+  Effort: Medium — backwards-compat via ollama/__init__.py re-exports
+  Risico: Import-paden in tests moeten bijgewerkt worden (45+ test files)
+
+PROBLEEM B — SEVERITY: KRITISCH
+Titel: AgentRunner is een module-level singleton zonder dependency injection
+Wat: In agent_runner.py:
+  _runner: AgentRunner | None = None
+  def get_runner() -> AgentRunner:
+      global _runner
+      if _runner is None:
+          _runner = AgentRunner()
+      return _runner
+  AgentRunner.__init__() laadt bij instantiatie ALLE 32 agent YAML-files en
+  initialiseert de ContextAssembler. Dit wordt aangeroepen bij eerste gebruik.
+Problemen:
+  1. Geen dependency injection → untestbaar zonder mock
+  2. Lazy singleton is niet thread-safe bij concurrent FastAPI requests
+  3. Geen hot-reload: als een YAML verandert, moet de server herstart worden
+  4. AgentRunner wordt in meerdere routers gebruikt — impliciete globale state
+Oplossing:
+  class AgentRunner:
+      def __init__(self, agents_dir: Path = AGENTS_DIR):
+          self._agents: dict[str, Agent] = {}
+          self._load_agents()
+
+      @classmethod
+      def from_directory(cls, path: Path) -> "AgentRunner":
+          return cls(agents_dir=path)
+
+  # In FastAPI startup:
+  @asynccontextmanager
+  async def lifespan(app: FastAPI):
+      app.state.agent_runner = AgentRunner()
+      yield
+
+  # In routers via Depends:
+  def get_agent_runner(request: Request) -> AgentRunner:
+      return request.app.state.agent_runner
+
+PROBLEEM C — SEVERITY: HOOG
+Titel: code_analyse_agent heeft max_tokens: 512 — breekt de kernservice
+Wat: In agents/code_analyse_agent.yml:
+  max_tokens: 512
+  Dit is de agent die LEGACY CODE ANALYSEERT — de primaire €500-€7.000 dienst.
+  512 output tokens is onvoldoende voor een architectuuroverzicht, business rules
+  extractie en aanbevelingen gecombineerd. Dat is ±400 woorden — een korte brief.
+Impact: De duurste en meest gedifferentieerde dienst levert incompleet werk.
+Oplossing:
+  max_tokens: 4096  # voor volledig type
+  # Of: per analyse_type configureerbaar maken
+  token_config:
+    architectuur: 2048
+    business_rules: 3072
+    kwaliteit: 2048
+    volledig: 4096
+
+PROBLEEM D — SEVERITY: HOOG
+Titel: consultancy_orchestrator.yml heeft geen runtime implementatie
+Wat: De orchestrator beschrijft een prachtige 3-stap pipeline (intake → parallel
+  analyse → rapport) maar er is geen Python code die:
+  - de "parallel: true" instructie uitvoert via asyncio.gather()
+  - de input_mapping van "intake.code_analyse_vereist" vertaalt naar runtime variabelen
+  - de condition "intake.code_analyse_vereist == true" evalueert
+  Het is een YAML-spec zonder een YAML-runtime die hem uitvoert.
+  agent_runner.py laadt enkelvoudige agents, niet orchestrator-definities.
+Impact: De consultancy pipeline bestaat alleen op papier. Aanklant kan er niet mee werken.
+Oplossing: Implementeer een OrchestratorRunner klasse:
+  class OrchestratorRunner:
+      async def run(self, orchestrator_name: str, opdracht: dict) -> OrchestratorResult:
+          spec = self._load_orchestrator(orchestrator_name)
+          intake = await self._run_intake(spec["intake"], opdracht)
+          analyses = await self._run_parallel(spec["analyses"], opdracht, intake)
+          rapport = await self._run_rapport(spec["rapport"], opdracht, intake, analyses)
+          return OrchestratorResult(...)
+
+PROBLEEM E — SEVERITY: HOOG  
+Titel: Frontend root page.tsx is volledig 'use client' — SEO-lek voor portfolio
+Wat: Eerste regel van frontend/app/page.tsx is 'use client'.
+  Gevolg: de HOMEPAGE — het meest SEO-kritieke stuk — wordt client-side gerenderd.
+  Google ziet bij crawl een lege Next.js shell totdat JS geladen is.
+  De stats (4+ jaar ervaring, 15+ projecten), expertise-titels, project-namen
+  worden niet geïndexeerd.
+  Voor een PORTFOLIO SITE is dit een fundamentele fout.
+Waarom het zo is: framer-motion + useInView + useState vereisen client context.
+Oplossing:
+  1. Splits animatiecomponenten in aparte Client Components
+  2. Maak de pagina zelf een Server Component
+  3. Gebruik Suspense boundaries voor animaties:
+    // app/page.tsx — Server Component (geen 'use client')
+    export default function HomePage() {
+      return (
+        <>
+          <HeroSection /> // Server Component, statische HTML
+          <Suspense fallback={<StatsGrid data={stats} />}>
+            <AnimatedStatsGrid stats={stats} /> // Client Component
+          </Suspense>
+        </>
+      )
+    }
+
+PROBLEEM F — SEVERITY: HOOG
+Titel: ControlPlane.select_execution_path() heeft een logicafout in escalatiebeslissing
+Wat: In control_plane.py regel 262-265:
+  use_escalation = (
+      context.risk_score >= 75
+      or context.is_production
+      or context.remaining_budget_eur > 50
+  )
+  "remaining_budget_eur > 50" triggert escalation. Dit is omgekeerd:
+  als je nog €50 budget hebt gebruik je het duurste model?
+  De intentie was waarschijnlijk: "als het budget LAAG is, gebruik goedkoper model".
+  Correctie:
+    use_escalation = (
+        context.risk_score >= 75
+        or context.is_production
+        # Gebruik goedkoper model als budget bijna op is:
+        # NIET als use_escalation factor
+    )
+    # Aparte check voor budget:
+    if context.remaining_budget_eur < 10:
+        primary_model = models["preferred"]  # goedkoopste keuze
+
+PROBLEEM G — SEVERITY: HOOG
+Titel: Keycloak auth is dev-only maar klantportal staat al gebouwd
+Wat: api/auth.py en frontend/app/login/ bestaan, portal router heeft auth-afhankelijkheden,
+  maar Keycloak is expliciet niet productierijp.
+  Een potentiële klant die de "Klantportal" navigatie klikt komt op een
+  onafgewerkte of dev-only interface.
+Impact: Geloofwaardigheidschade als klant dit tegenkomt tijdens portfolio-review.
+Oplossing: Twee opties:
+  A. Snel: verberg portaal-link in nav voor niet-ingelogde users,
+     toon "Binnenkort beschikbaar" pagina
+  B. Juist: vervang Keycloak door NextAuth.js (eenvoudiger, prod-klaar in 1 dag)
+     of gebruik Keycloak maar configureer een hosted instance (Keycloak Cloud)
+
+
+────────────────────────────────────────────────────────────────────────────────
+1.3 ARCHITECTURALE PROBLEMEN — KAN WACHTEN
+────────────────────────────────────────────────────────────────────────────────
+
+H. SEVERITY: MEDIUM
+Titel: on_event("startup") is deprecated in FastAPI 0.93+
+Wat: api/main.py gebruikt @app.on_event("startup") — deprecated.
+Vervang door:
+  from contextlib import asynccontextmanager
+  @asynccontextmanager
+  async def lifespan(app: FastAPI):
+      setup_log_buffer()
+      yield
+  app = FastAPI(..., lifespan=lifespan)
+
+I. SEVERITY: MEDIUM
+Titel: Frontend heeft 5 routes die niet bij het consultancydoel passen
+Routes shop/, winkelwagen/, afrekenen/, betaling/, loyaliteit_ zijn webshop-routes.
+Voor een CONSULTANCY PORTFOLIO zijn dit dode links en verwarrende navigatie.
+Een klant die /shop bezoekt denkt: "Is dit een webshop of een consultant?"
+Oplossing: Verwijder uit navigatie. Behoud in codebase als showcase-bewijs maar
+  redirect via next.config.js naar /projecten of verberg achter feature flag.
+
+J. SEVERITY: MEDIUM
+Titel: Alembic async/sync configuratie is niet opgelost
+Wat: alembic.ini en alembic_analytics.ini zijn aanwezig maar de async/sync problematiek
+  blokkeert clean migrations (asyncpg URL vs sync Alembic requirement).
+Oplossing: Gebruik run_sync() in env.py:
+  def run_migrations_online():
+      connectable = create_engine(
+          settings.database_url.replace("postgresql+asyncpg", "postgresql+psycopg2")
+      )
+      with connectable.connect() as connection:
+          context.configure(connection=connection, ...)
+          with context.begin_transaction():
+              context.run_migrations()
+
+K. SEVERITY: MEDIUM
+Titel: Spring Boot backend/ occupeert diskruimte en cognitieve ruimte
+Actie: git rm -r backend/ + update .gitignore
+  DEPRECATED.md is correct aanwezig maar de map zelf zou weg moeten.
+  Voordeel: minder verwarring, kleinere repository, geen false starts.
+
+L. SEVERITY: LAAG
+Titel: self_improvement.py gebruikt try/except op import-niveau voor optionele deps
+Wat: Meerdere optionele imports (_HAS_VERSIONING, _HAS_JOURNAL, etc.) met
+  module-level try/except blocks. Dit maakt de dependency graph onduidelijk.
+Oplossing: Gebruik TYPE_CHECKING pattern of maak dependencies expliciet vereist.
+
+M. SEVERITY: LAAG
+Titel: diagrammen/test-project/ bevat test JSON bestanden in productie documentatie
+Actie: Verplaats naar tests/fixtures/ of verwijder.
+
+
+────────────────────────────────────────────────────────────────────────────────
+1.4 PORTFOLIO/BUSINESS GATEN
+────────────────────────────────────────────────────────────────────────────────
+
+GAP 1 — KRITISCH: Geen enkel live demo van AI-agents voor bezoekers
+  De /ai-lab pagina beschrijft de architectuur met mooie laagtekst maar een bezoeker
+  kan NIETS uitproberen. Er is geen live chat, geen "analyseer dit code fragment" knop,
+  geen "stuur een business case en krijg een rapport" demo.
+  Voor een AI-consultancy portfolio is dit de grootste gemiste kans.
+  Vergelijk: een web developer toont een live website. Een AI-consultant moet een
+  live AI-demo tonen.
+
+GAP 2 — KRITISCH: Geen case studies met meetbare resultaten
+  DIENSTEN_AANBOD.md vermeldt het loonberekeningssysteem in 2 zinnen.
+  Er is geen /case-studies route, geen before/after screenshots, geen klantcitaat,
+  geen concrete resultaten ("25 looncomponenten gedocumenteerd in 3 werkdagen").
+  Een klant beslist op basis van: "Heeft hij dit soort werk al gedaan? Wat leverde het op?"
+
+GAP 3 — HOOG: Contact flow is alleen een mailto: link
+  De volledige contactstrategie is: href="mailto:koen@vorsters.dev"
+  Er is een /contact route maar geen contactformulier, geen Calendly-integratie,
+  geen "boek een gratis 30-minuten call" knop.
+  KMO-klanten sturen geen koude e-mails naar een onbekende. Ze klikken op "Plan een gesprek".
+
+GAP 4 — HOOG: Pricing is onvoldoende zichtbaar op de diensten-pagina
+  De diensten-kaarten tonen "Op maat", "€75/u", "Vanaf €500".
+  De gedetailleerde prijstabellen (uit DIENSTEN_AANBOD.md) staan NIET op de website.
+  KMO-klanten schrikken af van "Op maat" als ze geen idee hebben van de orde van grootte.
+  Transparante indicatieprijzen verlagen de drempel voor eerste contact.
+
+GAP 5 — HOOG: /blog route bestaat maar blog-content ontbreekt
+  Een lege blog is ERGER dan geen blog: het suggereert dat het project is opgegeven.
+  Oplossing: óf verwijder de route óf publiceer 3-5 artikelen:
+    - "Hoe ik een Java loonberekeningssysteem analyseerde met AI in 3 dagen"
+    - "Lokale AI vs cloud AI: wat kies je als KMO?"
+    - "5 tekenen dat uw legacy code een documentatie-audit nodig heeft"
+
+GAP 6 — MEDIUM: Geen social proof / testimonials
+  Er zijn 0 klantcitaten, 0 LinkedIn aanbevelingen, 0 logo's van bedrijven waarvoor
+  gewerkt is. De "15+ projecten afgeleverd" stat op de homepage is niet onderbouwd.
+  Eén echte klantcitaat is 10x meer waard dan de mooiste techstack-badge.
+
+GAP 7 — MEDIUM: /projecten slug-pages zijn generieke project-kaarten
+  De [slug] route voor projecten bestaat maar de detailpagina's zijn template-cards
+  zonder diepte. Er ontbreken: screenshots, live links, GitHub links, lessons learned,
+  technische uitdagingen. Een potentiële klant wil zien HOE je denkt, niet alleen WAT je bouwt.
+
+GAP 8 — LAAG: Geen duidelijk onderscheid B2B vs B2C
+  De shop/webshop-routes suggereren B2C maar alle diensten zijn B2B.
+  Dit creëert ruis bij een professionele bezoeker die zoekt naar een IT-partner.
+
+
+================================================================================
+DEEL 2: PRIORITEITENMATRIX
+================================================================================
+
+                    IMPACT
+                    HOOG              |  LAAG
+                    ──────────────────┼──────────────────
+EFFORT  LAAG    │  QUICK WINS        │  FILL-INS
+                │  [A] Case studies  │  [F] Keycloak hide
+                │  [B] Calendly/form │  [G] blog verwijder
+                │  [C] Pricing zicht │      of 3 posts
+                │  [D] portfolio SEO │
+                │      (server comp) │
+                ─────────────────────┼──────────────────
+        HOOG    │  STRATEGIC         │  DEFER
+                │  [E] Live AI demo  │  [H] ollama herstr.
+                │  [F] Auth prod     │  [I] OrchestratorRunner
+                │  [G] Orchestrator  │  [J] Multi-tenant
+                │      runtime       │  [K] Cloud Run deploy
+                │                    │
+
+DOEN EERST (Weken 1-2, lage inspanning, hoge portfolio-impact):
+  1. Server Components homepage (SEO fix) — 4 uur
+  2. Calendly of contactformulier toevoegen — 2 uur
+  3. Indicatieprijzen op diensten-pagina — 1 uur
+  4. 1-2 echte case study pages aanmaken — 6 uur
+  5. max_tokens: 4096 in code_analyse_agent.yml — 5 minuten
+  6. ControlPlane budget-escalatielogica fix — 30 minuten
+  7. Shop/winkelwagen uit navigatie verwijderen — 1 uur
+
+DOEN DAARNA (Weken 3-6):
+  8. ollama/ herstructurering naar subpackages — 16 uur
+  9. AgentRunner dependency injection via FastAPI lifespan — 8 uur
+  10. OrchestratorRunner implementatie (consultancy pipeline live) — 20 uur
+  11. Auth: NextAuth.js of Keycloak Cloud (portaal live) — 16 uur
+  12. Live AI demo op /ai-lab (eenvoudige code-analyse chatbox) — 20 uur
+
+LATER OF NOOIT:
+  - Spring Boot backend verwijderen — 30 minuten (doe het nu gewoon)
+  - Multi-tenant isolatie — 40+ uur (wacht op eerste echte klant)
+  - Cloud Run deployment — 8 uur (wacht op stabiele auth)
+  - Alembic async fix — 4 uur (blokkerer voor productie, maar niet voor portfolio)
+
+
+================================================================================
+DEEL 3: WAVES UITVOERINGSPLAN
+================================================================================
+Context: freelance naast een job = ±10-15 uur/week beschikbaar
+
+────────────────────────────────────────────────────────────────────────────────
+Wave 1: "Portfolio Klaar" — Week 1-2 — ~20 uur
+Doel: Platform ziet er professioneel uit voor eerste klantcontact
+────────────────────────────────────────────────────────────────────────────────
+
+Taak 1.1: Homepage Server Component refactor (4u)
+  - Verwijder 'use client' van page.tsx
+  - Extraheer AnimatedSection, hero animaties naar AnimatedHero.client.tsx
+  - Statische content (stats, expertises, projecten) als Server Component
+  - Resultaat: Google indexeert de volledige homepage
+
+Taak 1.2: Contactformulier vervang mailto-links (2u)
+  - Installeer @formspree/react of bouw eigen /api/contact endpoint
+  - Voeg Calendly embed toe ("Plan een gratis gesprek" knop)
+  - Verwijder alle directe mailto: CTAs — vervang door formulier-route
+  - Optioneel: Cal.com gratis tier (open-source Calendly-alternatief)
+
+Taak 1.3: Indicatieprijzen op diensten-pagina (1u)
+  - Voeg prijstabellen toe aan elke dienstkaart (uit DIENSTEN_AANBOD.md)
+  - Format: "Klein project: €500–€1.500 | Groot: €3.500–€7.000"
+  - Behoud "Op maat" als vangnet maar geef een minimumprijs
+
+Taak 1.4: Case Study pagina's aanmaken (8u)
+  - Maak /case-studies route aan in frontend
+  - Case Study 1: Loonberekeningssysteem (al beschreven in DIENSTEN_AANBOD.md)
+    Voeg toe: architectuurdiagram, tijdlijn, concreet resultaat, tools gebruikt
+  - Case Study 2: VorstersNV platform zelf (meta-case: "hoe bouw ik mijn eigen platform")
+  - Format: Klant-probleem → Aanpak → Technologie → Resultaat → Geleerde lessen
+
+Taak 1.5: max_tokens fix in code_analyse_agent.yml (5 min)
+  max_tokens: 4096
+
+Taak 1.6: Shop/winkelwagen uit navigatie + Spring Boot verwijderen (1.5u)
+  - Verberg shop-routes in frontend navigatie (behoud in codebase als showcase)
+  - git rm -r backend/ — commit "Remove deprecated Spring Boot backend"
+
+Taak 1.7: ControlPlane budget-logica bugfix (0.5u)
+  - Fix omgekeerde budget-escalatie logica (zie Probleem F)
+  - Voeg unit test toe voor dit specifieke scenario
+
+────────────────────────────────────────────────────────────────────────────────
+Wave 2: "Technische Fundament" — Week 3-6 — ~40 uur
+Doel: Codebase is navigeerbaar, testbaar en productie-architectuur is correct
+────────────────────────────────────────────────────────────────────────────────
+
+Taak 2.1: ollama/ herstructurering naar subpackages (16u)
+  - Maak 8 subpackages aan (zie Probleem A voor structuur)
+  - Update imports in alle 48 modules
+  - Voeg backward-compat re-exports toe in ollama/__init__.py
+  - Update alle 45+ test files (regex-replace via script)
+  - Test: pytest tests/ — alles moet nog slagen
+
+Taak 2.2: AgentRunner dependency injection (8u)
+  - Refactor AgentRunner naar FastAPI lifespan pattern
+  - Voeg Depends(get_agent_runner) toe aan alle agent-routers
+  - Verwijder module-level _runner singleton
+  - Update conftest.py voor test-instantiatie
+
+Taak 2.3: FastAPI lifespan + deprecated on_event fix (2u)
+  - Vervang @app.on_event("startup") door asynccontextmanager lifespan
+  - Initialiseer agent runner in lifespan
+
+Taak 2.4: Alembic async/sync fix (4u)
+  - Fix env.py voor sync-connectie via psycopg2
+  - Voer alembic upgrade head uit en verifieer schema
+  - Documenteer in CLAUDE.md / pyproject.toml
+
+Taak 2.5: OrchestratorRunner basis implementatie (12u)
+  - Klasse die orchestrator YAML parseert en uitvoert
+  - Ondersteunt: sequential steps, parallel execution (asyncio.gather), conditions
+  - Koppelt aan bestaande AgentRunner voor individuele agent-uitvoering
+  - Schrijf test: run consultancy_orchestrator met mock agents
+
+────────────────────────────────────────────────────────────────────────────────
+Wave 3: "Live Demo & Auth" — Week 7-12 — ~60 uur
+Doel: Platform is demo-klaar voor klantpresentaties, portaal is live
+────────────────────────────────────────────────────────────────────────────────
+
+Taak 3.1: Live AI Demo op /ai-lab (20u)
+  - Bouw een code-analyse chatbox interface
+  - Input: plak code of beschrijf een bedrijfsproces
+  - Backend: /api/agents/demo endpoint → roept code_analyse_agent aan
+  - Output: streaming SSE response (router streaming.py bestaat al!)
+  - Rate limiting: max 5 gratis analyses/dag per IP
+  - Call-to-action: "Wil je een volledige analyse? Neem contact op"
+
+Taak 3.2: Authentication productie-ready (16u)
+  OPTIE A (snel, solo): NextAuth.js met Email/Magic Link
+    - Keycloak uitschakelen in dev config
+    - NextAuth met database adapter (PostgreSQL)
+    - Toegang tot /portal/ enkel voor geauthenticeerde users
+  OPTIE B (enterprise): Keycloak Cloud hosted instance
+    - cloud.keycloak.org gratis tier voor dev/test
+    - Productie realm configureren
+
+Taak 3.3: Klantportal v1 (16u)
+  - Projectoverzicht voor ingelogde klant
+  - Statusindicator per analyse-fase (CREATED→SCANNING→ANALYSING→RAPPORT→DONE)
+  - Downloadbare rapporten (PDF-export van markdown via pypandoc of weasyprint)
+  - Eenvoudige notificatie bij rapport-klaar (email via SendGrid/Resend)
+
+Taak 3.4: Blog minimaal content (8u)
+  - 3 technische blog posts schrijven/publiceren
+  - MDX of CMS (Contentlayer of Sanity gratis tier)
+  - SEO: meta titles, descriptions, structured data
+
+────────────────────────────────────────────────────────────────────────────────
+Wave 4: "Productie & Scale" — Week 13-20 — ~80 uur
+Doel: Platform is productie-klaar, multi-tenant, Cloud Run deployed
+────────────────────────────────────────────────────────────────────────────────
+
+Taak 4.1: Cloud Run FastAPI deployment (8u)
+Taak 4.2: Multi-tenant client isolatie (40u)
+Taak 4.3: Volledige e-mail notificatie pipeline (8u)
+Taak 4.4: Analytics dashboard klant (16u)
+Taak 4.5: PDF-export klantrapport (8u)
+
+
+================================================================================
+DEEL 4: TECHNISCHE SCHULD REGISTER
+================================================================================
+[Geordend: KRITISCH → HOOG → MEDIUM → LAAG]
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ID    │ Beschrijving                      │ Prio    │ Effort │ Fix wave    │
+├───────┼───────────────────────────────────┼─────────┼────────┼─────────────┤
+│ TD-01 │ ollama/ 48 modules flat           │ KRITISCH│ 16u    │ Wave 2      │
+│ TD-02 │ AgentRunner global singleton      │ KRITISCH│ 8u     │ Wave 2      │
+│ TD-03 │ code_analyse max_tokens: 512      │ KRITISCH│ 5 min  │ Wave 1 nu   │
+│ TD-04 │ Orchestrator geen runtime engine  │ HOOG    │ 12u    │ Wave 2      │
+│ TD-05 │ Homepage 'use client' (SEO-lek)   │ HOOG    │ 4u     │ Wave 1      │
+│ TD-06 │ ControlPlane budget logicafout    │ HOOG    │ 0.5u   │ Wave 1 nu   │
+│ TD-07 │ Keycloak niet prod-klaar          │ HOOG    │ 16u    │ Wave 3      │
+│ TD-08 │ on_event deprecated               │ MEDIUM  │ 1u     │ Wave 2      │
+│ TD-09 │ Alembic async/sync mismatch       │ MEDIUM  │ 4u     │ Wave 2      │
+│ TD-10 │ Spring Boot backend op disk       │ MEDIUM  │ 30 min │ Wave 1 nu   │
+│ TD-11 │ Shop-routes in portfolio nav      │ MEDIUM  │ 1u     │ Wave 1      │
+│ TD-12 │ Optional imports via try/except   │ LAAG    │ 4u     │ Wave 4      │
+│ TD-13 │ diagrammen/test-project/ in docs  │ LAAG    │ 15 min │ Wanneer ook │
+│ TD-14 │ Portal router dubbele prefix      │ LAAG    │ 1u     │ Wave 2      │
+│       │ (/api/portal en /api/portal/...)  │         │        │             │
+│ TD-15 │ AgentRunner._load_agents() laadt  │ LAAG    │ 2u     │ Wave 2      │
+│       │ bij import — geen lazy loading    │         │        │             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Notitie TD-14: portal.py heeft prefix="/api/portal" als router én feedback.py
+  wordt gemount als app.include_router(feedback.router, prefix="/api/portal").
+  Dit kan leiden tot overlappende routes. Controleer in Swagger /docs.
+
+
+================================================================================
+DEEL 5: PORTFOLIO TRANSFORMATIE
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+5.1 HUIDIGE STAAT VAN HET PORTFOLIO
+────────────────────────────────────────────────────────────────────────────────
+
+Pagina           │ Status    │ Portfolio-waarde  │ Actie
+─────────────────┼───────────┼───────────────────┼──────────────────────────
+/ (homepage)     │ Goed      │ Hoog              │ Fix SEO (Server Component)
+/diensten        │ Goed      │ Hoog              │ Voeg prijstabellen toe
+/projecten       │ Gemiddeld │ Middel            │ Meer depth per project
+/over-mij        │ ?         │ Hoog              │ Review inhoud
+/ai-lab          │ Beschr.   │ Laag (nu)         │ Maak interactief
+/contact         │ Zwak      │ Kritisch          │ Voeg formulier/Calendly toe
+/blog            │ Leeg      │ Negatief          │ Content of verwijderen
+/projecten/[sl.] │ Gemiddeld │ Middel            │ Verdiep elke slug-pagina
+/portal          │ Dev-only  │ Potentieel hoog   │ Auth fixen, portaal live
+/case-studies    │ Ontbreekt │ Kritisch          │ AANMAKEN — Wave 1
+/shop etc.       │ Verwarrend│ Negatief          │ Verberg in navigatie
+
+
+────────────────────────────────────────────────────────────────────────────────
+5.2 AANBEVOLEN NAVIGATIESTRUCTUUR
+────────────────────────────────────────────────────────────────────────────────
+
+Huidige navigatie:          Aanbevolen navigatie:
+────────────────────        ─────────────────────────────────────────
+Home                        Home
+Over mij                    Diensten  ← Primair conversion punt
+Diensten                    Case Studies  ← NIEUW: social proof
+Projecten                   Projecten (→ technische showcase)
+AI Lab                      AI Lab (→ live demo)
+Blog                        Over mij
+Contact                     Blog (→ SEO)
+[Portal - verborgen]        Contact / Plan een gesprek ← Calendly
+                            [Klantportal - login-gated]
+
+Rationale: B2B klant zoekt: "Kan hij dit? Heeft hij dit gedaan? Kan ik hem bereiken?"
+  Die vragen worden beantwoord door: Diensten → Case Studies → Contact.
+
+
+────────────────────────────────────────────────────────────────────────────────
+5.3 CASE STUDY TEMPLATE (concreet format)
+────────────────────────────────────────────────────────────────────────────────
+
+Elke case study heeft deze structuur:
+
+  PROBLEEM (2-3 zinnen, vanuit klant-perspectief)
+  "Het bedrijf werkte met een Java-loonberekeningssysteem van 12 jaar oud.
+   De enige developer die het begreep was vertrokken. Elke aanpassing kostte weken."
+
+  AANPAK (timeline + werkwijze)
+  Dag 1: Codebase inladen, structuur in kaart brengen
+  Dag 2: Chain of Responsibility patroon ontcijferd, 25 klassen gedocumenteerd
+  Dag 3: Business rules rapport + presentatie aan directie
+
+  TECHNOLOGIE
+  [Badge] Java  [Badge] Spring Boot  [Badge] AI-analyse  [Badge] Ollama
+
+  RESULTAAT (meetbaar)
+  ✓ 25 looncomponenten gedocumenteerd in begrijpelijke taal
+  ✓ Architectuurdiagram beschikbaar voor nieuwe developers
+  ✓ 3 kritieke technische risico's geïdentificeerd
+  ✓ Doorlooptijd: 3 werkdagen vs. geschatte 3-4 weken zonder AI-ondersteuning
+
+  TESTIMONIAL (indien beschikbaar)
+  "Eindelijk begrijpen we wat ons systeem doet." — CTO, Belgische KMO
+
+  CTA: "Vergelijkbaar project? Plan een gesprek →"
+
+
+────────────────────────────────────────────────────────────────────────────────
+5.4 LIVE DEMO FLOW (voor /ai-lab)
+────────────────────────────────────────────────────────────────────────────────
+
+Stap 1: Bezoeker landt op /ai-lab
+  → Ziet architectuuruitleg (huidig — goed)
+  → Ziet "Probeer het zelf" sectie (NIEUW)
+
+Stap 2: Demo-interface
+  Tabs: [Code Analyse] [Business Proces] [Legacy Documentatie]
+  Code Analyse tab:
+    TextArea: "Plak hier uw Java/Python code (max 2000 tekens)"
+    Knop: "Analyseer gratis →"
+    Gratis teller: "Vandaag nog 3/3 gratis analyses beschikbaar"
+
+Stap 3: Streaming response
+  → SSE endpoint /api/analyse/stream roept code_analyse_agent aan
+  → Output stroomt in realtime: architectuuroverzicht, business rules, aanbevelingen
+  → Onderaan: getrunceerd rapport + "Wil je een volledig rapport? Plan een gesprek"
+
+Stap 4: Leadgeneratie
+  → Na demo: e-mail optin voor "volledige analyse van uw codebase (€500–)"
+  → Leaddata gaat naar leads-router (bestaat al!)
+
+
+================================================================================
+DEEL 6: AANBEVELINGEN VOOR KLANTKLAAR PLATFORM
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+6.1 AUTHENTICATIE — Meest urgente blokkeer voor klantportaal
+────────────────────────────────────────────────────────────────────────────────
+
+AANBEVELING: Vervang Keycloak (dev-only) door NextAuth.js voor snelle productie
+
+Implementatie:
+  1. npm install next-auth @auth/prisma-adapter
+  2. Configureer providers: Email (magic link) + LinkedIn OAuth
+  3. Bescherm /portal/* routes via middleware.ts:
+     export { default } from "next-auth/middleware"
+     export const config = { matcher: ["/portal/:path*"] }
+  4. Backend: verify JWT token in FastAPI auth.py
+     (NextAuth JWT is compatibel met FastAPI python-jose)
+
+Reden voor NextAuth over Keycloak:
+  - Keycloak vereist een draaiende server (Docker of hosted)
+  - NextAuth is embedded in de Next.js app — geen extra infrastructuur
+  - Voor <100 klanten is Keycloak overkill
+  - Keycloak later altijd nog als enterprise-upgrade
+
+
+────────────────────────────────────────────────────────────────────────────────
+6.2 MULTI-TENANT — Wacht op eerste echte klant
+────────────────────────────────────────────────────────────────────────────────
+
+Implementatiestrategie (wanneer nodig):
+  - Row-level security: voeg tenant_id kolom toe aan alle relevante tabellen
+  - Alembic migratie: ALTER TABLE client_projects ADD COLUMN tenant_id UUID
+  - FastAPI dependency: get_current_tenant() via JWT claims
+  - NOOIT implementeren voordat je 2+ betalende klanten hebt
+
+Waarschuwing: multi-tenant is een significant architectureel risico als je het
+  te vroeg bouwt zonder echte use cases. Bouw eerst voor 1 klant, generaliseer later.
+
+
+────────────────────────────────────────────────────────────────────────────────
+6.3 PRICING STRATEGIE — Maak het concreter op de site
+────────────────────────────────────────────────────────────────────────────────
+
+Huidige situatie: "Op maat" voor 2/4 diensten — te vaag voor KMO-beslissers
+Aanbeveling: Toon bandbreedtes, niet exacte prijzen
+
+  Legacy Analyse:    "Vanaf €500 — meeste projecten tussen €1.500 en €3.500"
+  AI Agents:         "Tussen €800 en €10.000 — gratis offerte na intake"
+  Full-Stack Dev:    "€75/uur — vaste projectprijs mogelijk na scope-analyse"
+  IoT/Embedded:      "Uurwerk of vaste prijs — bespreekbaar"
+
+Voeg ook toe: "Wat is inbegrepen?" (uit DIENSTEN_AANBOD.md) — dit differentiëert
+  t.o.v. andere freelancers.
+
+
+────────────────────────────────────────────────────────────────────────────────
+6.4 CONTACT FLOW — Verlaag de drempel maximaal
+────────────────────────────────────────────────────────────────────────────────
+
+Stap 1: Voeg Calendly/Cal.com widget toe (gratis, 30 min installatie)
+  "Plan een gratis 30-minuten kennismaking" → directe kalender-link
+  Zet dit OP ELKE PAGINA als sticky button of in de navigatie
+
+Stap 2: Contactformulier met pre-kwalificatie
+  Velden: Naam, Bedrijf, E-mail, Type dienst (dropdown), Korte beschrijving
+  Backend: /api/leads endpoint (bestaat al!) → e-mail notificatie naar koen@vorsters.dev
+
+Stap 3: Lead nurturing
+  Antwoord automatisch met een onboarding e-mail:
+  "Bedankt voor uw interesse. Ik neem contact op binnen 24u. 
+   In de tussentijd: [link naar case study] [link naar AI-lab demo]"
+
+
+────────────────────────────────────────────────────────────────────────────────
+6.5 TECHNISCHE DEMO VOOR KLANTPRESENTATIES
+────────────────────────────────────────────────────────────────────────────────
+
+Bouw een "verkoop-demo script" dat je kunt uitvoeren tijdens een klantpresentatie:
+
+  Script: "VorstersNV Live Demo - 10 minuten"
+  ─────────────────────────────────────────
+  Min 0-2: Toon /ai-lab — leg architectuurlagen uit
+  Min 2-5: Plak legacy code fragment in demo chatbox → toon streaming analyse
+  Min 5-7: Toon gegenereerd rapport (architectuur, business rules, aanbevelingen)
+  Min 7-9: Toon /portal/projects — "Zo volgt u uw project live"
+  Min 9-10: Toon prijsstructuur op /diensten
+
+  Vereisten: demo werkt zonder internet (lokale Ollama), geen inloggen vereist,
+             demo-data is anoniem (niet van echte klant)
+
+
+================================================================================
+INVESTERING SCHATTING
+================================================================================
+
+Wave 1 "Portfolio Klaar":     20 uur   @ 10u/week = 2 weken
+Wave 2 "Technisch Fundament": 40 uur   @ 10u/week = 4 weken
+Wave 3 "Live Demo & Auth":    60 uur   @ 10u/week = 6 weken
+Wave 4 "Productie & Scale":   80 uur   @ 10u/week = 8 weken
+                              ────────────────────────────
+Totaal:                       200 uur  = ±5 maanden naast job
+
+VOOR EERSTE KLANTCONTACT KLAAR: Wave 1 afgerond = 2 weken
+
+Realistische timeline naast een job (10u/week):
+  Maand 1  (Wave 1+start 2): Portfolio klaar voor presentatie
+  Maand 2-3 (Wave 2+3):      Live demo + klantportaal live
+  Maand 4-5 (Wave 4):        Productie-klaar voor eerste betalende klant
+
+
+================================================================================
+EINDOORDEEL
+================================================================================
+
+De technische onderbouw van VorstersNV is INDRUKWEKKEND voor een solo-project:
+control_plane, typed contracts, deployment rings, policy-as-code, eval pipelines —
+dit toont senioriteit en doordachte architectuur.
+
+Het GROOTSTE PROBLEEM is niet de code — het is de kloof tussen wat er GEBOUWD is
+en wat een klant ZIET. De consultancy pipeline is een YAML-spec zonder runtime.
+De AI-demo is een architectuurbeschrijving zonder interactiviteit. De case study is
+2 zinnen in een markdown bestand.
+
+De code verdient meer dan een static website. Laat het WERKEN — voor bezoekers,
+voor potentiële klanten, en als demo van wat jij voor HUN bedrijf kunt doen.
+
+Prioriteit 0, vandaag nog:
+  1. max_tokens: 4096 in code_analyse_agent.yml
+  2. ControlPlane budget bug fixen
+  3. Spring Boot backend verwijderen
+  4. Calendly link toevoegen aan contactpagina
+
+Dan: Wave 1 afmaken in 2 weken. Dan ben je klaar voor eerste klantgesprek.
+
+================================================================================
+```
